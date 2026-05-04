@@ -19,22 +19,12 @@ export function ProfileHeroCard({ avatarId, displayName, email, memberSince, ini
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      {/* Edit button */}
-      <TouchableOpacity
-        style={[styles.editToggle, { backgroundColor: colors.muted }]}
-        onPress={() => router.push("/profile/edit")}
-        activeOpacity={0.8}
-      >
-        <Feather name="edit-2" size={12} color={colors.mutedForeground} />
-        <Text style={[styles.editToggleText, { color: colors.mutedForeground }]}>Edit</Text>
-      </TouchableOpacity>
-
       {/* Avatar */}
       <View style={styles.avatarWrap}>
         <View style={[styles.avatarRing, { borderColor: colors.primary + "40" }]}>
           {avatarId ? (
             <View style={[styles.avatarIllustration, { backgroundColor: "#f0f9ff" }]}>
-              <AvatarById id={avatarId} size={60} />
+              <AvatarById id={avatarId} size={54} />
             </View>
           ) : (
             <View style={[styles.avatarInitial, { backgroundColor: colors.primary }]}>
@@ -44,93 +34,93 @@ export function ProfileHeroCard({ avatarId, displayName, email, memberSince, ini
         </View>
       </View>
 
-      {/* Name */}
-      <Text
-        style={[
-          displayName ? styles.heroName : styles.heroNamePlaceholder,
-          { color: displayName ? colors.foreground : colors.mutedForeground },
-        ]}
-        numberOfLines={1}
-      >
-        {displayName || "Add your name"}
-      </Text>
+      {/* User Info Stack */}
+      <View style={styles.infoStack}>
+        <Text
+          style={[
+            displayName ? styles.heroName : styles.heroNamePlaceholder,
+            { color: displayName ? colors.foreground : colors.mutedForeground },
+          ]}
+          numberOfLines={1}
+        >
+          {displayName || "Add your name"}
+        </Text>
 
-      {/* Email */}
-      <Text style={[styles.heroEmail, { color: colors.mutedForeground }]} numberOfLines={1}>
-        {email}
-      </Text>
+        <Text style={[styles.heroEmail, { color: colors.mutedForeground }]} numberOfLines={1}>
+          {email}
+        </Text>
 
-      {/* Member since pill */}
-      {memberSince && (
-        <View style={[styles.memberPill, { backgroundColor: colors.primary + "12" }]}>
-          <Feather name="calendar" size={11} color={colors.primary} />
-          <Text style={[styles.memberPillText, { color: colors.primary }]}>
-            Member since {memberSince}
+        {memberSince && (
+          <Text style={[styles.memberText, { color: colors.primary }]}>
+            Joined {memberSince}
           </Text>
-        </View>
-      )}
+        )}
+      </View>
+
+      {/* Edit button */}
+      <TouchableOpacity
+        style={[styles.editBtn, { backgroundColor: colors.muted }]}
+        onPress={() => router.push("/profile/edit")}
+        activeOpacity={0.8}
+      >
+        <Feather name="edit-2" size={15} color={colors.foreground} />
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 18,
-    borderWidth: 1,
-    alignItems: "center",
-    paddingTop: 8,
-    paddingBottom: 14,
-    paddingHorizontal: 18,
-    marginBottom: 20,
-    gap: 3,
-  },
-  editToggle: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    alignSelf: "flex-end",
-    paddingHorizontal: 9,
-    paddingVertical: 4,
     borderRadius: 20,
-    marginBottom: 2,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 20,
+    gap: 14,
   },
-  editToggleText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
-  avatarWrap: { position: "relative", marginBottom: 4 },
+  avatarWrap: { flexShrink: 0 },
   avatarRing: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 66,
+    height: 66,
+    borderRadius: 33,
     borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarIllustration: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
   },
   avatarInitial: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarInitialText: { fontSize: 34, fontFamily: "Inter_700Bold", color: "#fff" },
-  heroName: { fontSize: 22, fontFamily: "Inter_700Bold", letterSpacing: -0.5, marginTop: 2 },
-  heroNamePlaceholder: { fontSize: 14, fontFamily: "Inter_400Regular", fontStyle: "italic", marginTop: 2 },
-  heroEmail: { fontSize: 13, fontFamily: "Inter_400Regular", letterSpacing: -0.1, marginTop: 2 },
-  memberPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
-    marginTop: 4,
+  avatarInitialText: { fontSize: 26, fontFamily: "Inter_700Bold", color: "#fff" },
+  
+  infoStack: {
+    flex: 1,
+    justifyContent: "center",
+    gap: 2,
   },
-  memberPillText: { fontSize: 12, fontFamily: "Inter_500Medium" },
+  heroName: { fontSize: 19, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.2 },
+  heroNamePlaceholder: { fontSize: 15, fontFamily: "Inter_400Regular", fontStyle: "italic" },
+  heroEmail: { fontSize: 13, fontFamily: "Inter_400Regular", letterSpacing: -0.1 },
+  memberText: { fontSize: 11, fontFamily: "Inter_600SemiBold", marginTop: 2 },
+  
+  editBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "flex-start",
+  },
 });

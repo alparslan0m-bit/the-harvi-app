@@ -182,11 +182,12 @@ const styles = StyleSheet.create({
   },
   grid: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
     marginBottom: 20,
   },
   avatarCell: {
-    flex: 1,
+    width: "30%",
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",

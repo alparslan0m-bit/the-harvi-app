@@ -211,29 +211,29 @@ export function ResultsView({
         {/* ── Action buttons ── */}
         <Animated.View entering={FadeInDown.delay(500).duration(400).springify()} style={styles.btnGroup}>
           <TouchableOpacity
-            style={[styles.btn, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
+            style={[styles.btn, styles.primaryBtn, { backgroundColor: colors.primary, shadowColor: colors.primary }]}
             onPress={onRetry}
-            activeOpacity={0.85}
+            activeOpacity={0.8}
           >
-            <Feather name="refresh-cw" size={17} color="#fff" />
+            <Feather name="refresh-cw" size={18} color="#fff" />
             <Text style={[styles.btnText, { color: "#fff" }]}>Retry Quiz</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.btn, { backgroundColor: colors.background, borderWidth: 1.5, borderColor: colors.border }]}
+            style={[styles.btn, { backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.border }]}
             onPress={onReview}
-            activeOpacity={0.85}
+            activeOpacity={0.8}
           >
-            <Feather name="list" size={17} color={colors.foreground} />
+            <Feather name="list" size={18} color={colors.foreground} />
             <Text style={[styles.btnText, { color: colors.foreground }]}>Review Answers</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.btn, { backgroundColor: colors.muted }]}
+            style={[styles.btn, { backgroundColor: "transparent", marginTop: 4 }]}
             onPress={onHome}
-            activeOpacity={0.85}
+            activeOpacity={0.6}
           >
-            <Feather name="home" size={17} color={colors.mutedForeground} />
+            <Feather name="home" size={18} color={colors.mutedForeground} />
             <Text style={[styles.btnText, { color: colors.mutedForeground }]}>Go Home</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -333,18 +333,20 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18 },
 
   // Buttons
-  btnGroup: { gap: 10, width: "100%" },
+  btnGroup: { gap: 12, width: "100%", marginTop: 8 },
   btn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 9,
-    paddingVertical: 16,
-    borderRadius: 18,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.22,
-    shadowRadius: 10,
+    gap: 10,
+    paddingVertical: 18,
+    borderRadius: 24,
+  },
+  primaryBtn: {
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 14,
     elevation: 4,
   },
-  btnText: { fontSize: 16, fontFamily: "Inter_600SemiBold", letterSpacing: -0.3 },
+  btnText: { fontSize: 17, fontFamily: "Nunito_800ExtraBold", letterSpacing: 0 },
 });

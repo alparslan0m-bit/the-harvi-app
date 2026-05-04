@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import { useScrollToTop } from "@react-navigation/native";
+import { useFocusEffect, useScrollToTop } from "@react-navigation/native";
 import { router } from "expo-router";
 import React, { useRef } from "react";
 import {
@@ -10,6 +10,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Animated,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -34,6 +35,29 @@ export default function StatsScreen() {
 
   const scrollRef = useRef<ScrollView>(null);
   useScrollToTop(scrollRef);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateY = fadeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [15, 0],
+  });
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // Fade and slide in transition
+      fadeAnim.setValue(0);
+      Animated.spring(fadeAnim, {
+        toValue: 1,
+        tension: 65,
+        friction: 10,
+        useNativeDriver: true,
+      }).start();
+
+      const timer = setTimeout(() => {
+        scrollRef.current?.scrollTo({ y: 0, animated: false });
+      }, 50);
+      return () => clearTimeout(timer);
+    }, [fadeAnim])
+  );
 
   const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const todayDow = new Date().getDay();
@@ -65,12 +89,13 @@ export default function StatsScreen() {
           <View style={[styles.cachePill, { backgroundColor: "#fef3c7", marginBottom: 2 }]}>
             <Feather name="wifi-off" size={11} color="#92400e" />
             <Text style={[styles.cacheText, { color: "#92400e" }]}>
-              {pendingCount > 0 ? `Cached · ${pendingCount} pending` : "Cached"}
+              {pendingCount > 0 ? `${pendingCount} offline` : "Offline mode"}
             </Text>
           </View>
         )}
       </View>
 
+      <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}>
       {/* ── Loading ───────────────────────────────────────────────────── */}
       {isLoading && (
         <View style={styles.center}>
@@ -198,6 +223,7 @@ export default function StatsScreen() {
           )}
         </ScrollView>
       )}
+      </Animated.View>
     </View>
   );
 }
@@ -212,7 +238,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
   },
-  title: { fontSize: 30, fontFamily: "Inter_700Bold", letterSpacing: -0.8 },
+  title: { fontSize: 36, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
   cachePill: {
     flexDirection: "row", alignItems: "center", gap: 4,
     paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20,

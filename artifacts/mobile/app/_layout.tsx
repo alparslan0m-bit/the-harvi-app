@@ -5,6 +5,10 @@ import {
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
+import {
+  Nunito_700Bold,
+  Nunito_800ExtraBold,
+} from "@expo-google-fonts/nunito";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -38,7 +42,7 @@ function RootLayoutNav() {
       <Stack.Screen name="year/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="quiz/[lectureId]" options={{ headerShown: false }} />
       <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
-      <Stack.Screen name="profile/edit" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="profile/edit" options={{ headerShown: false }} />
       <Stack.Screen name="+not-found" options={{ headerShown: true, title: "Not Found" }} />
     </Stack>
   );
@@ -50,6 +54,8 @@ export default function RootLayout() {
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    Nunito_700Bold,
+    Nunito_800ExtraBold,
   });
 
   useEffect(() => {

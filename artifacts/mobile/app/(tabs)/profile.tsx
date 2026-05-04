@@ -14,6 +14,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Animated,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -39,6 +40,11 @@ export default function ProfileScreen() {
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
   const scrollRef = useRef<ScrollView>(null);
   useScrollToTop(scrollRef);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateY = fadeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [15, 0],
+  });
 
   const initial = (user?.email?.[0] ?? "U").toUpperCase();
   const memberSince = user?.created_at
@@ -48,6 +54,18 @@ export default function ProfileScreen() {
   // Reload avatar + name each time screen is focused (e.g. returning from edit)
   useFocusEffect(
     useCallback(() => {
+      // Fade and slide in transition
+      fadeAnim.setValue(0);
+      Animated.spring(fadeAnim, {
+        toValue: 1,
+        tension: 65,
+        friction: 10,
+        useNativeDriver: true,
+      }).start();
+
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({ y: 0, animated: false });
+      }, 50);
       AsyncStorage.multiGet([AVATAR_KEY, NAME_KEY]).then((pairs) => {
         const av = pairs[0][1];
         const nm = pairs[1][1];
@@ -114,7 +132,8 @@ export default function ProfileScreen() {
         <Text style={[styles.title, { color: colors.foreground }]}>Profile</Text>
       </View>
 
-      {/* ── Scrollable content ────────────────────────────────────────── */}
+      <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}>
+        {/* ── Scrollable content ────────────────────────────────────────── */}
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
@@ -244,6 +263,7 @@ export default function ProfileScreen() {
 
         <Text style={[styles.versionText, { color: colors.mutedForeground }]}>Harvi · v1.0.0</Text>
       </ScrollView>
+      </Animated.View>
     </View>
   );
 }
@@ -256,7 +276,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  title: { fontSize: 30, fontFamily: "Inter_700Bold", letterSpacing: -0.8 },
+  title: { fontSize: 36, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
 
   content: { paddingTop: 24, paddingHorizontal: 20 },
 

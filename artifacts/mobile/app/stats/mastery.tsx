@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   backBtn: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
-  headerTitle: { fontSize: 20, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
+  headerTitle: { fontSize: 26, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
   headerSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 1 },
   avgBadge: {
     alignItems: "center",

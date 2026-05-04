@@ -42,7 +42,6 @@ export default function EditProfileScreen() {
       if (av) setAvatarId(av as AvatarId);
       if (nm) setNameInput(nm);
     });
-    setTimeout(() => nameRef.current?.focus(), 300);
   }, []);
 
   const handleSelectAvatar = (id: AvatarId) => {
@@ -74,11 +73,11 @@ export default function EditProfileScreen() {
         backgroundColor: colors.background,
       }]}>
         <TouchableOpacity
-          style={[styles.headerBtn, { backgroundColor: colors.muted }]}
+          style={[styles.backBtn, { backgroundColor: colors.muted }]}
           onPress={handleCancel}
           activeOpacity={0.7}
         >
-          <Text style={[styles.headerBtnText, { color: colors.mutedForeground }]}>Cancel</Text>
+          <Feather name="arrow-left" size={18} color={colors.foreground} />
         </TouchableOpacity>
 
         <Text style={[styles.headerTitle, { color: colors.foreground }]}>Edit Profile</Text>
@@ -116,8 +115,8 @@ export default function EditProfileScreen() {
                 </View>
               )}
             </View>
-            <View style={[styles.cameraBadge, { backgroundColor: colors.primary, borderColor: colors.background }]}>
-              <Feather name="camera" size={13} color="#fff" />
+            <View style={[styles.editBadge, { backgroundColor: colors.primary, borderColor: colors.background }]}>
+              <Feather name="smile" size={15} color="#fff" />
             </View>
           </TouchableOpacity>
           <Text style={[styles.avatarHint, { color: colors.mutedForeground }]}>
@@ -204,7 +203,15 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   headerBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  headerTitle: { fontSize: 16, fontFamily: "Inter_700Bold", letterSpacing: -0.3 },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  headerTitle: { fontSize: 20, fontFamily: "Nunito_700Bold", letterSpacing: -0.3 },
 
   content: { paddingHorizontal: 24, paddingTop: 36 },
 
@@ -227,7 +234,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   avatarInitialText: { fontSize: 40, fontFamily: "Inter_700Bold", color: "#fff" },
-  cameraBadge: {
+  editBadge: {
     position: "absolute",
     bottom: 4,
     right: 4,

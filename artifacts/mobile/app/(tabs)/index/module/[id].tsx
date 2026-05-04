@@ -11,20 +11,25 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ModuleCard } from "@/components/ModuleCard";
+import { SubjectCard } from "@/components/SubjectCard";
 import { useColors } from "@/hooks/useColors";
 import { useHierarchy } from "@/hooks/useHierarchy";
+import { useProgress } from "@/hooks/useProgress";
 
-export default function YearScreen() {
+export default function ModuleScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: years } = useHierarchy();
-  const year = years?.find((y) => y.id === id);
+  const completedIds = useProgress();
+
+  const module = years?.flatMap((y) => y.modules).find((m) => m.id === id);
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
 
-  if (!year) return null;
+  if (!module) return null;
+
+  const totalLectures = module.subjects.reduce((sum, s) => sum + s.lectures.length, 0);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -42,7 +47,7 @@ export default function YearScreen() {
           <Feather name="arrow-left" size={18} color={colors.foreground} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.foreground }]} numberOfLines={2}>
-          {year.name}
+          {module.name}
         </Text>
       </View>
 
@@ -50,23 +55,30 @@ export default function YearScreen() {
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>MODULES</Text>
+        <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>SUBJECTS</Text>
 
-        {year.modules.map((mod, i) => (
-          <ModuleCard
-            key={mod.id}
-            module={mod}
-            index={i}
-            onPress={() =>
-              router.push({ pathname: "/module/[id]", params: { id: mod.id } })
-            }
-          />
-        ))}
+        {module.subjects.map((sub, i) => {
+          const completedCount = sub.lectures.filter(
+            (lec) => completedIds.has(lec.external_id) || completedIds.has(lec.id)
+          ).length;
 
-        {year.modules.length === 0 && (
+          return (
+            <SubjectCard
+              key={sub.id}
+              subject={sub}
+              index={i}
+              completedCount={completedCount}
+              onPress={() =>
+                router.push({ pathname: "/subject/[id]", params: { id: sub.id } })
+              }
+            />
+          );
+        })}
+
+        {module.subjects.length === 0 && (
           <View style={styles.empty}>
             <Feather name="inbox" size={36} color={colors.mutedForeground} />
-            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No modules yet</Text>
+            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No subjects yet</Text>
           </View>
         )}
       </ScrollView>
@@ -80,7 +92,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 14,
     paddingHorizontal: 20,
-    paddingBottom: 18,
+    paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   backBtn: {
@@ -91,7 +103,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexShrink: 0,
   },
-  headerTitle: { flex: 1, fontSize: 30, fontFamily: "Inter_700Bold", letterSpacing: -0.8, lineHeight: 36 },
+  headerTitle: { flex: 1, fontSize: 36, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
   list: { paddingTop: 24 },
   sectionLabel: {
     fontSize: 11,

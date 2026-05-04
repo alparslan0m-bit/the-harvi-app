@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import { useScrollToTop } from "@react-navigation/native";
+import { useFocusEffect, useScrollToTop } from "@react-navigation/native";
 import { router } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import {
@@ -10,6 +10,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Animated,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -80,7 +81,7 @@ export default function LearnScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { session, loading: authLoading } = useAuth();
-  const { data: years, isLoading, error } = useHierarchy();
+  const { data: years, isLoading, error, refetch } = useHierarchy();
 
   useEffect(() => {
     if (!authLoading && !session) {
@@ -92,6 +93,29 @@ export default function LearnScreen() {
 
   const scrollRef = useRef<ScrollView>(null);
   useScrollToTop(scrollRef);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateY = fadeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [15, 0],
+  });
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // Fade and slide in transition
+      fadeAnim.setValue(0);
+      Animated.spring(fadeAnim, {
+        toValue: 1,
+        tension: 65,
+        friction: 10,
+        useNativeDriver: true,
+      }).start();
+
+      const timer = setTimeout(() => {
+        scrollRef.current?.scrollTo({ y: 0, animated: false });
+      }, 50);
+      return () => clearTimeout(timer);
+    }, [fadeAnim])
+  );
 
   if (isLoading || authLoading) {
     return (
@@ -99,12 +123,14 @@ export default function LearnScreen() {
         <View style={[styles.header, { paddingTop: topPad + 14, borderBottomColor: colors.border, backgroundColor: colors.background }]}>
           <Text style={[styles.title, { color: colors.foreground }]}>Harvi</Text>
         </View>
-        <View style={styles.center}>
-          <ActivityIndicator color={colors.primary} size="large" />
-          <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>
-            Loading Harvi content...
-          </Text>
-        </View>
+        <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}>
+          <View style={styles.center}>
+            <ActivityIndicator color={colors.primary} size="large" />
+            <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>
+              Loading Harvi content...
+            </Text>
+          </View>
+        </Animated.View>
       </View>
     );
   }
@@ -115,7 +141,9 @@ export default function LearnScreen() {
         <View style={[styles.header, { paddingTop: topPad + 14, borderBottomColor: colors.border, backgroundColor: colors.background }]}>
           <Text style={[styles.title, { color: colors.foreground }]}>Harvi</Text>
         </View>
-        <ErrorState error={error as Error} onRetry={refetch} />
+        <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}>
+          <ErrorState error={error as Error} onRetry={refetch} />
+        </Animated.View>
       </View>
     );
   }
@@ -129,7 +157,8 @@ export default function LearnScreen() {
         <Text style={[styles.title, { color: colors.foreground }]}>Harvi</Text>
       </View>
 
-      {/* ── Scrollable content ────────────────────────────────────────── */}
+      <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}>
+        {/* ── Scrollable content ────────────────────────────────────────── */}
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
@@ -161,6 +190,7 @@ export default function LearnScreen() {
           </View>
         )}
       </ScrollView>
+      </Animated.View>
     </View>
   );
 }
@@ -173,7 +203,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  title: { fontSize: 30, fontFamily: "Inter_700Bold", letterSpacing: -0.8 },
+  title: { fontSize: 36, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
   subtitle: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 3 },
 
   content: { paddingTop: 20 },

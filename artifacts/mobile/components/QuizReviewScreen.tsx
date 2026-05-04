@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   headerText: { flex: 1 },
-  headerTitle: { fontSize: 20, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
+  headerTitle: { fontSize: 26, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
   headerSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
 
   // ── Summary strip ───────────────────────────────────────────────────────

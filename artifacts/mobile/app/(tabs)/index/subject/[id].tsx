@@ -60,16 +60,9 @@ export default function SubjectScreen() {
           <Feather name="arrow-left" size={18} color={colors.foreground} />
         </TouchableOpacity>
 
-        <View style={styles.headerText}>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]} numberOfLines={2}>
-            {subject.name}
-          </Text>
-          {totalCount > 0 && (
-            <Text style={[styles.headerMeta, { color: colors.mutedForeground }]}>
-              {completedCount} / {totalCount} completed
-            </Text>
-          )}
-        </View>
+        <Text style={[styles.headerTitle, { color: colors.foreground }]} numberOfLines={2}>
+          {subject.name}
+        </Text>
       </View>
 
       {/* ── Download row ─────────────────────────────────────────────────── */}
@@ -145,7 +138,7 @@ export default function SubjectScreen() {
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: 14,
     paddingHorizontal: 20,
     paddingBottom: 16,
@@ -158,11 +151,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
-    marginTop: 4,
   },
-  headerText: { flex: 1, gap: 3 },
-  headerTitle: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.8, lineHeight: 34 },
-  headerMeta: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  headerTitle: { flex: 1, fontSize: 36, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
 
   downloadRow: {
     flexDirection: "row",
