@@ -42,12 +42,17 @@ export default function QuizScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
-  const { lectureId, lectureName } = useLocalSearchParams<{ lectureId: string; lectureName: string }>();
+  const { lectureId, lectureName } = useLocalSearchParams<{
+    lectureId: string;
+    lectureName: string;
+  }>();
   const { user } = useAuth();
   const { isOnline } = useSyncStatus();
 
   // ── Fast path: pre-load from AsyncStorage before RQ resolves ─────────────
-  const [cachedQuestions, setCachedQuestions] = useState<Question[] | undefined>();
+  const [cachedQuestions, setCachedQuestions] = useState<
+    Question[] | undefined
+  >();
   const [cacheChecked, setCacheChecked] = useState(false);
   const mountedRef = useRef(true);
   useEffect(() => {
@@ -57,14 +62,20 @@ export default function QuizScreen() {
       if (hit?.questions.length) setCachedQuestions(hit.questions);
       setCacheChecked(true);
     });
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, [lectureId]);
 
-  const { data: remoteQuestions, isLoading, error } = useQuizQuestions(lectureId, cachedQuestions);
+  const {
+    data: remoteQuestions,
+    isLoading,
+    error,
+  } = useQuizQuestions(lectureId, cachedQuestions);
 
   // ── Quiz session state ────────────────────────────────────────────────────
   const [questions, setQuestions] = useState<Question[] | null>(null);
-  
+
   // Lock in the questions once they arrive (either from cache or remote)
   // This prevents the "switcheroo" bug where background refreshes shuffle
   // the questions while the user is mid-quiz.
@@ -94,22 +105,28 @@ export default function QuizScreen() {
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
-  const handleSelect = useCallback((selectedIndex: number) => {
-    if (!questions) return;
-    const q: Question = questions[currentIndex];
-    const { answer, explanation } = decryptAnswer(q.secure);
-    const isCorrect = selectedIndex === answer;
+  const handleSelect = useCallback(
+    (selectedIndex: number) => {
+      if (!questions) return;
+      const q: Question = questions[currentIndex];
+      const { answer, explanation } = decryptAnswer(q.secure);
+      const isCorrect = selectedIndex === answer;
 
-    Haptics.notificationAsync(
-      isCorrect
-        ? Haptics.NotificationFeedbackType.Success
-        : Haptics.NotificationFeedbackType.Error
-    );
+      Haptics.notificationAsync(
+        isCorrect
+          ? Haptics.NotificationFeedbackType.Success
+          : Haptics.NotificationFeedbackType.Error,
+      );
 
-    setAnswered({ selected: selectedIndex, correct: answer, explanation });
-    if (isCorrect) setCorrectCount((c) => c + 1);
-    setHistory((h) => [...h, { question: q, selected: selectedIndex, correct: answer, explanation }]);
-  }, [questions, currentIndex]);
+      setAnswered({ selected: selectedIndex, correct: answer, explanation });
+      if (isCorrect) setCorrectCount((c) => c + 1);
+      setHistory((h) => [
+        ...h,
+        { question: q, selected: selectedIndex, correct: answer, explanation },
+      ]);
+    },
+    [questions, currentIndex],
+  );
 
   const handleNext = useCallback(async () => {
     if (!questions) return;
@@ -133,17 +150,20 @@ export default function QuizScreen() {
           correctAnswers: correctCount,
           createdAt: now,
         });
-        if (user?.id && lectureId) await optimisticallyMarkComplete(user.id, lectureId);
+        if (user?.id && lectureId)
+          await optimisticallyMarkComplete(user.id, lectureId);
         setSavedOffline(true);
       } else {
-        const { error: insertErr } = await supabase.from("quiz_results").insert({
-          user_id: user?.id,
-          lecture_id: lectureId,
-          score,
-          total_questions: questions.length,
-          correct_answers: correctCount,
-          created_at: now,
-        });
+        const { error: insertErr } = await supabase
+          .from("quiz_results")
+          .insert({
+            user_id: user?.id,
+            lecture_id: lectureId,
+            score,
+            total_questions: questions.length,
+            correct_answers: correctCount,
+            created_at: now,
+          });
 
         if (insertErr) {
           await enqueueQuizResult({
@@ -154,7 +174,8 @@ export default function QuizScreen() {
             correctAnswers: correctCount,
             createdAt: now,
           });
-          if (user?.id && lectureId) await optimisticallyMarkComplete(user.id, lectureId);
+          if (user?.id && lectureId)
+            await optimisticallyMarkComplete(user.id, lectureId);
           setSavedOffline(true);
         }
       }
@@ -166,7 +187,15 @@ export default function QuizScreen() {
       setCurrentIndex((i) => i + 1);
       setAnswered(null);
     }
-  }, [questions, currentIndex, correctCount, user, lectureId, queryClient, isOnline]);
+  }, [
+    questions,
+    currentIndex,
+    correctCount,
+    user,
+    lectureId,
+    queryClient,
+    isOnline,
+  ]);
 
   const handleRetry = useCallback(() => {
     setQuestions(null); // Unlock questions to allow fresh data/shuffle
@@ -181,7 +210,7 @@ export default function QuizScreen() {
     setHistory([]);
     progressAnim.value = 0;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Keep progress bar in sync
@@ -191,7 +220,7 @@ export default function QuizScreen() {
       damping: 22,
       stiffness: 140,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, questions]);
 
   // ── Loading ───────────────────────────────────────────────────────────────
@@ -206,8 +235,18 @@ export default function QuizScreen() {
     const isOfflineError = !!(error as Error)?.message?.includes("offline");
 
     return (
-      <View style={[styles.centerScreen, { backgroundColor: colors.background, paddingHorizontal: 28 }]}>
-        <View style={[styles.errorIcon, { backgroundColor: isOfflineError ? "#fef9c3" : "#fef2f2" }]}>
+      <View
+        style={[
+          styles.centerScreen,
+          { backgroundColor: colors.background, paddingHorizontal: 28 },
+        ]}
+      >
+        <View
+          style={[
+            styles.errorIcon,
+            { backgroundColor: isOfflineError ? "#fef9c3" : "#fef2f2" },
+          ]}
+        >
           <Feather
             name={isOfflineError ? "wifi-off" : "alert-circle"}
             size={32}
@@ -215,14 +254,18 @@ export default function QuizScreen() {
           />
         </View>
         <Text style={[styles.errorTitle, { color: colors.foreground }]}>
-          {isOfflineError ? "Not downloaded" : error ? "Failed to load" : "No questions"}
+          {isOfflineError
+            ? "Not downloaded"
+            : error
+              ? "Failed to load"
+              : "No questions"}
         </Text>
         <Text style={[styles.errorBody, { color: colors.mutedForeground }]}>
           {isOfflineError
             ? `Go back to the subject and tap "Download offline" while connected to the internet.`
             : error
-            ? (error as Error).message
-            : `No questions are linked to this lecture.\n\nLecture ID: ${lectureId}`}
+              ? (error as Error).message
+              : `No questions are linked to this lecture.\n\nLecture ID: ${lectureId}`}
         </Text>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -272,11 +315,11 @@ export default function QuizScreen() {
 
   const question = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
-  const isCorrectAnswer = answered !== null && answered.selected === answered.correct;
+  const isCorrectAnswer =
+    answered !== null && answered.selected === answered.correct;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <View style={[styles.header, { paddingTop: topPad + 10 }]}>
         {/* Close button */}
@@ -290,7 +333,10 @@ export default function QuizScreen() {
         </TouchableOpacity>
 
         {/* Lecture name */}
-        <Text style={[styles.lectureName, { color: colors.mutedForeground }]} numberOfLines={1}>
+        <Text
+          style={[styles.lectureName, { color: colors.mutedForeground }]}
+          numberOfLines={1}
+        >
           {lectureName}
         </Text>
 
@@ -299,7 +345,9 @@ export default function QuizScreen() {
           <Text style={[styles.counterCurrent, { color: colors.foreground }]}>
             {currentIndex + 1}
           </Text>
-          <Text style={[styles.counterTotal, { color: colors.mutedForeground }]}>
+          <Text
+            style={[styles.counterTotal, { color: colors.mutedForeground }]}
+          >
             /{questions.length}
           </Text>
         </View>
@@ -307,12 +355,21 @@ export default function QuizScreen() {
 
       {/* ── Progress bar ─────────────────────────────────────────────────── */}
       <View style={[styles.progressTrack, { backgroundColor: colors.muted }]}>
-        <Animated.View style={[styles.progressFill, { backgroundColor: colors.primary }, progressStyle]} />
+        <Animated.View
+          style={[
+            styles.progressFill,
+            { backgroundColor: colors.primary },
+            progressStyle,
+          ]}
+        />
       </View>
 
       {/* ── Question + options ───────────────────────────────────────────── */}
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 130 }]}
+        contentContainerStyle={[
+          styles.scroll,
+          { paddingBottom: insets.bottom + 130 },
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -321,7 +378,9 @@ export default function QuizScreen() {
           entering={FadeInDown.duration(320).springify()}
         >
           {/* Question number label */}
-          <View style={[styles.qChip, { backgroundColor: `${colors.primary}18` }]}>
+          <View
+            style={[styles.qChip, { backgroundColor: `${colors.primary}18` }]}
+          >
             <Text style={[styles.qChipText, { color: colors.primary }]}>
               QUESTION {currentIndex + 1}
             </Text>
@@ -364,28 +423,37 @@ export default function QuizScreen() {
               ]}
             >
               <View style={styles.explanationHeader}>
-                <View style={[
-                  styles.explanationIconBox,
-                  { backgroundColor: isCorrectAnswer ? "#dcfce7" : "#e0f2fe" }
-                ]}>
+                <View
+                  style={[
+                    styles.explanationIconBox,
+                    {
+                      backgroundColor: isCorrectAnswer ? "#dcfce7" : "#e0f2fe",
+                    },
+                  ]}
+                >
                   <Feather
                     name={isCorrectAnswer ? "check" : "info"}
                     size={13}
                     color={isCorrectAnswer ? "#16a34a" : colors.primary}
                   />
                 </View>
-                <Text style={[
-                  styles.explanationTitle,
-                  { color: isCorrectAnswer ? "#16a34a" : colors.primary }
-                ]}>
+                <Text
+                  style={[
+                    styles.explanationTitle,
+                    { color: isCorrectAnswer ? "#16a34a" : colors.primary },
+                  ]}
+                >
                   Explanation
                 </Text>
               </View>
-              <Text style={[
-                styles.explanationText,
-                { color: isCorrectAnswer ? "#14532d" : "#0c4a6e" }
-              ]}>
-                {answered.explanation || "No explanation available for this question."}
+              <Text
+                style={[
+                  styles.explanationText,
+                  { color: isCorrectAnswer ? "#14532d" : "#0c4a6e" },
+                ]}
+              >
+                {answered.explanation ||
+                  "No explanation available for this question."}
               </Text>
             </Animated.View>
           )}
@@ -413,7 +481,11 @@ export default function QuizScreen() {
             <Text style={styles.nextBtnText}>
               {isLast ? "See Results" : "Next Question"}
             </Text>
-            <Feather name={isLast ? "award" : "arrow-right"} size={18} color="#fff" />
+            <Feather
+              name={isLast ? "award" : "arrow-right"}
+              size={18}
+              color="#fff"
+            />
           </TouchableOpacity>
         </Animated.View>
       )}
@@ -423,7 +495,12 @@ export default function QuizScreen() {
 
 const styles = StyleSheet.create({
   // ── Error states ────────────────────────────────────────────────────────
-  centerScreen: { flex: 1, alignItems: "center", justifyContent: "center", gap: 14 },
+  centerScreen: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
+  },
   errorIcon: {
     width: 76,
     height: 76,
@@ -432,7 +509,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 4,
   },
-  errorTitle: { fontSize: 22, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
+  errorTitle: {
+    fontSize: 22,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: -0.5,
+  },
   errorBody: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
@@ -446,7 +527,11 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 16,
   },
-  errorBtnText: { color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  errorBtnText: {
+    color: "#fff",
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+  },
 
   // ── Header ──────────────────────────────────────────────────────────────
   header: {
@@ -479,7 +564,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     flexShrink: 0,
   },
-  counterCurrent: { fontSize: 14, fontFamily: "Inter_700Bold", letterSpacing: -0.3 },
+  counterCurrent: {
+    fontSize: 14,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: -0.3,
+  },
   counterTotal: { fontSize: 12, fontFamily: "Inter_500Medium" },
 
   // ── Progress bar ────────────────────────────────────────────────────────
@@ -528,8 +617,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  explanationTitle: { fontSize: 13, fontFamily: "Inter_700Bold", letterSpacing: -0.1 },
-  explanationText: { fontSize: 14, fontFamily: "Inter_400Regular", lineHeight: 21 },
+  explanationTitle: {
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: -0.1,
+  },
+  explanationText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 21,
+  },
 
   // ── Next button ─────────────────────────────────────────────────────────
   nextWrap: {
