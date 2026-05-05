@@ -171,7 +171,7 @@ export default function EditProfileScreen() {
           <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>APPEARANCE</Text>
           <View style={styles.themeRow}>
             {[
-              { id: "system", label: "System", icon: "settings" },
+              { id: "harvi", label: "Harvi", icon: "activity" },
               { id: "dark", label: "Dark", icon: "moon" },
               { id: "pink", label: "Pink", icon: "heart" },
             ].map((item) => {

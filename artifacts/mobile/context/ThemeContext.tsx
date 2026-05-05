@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Appearance } from "react-native";
 
-export type ThemeMode = "light" | "dark" | "system" | "pink";
+export type ThemeMode = "harvi" | "dark" | "pink";
 
 interface ThemeCtx {
   theme: ThemeMode;
@@ -10,23 +10,21 @@ interface ThemeCtx {
 }
 
 const Ctx = createContext<ThemeCtx>({
-  theme: "system",
+  theme: "harvi",
   setTheme: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>("system");
+  const [theme, setThemeState] = useState<ThemeMode>("harvi");
 
   useEffect(() => {
     AsyncStorage.getItem("harvi:theme").then((saved) => {
-      if (saved === "light" || saved === "dark" || saved === "system" || saved === "pink") {
+      if (saved === "harvi" || saved === "dark" || saved === "pink") {
         setThemeState(saved as ThemeMode);
-        if (saved === "light" || saved === "pink") {
+        if (saved === "harvi" || saved === "pink") {
           Appearance.setColorScheme("light");
         } else if (saved === "dark") {
           Appearance.setColorScheme("dark");
-        } else {
-          Appearance.setColorScheme(null);
         }
       }
     }).catch(() => {});
@@ -35,12 +33,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = (newTheme: ThemeMode) => {
     setThemeState(newTheme);
     AsyncStorage.setItem("harvi:theme", newTheme).catch(() => {});
-    if (newTheme === "system") {
-      Appearance.setColorScheme(null);
-    } else if (newTheme === "pink") {
+    if (newTheme === "harvi" || newTheme === "pink") {
       Appearance.setColorScheme("light");
     } else {
-      Appearance.setColorScheme(newTheme);
+      Appearance.setColorScheme("dark");
     }
   };
 
