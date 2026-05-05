@@ -147,6 +147,17 @@ async function fetchCompletedLectures(userId: string): Promise<Set<string>> {
   return result;
 }
 
+/** Force clear all progress cache for a user (used during 'Clear History'). */
+export async function clearProgressCache(userId: string) {
+  try {
+    await AsyncStorage.removeItem(PROGRESS_CACHE_KEY(userId));
+    memCache.delete(userId);
+    warmed.delete(userId);
+  } catch (error) {
+    console.error("[clearProgressCache] Error clearing progress cache:", error);
+  }
+}
+
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useProgress() {

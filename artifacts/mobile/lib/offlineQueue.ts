@@ -53,6 +53,12 @@ export async function removeSynced(localIds: string[]): Promise<void> {
   await writeQueue(queue.filter((i) => !localIds.includes(i.localId)));
 }
 
+/** Clear all pending results for a specific user */
+export async function clearQueueForUser(userId: string): Promise<void> {
+  const queue = await readQueue();
+  await writeQueue(queue.filter((i) => i.userId !== userId));
+}
+
 /** How many items are pending */
 export async function pendingCount(): Promise<number> {
   return (await readQueue()).length;

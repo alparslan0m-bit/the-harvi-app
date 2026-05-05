@@ -3,9 +3,13 @@ import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useColors } from "@/hooks/useColors";
+import { clearStatsCache } from "@/hooks/useStats";
+import { clearProgressCache } from "@/hooks/useProgress";
 import { supabase } from "@/lib/supabase";
 import { clearAllLectureCache } from "@/lib/questionCache";
+import { clearQueueForUser } from "@/lib/offlineQueue";
 
 interface AccountActionsProps {
   userId?: string;
@@ -19,6 +23,8 @@ interface AccountActionsProps {
 export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
   const colors = useColors();
 
+  const queryClient = useQueryClient();
+
   const handleClearHistory = () => {
     Alert.alert(
       "Clear History",
@@ -30,7 +36,28 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
           style: "destructive",
           onPress: async () => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            await supabase.from("quiz_results").delete().eq("user_id", userId ?? "");
+            
+            const uid = userId ?? "";
+            
+            // 1. Clear everything locally immediately
+            await Promise.all([
+              clearStatsCache(uid),
+              clearProgressCache(uid),
+              clearQueueForUser(uid),
+            ]);
+
+            // 2. Clear remote (will try but might fail if offline)
+            try {
+              await supabase.from("quiz_results").delete().eq("user_id", uid);
+            } catch (error) {
+              console.warn("[handleClearHistory] Remote delete failed (possibly offline):", error);
+            }
+
+            // 3. Force refresh UI
+            queryClient.invalidateQueries({ queryKey: ["stats", uid] });
+            queryClient.invalidateQueries({ queryKey: ["progress", uid] });
+            
+            Alert.alert("History Cleared", "Your quiz history has been reset.");
           },
         },
       ]

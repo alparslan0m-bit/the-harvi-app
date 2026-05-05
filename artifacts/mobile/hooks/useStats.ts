@@ -309,6 +309,19 @@ async function fetchStats(userId: string): Promise<UserStats> {
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
+/**
+ * Force clear all stats cache for a user (used during 'Clear History').
+ */
+export async function clearStatsCache(userId: string) {
+  try {
+    await AsyncStorage.removeItem(CACHE_KEY(userId));
+    memCache.delete(userId);
+    warmed.delete(userId);
+  } catch (error) {
+    console.error("[clearStatsCache] Error clearing stats cache:", error);
+  }
+}
+
 export function useStats(userId: string | undefined) {
   // Kick off async warm of memCache on first call for this user.
   // By the time they navigate to the stats tab, memCache will be populated.

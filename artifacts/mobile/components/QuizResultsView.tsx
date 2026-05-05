@@ -46,11 +46,11 @@ function getTitle(score: number): string {
 }
 
 function getMessage(score: number): string {
-  if (score >= 90) return "Exceptional! You've thoroughly mastered this material.";
-  if (score >= 80) return "Strong performance. You have a solid grasp of the content.";
-  if (score >= 70) return "You're on the right track — a bit more practice and you'll ace it.";
-  if (score >= 60) return "You passed! Review the answers to close the remaining gaps.";
-  return "Don't be discouraged. Study the review and try again — you'll improve.";
+  if (score >= 90) return "Outstanding! You've mastered this material.";
+  if (score >= 80) return "Great job! You have a solid grasp of this.";
+  if (score >= 70) return "Good effort! A bit more practice for perfection.";
+  if (score >= 60) return "Nice pass! Review the answers to fill the gaps.";
+  return "Review your answers and try again to improve.";
 }
 
 function getFeedbackIcon(score: number): React.ComponentProps<typeof Feather>["name"] {
