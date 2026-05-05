@@ -10,12 +10,12 @@ const YEAR_FK_CANDIDATES = ["year_id", "course_id", "level_id", "stage_id", "par
 const MODULE_FK_CANDIDATES = ["module_id", "subject_group_id", "section_id", "category_id", "parent_id", "unit_id"];
 const SUBJECT_FK_CANDIDATES = ["subject_id", "topic_id", "section_id", "lesson_group_id", "parent_id", "module_id"];
 
-function detectFK(row: Record<string, unknown>, candidates: string[]): string {
+function detectFK(row: Record<string, unknown>, candidates: string[], table: string): string {
   for (const col of candidates) {
     if (col in row) return col;
   }
-  const idCols = Object.keys(row).filter((k) => k !== "id" && k.endsWith("_id"));
-  return idCols[0] ?? candidates[0];
+  console.error(`[Hierarchy] Schema error in ${table}: No valid foreign key found. Expected one of: ${candidates.join(', ')}`);
+  throw new Error(`Schema mismatch in ${table}: Could not detect foreign key column.`);
 }
 
 function str(v: unknown): string { return String(v ?? ""); }
@@ -60,9 +60,9 @@ async function buildHierarchyFromRemote(): Promise<Year[]> {
   const firstSubject = (subjects ?? [])[0] as Record<string, unknown> | undefined;
   const firstLecture = (lectures ?? [])[0] as Record<string, unknown> | undefined;
 
-  const yearFk = firstModule ? detectFK(firstModule, YEAR_FK_CANDIDATES) : "year_id";
-  const moduleFk = firstSubject ? detectFK(firstSubject, MODULE_FK_CANDIDATES) : "module_id";
-  const subjectFk = firstLecture ? detectFK(firstLecture, SUBJECT_FK_CANDIDATES) : "subject_id";
+  const yearFk = firstModule ? detectFK(firstModule, YEAR_FK_CANDIDATES, "modules") : "year_id";
+  const moduleFk = firstSubject ? detectFK(firstSubject, MODULE_FK_CANDIDATES, "subjects") : "module_id";
+  const subjectFk = firstLecture ? detectFK(firstLecture, SUBJECT_FK_CANDIDATES, "lectures") : "subject_id";
 
   const lecturesBySubject: Record<string, Lecture[]> = {};
   for (const lec of (lectures ?? [])) {
