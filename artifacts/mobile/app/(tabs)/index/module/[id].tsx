@@ -29,14 +29,21 @@ export default function ModuleScreen() {
 
   if (!module) return null;
 
-  const totalLectures = module.subjects.reduce((sum, s) => sum + s.lectures.length, 0);
+  const totalLectures = module.subjects.reduce(
+    (sum, s) => sum + s.lectures.length,
+    0,
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View
         style={[
           styles.header,
-          { paddingTop: topPad + 14, backgroundColor: colors.background, borderBottomColor: colors.border },
+          {
+            paddingTop: topPad + 14,
+            backgroundColor: colors.background,
+            borderBottomColor: colors.border,
+          },
         ]}
       >
         <TouchableOpacity
@@ -46,20 +53,29 @@ export default function ModuleScreen() {
         >
           <Feather name="arrow-left" size={18} color={colors.foreground} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.foreground }]} numberOfLines={2}>
+        <Text
+          style={[styles.headerTitle, { color: colors.foreground }]}
+          numberOfLines={2}
+        >
           {module.name}
         </Text>
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 100 }]}
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: insets.bottom + 100 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>SUBJECTS</Text>
+        <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
+          SUBJECTS
+        </Text>
 
         {module.subjects.map((sub, i) => {
           const completedCount = sub.lectures.filter(
-            (lec) => completedIds.has(lec.external_id) || completedIds.has(lec.id)
+            (lec) =>
+              completedIds.has(lec.external_id) || completedIds.has(lec.id),
           ).length;
 
           return (
@@ -69,7 +85,10 @@ export default function ModuleScreen() {
               index={i}
               completedCount={completedCount}
               onPress={() =>
-                router.push({ pathname: "/subject/[id]", params: { id: sub.id } })
+                router.push({
+                  pathname: "/subject/[id]",
+                  params: { id: sub.id },
+                })
               }
             />
           );
@@ -78,7 +97,9 @@ export default function ModuleScreen() {
         {module.subjects.length === 0 && (
           <View style={styles.empty}>
             <Feather name="inbox" size={36} color={colors.mutedForeground} />
-            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No subjects yet</Text>
+            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
+              No subjects yet
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -103,7 +124,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexShrink: 0,
   },
-  headerTitle: { flex: 1, fontSize: 36, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
+  headerTitle: {
+    flex: 1,
+    fontSize: 36,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -0.5,
+  },
   list: { paddingTop: 24 },
   sectionLabel: {
     fontSize: 11,

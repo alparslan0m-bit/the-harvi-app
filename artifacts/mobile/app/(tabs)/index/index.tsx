@@ -21,9 +21,12 @@ import { useHierarchy } from "@/hooks/useHierarchy";
 
 function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
   const colors = useColors();
-  const isRLS = error.message.includes("row-level security") || error.message.includes("42501");
+  const isRLS =
+    error.message.includes("row-level security") ||
+    error.message.includes("42501");
   const isMissing =
-    (error.message.includes("relation") && error.message.includes("does not exist")) ||
+    (error.message.includes("relation") &&
+      error.message.includes("does not exist")) ||
     error.message.includes("42P01");
 
   return (
@@ -35,32 +38,57 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
         <Feather name="alert-triangle" size={28} color={colors.destructive} />
       </View>
       <Text style={[styles.errorTitle, { color: colors.foreground }]}>
-        {isMissing ? "Database tables not found" : isRLS ? "Access denied" : "Could not load content"}
+        {isMissing
+          ? "Database tables not found"
+          : isRLS
+            ? "Access denied"
+            : "Could not load content"}
       </Text>
       {isMissing && (
-        <View style={[styles.infoBox, { backgroundColor: "#fef2f2", borderColor: "#fecaca" }]}>
+        <View
+          style={[
+            styles.infoBox,
+            { backgroundColor: "#fef2f2", borderColor: "#fecaca" },
+          ]}
+        >
           <Text style={[styles.infoText, { color: "#7f1d1d" }]}>
             One or more tables (<Text style={styles.mono}>years</Text>,{" "}
-            <Text style={styles.mono}>modules</Text>, <Text style={styles.mono}>subjects</Text>,{" "}
+            <Text style={styles.mono}>modules</Text>,{" "}
+            <Text style={styles.mono}>subjects</Text>,{" "}
             <Text style={styles.mono}>lectures</Text>) are missing.{"\n\n"}
-            Go to <Text style={styles.bold}>Supabase → SQL Editor</Text> and run your schema
-            migration, then pull-to-refresh.
+            Go to <Text style={styles.bold}>Supabase → SQL Editor</Text> and run
+            your schema migration, then pull-to-refresh.
           </Text>
         </View>
       )}
       {isRLS && (
-        <View style={[styles.infoBox, { backgroundColor: "#fffbeb", borderColor: "#fde68a" }]}>
+        <View
+          style={[
+            styles.infoBox,
+            { backgroundColor: "#fffbeb", borderColor: "#fde68a" },
+          ]}
+        >
           <Text style={[styles.infoText, { color: "#78350f" }]}>
             Row Level Security is blocking reads.{"\n\n"}
-            In <Text style={styles.bold}>Supabase → Authentication → Policies</Text>, add a{" "}
-            <Text style={styles.mono}>SELECT</Text> policy for authenticated users on{" "}
-            <Text style={styles.mono}>years</Text>, <Text style={styles.mono}>modules</Text>,{" "}
-            <Text style={styles.mono}>subjects</Text>, and <Text style={styles.mono}>lectures</Text>.
+            In{" "}
+            <Text style={styles.bold}>
+              Supabase → Authentication → Policies
+            </Text>
+            , add a <Text style={styles.mono}>SELECT</Text> policy for
+            authenticated users on <Text style={styles.mono}>years</Text>,{" "}
+            <Text style={styles.mono}>modules</Text>,{" "}
+            <Text style={styles.mono}>subjects</Text>, and{" "}
+            <Text style={styles.mono}>lectures</Text>.
           </Text>
         </View>
       )}
       {!isMissing && !isRLS && (
-        <View style={[styles.infoBox, { backgroundColor: "#f0f9ff", borderColor: "#bae6fd" }]}>
+        <View
+          style={[
+            styles.infoBox,
+            { backgroundColor: "#f0f9ff", borderColor: "#bae6fd" },
+          ]}
+        >
           <Text style={[styles.infoText, { color: "#0c4a6e" }]} selectable>
             {error.message}
           </Text>
@@ -114,19 +142,34 @@ export default function LearnScreen() {
         scrollRef.current?.scrollTo({ y: 0, animated: false });
       }, 50);
       return () => clearTimeout(timer);
-    }, [fadeAnim])
+    }, [fadeAnim]),
   );
 
   if (isLoading || authLoading) {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { paddingTop: topPad + 14, borderBottomColor: colors.border, backgroundColor: colors.background }]}>
-          <Text style={[styles.title, { color: colors.foreground }]}>Harvi</Text>
+        <View
+          style={[
+            styles.header,
+            {
+              paddingTop: topPad + 14,
+              borderBottomColor: colors.border,
+              backgroundColor: colors.background,
+            },
+          ]}
+        >
+          <Text style={[styles.title, { color: colors.foreground }]}>
+            Harvi
+          </Text>
         </View>
-        <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}>
+        <Animated.View
+          style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}
+        >
           <View style={styles.center}>
             <ActivityIndicator color={colors.primary} size="large" />
-            <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>
+            <Text
+              style={[styles.loadingText, { color: colors.mutedForeground }]}
+            >
               Loading Harvi content...
             </Text>
           </View>
@@ -138,10 +181,23 @@ export default function LearnScreen() {
   if (error) {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
-        <View style={[styles.header, { paddingTop: topPad + 14, borderBottomColor: colors.border, backgroundColor: colors.background }]}>
-          <Text style={[styles.title, { color: colors.foreground }]}>Harvi</Text>
+        <View
+          style={[
+            styles.header,
+            {
+              paddingTop: topPad + 14,
+              borderBottomColor: colors.border,
+              backgroundColor: colors.background,
+            },
+          ]}
+        >
+          <Text style={[styles.title, { color: colors.foreground }]}>
+            Harvi
+          </Text>
         </View>
-        <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}>
+        <Animated.View
+          style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}
+        >
           <ErrorState error={error as Error} onRetry={refetch} />
         </Animated.View>
       </View>
@@ -153,43 +209,62 @@ export default function LearnScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       {/* ── Fixed header ──────────────────────────────────────────────── */}
-      <View style={[styles.header, { paddingTop: topPad + 14, borderBottomColor: colors.border, backgroundColor: colors.background }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: topPad + 14,
+            borderBottomColor: colors.border,
+            backgroundColor: colors.background,
+          },
+        ]}
+      >
         <Text style={[styles.title, { color: colors.foreground }]}>Harvi</Text>
       </View>
 
-      <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}>
-        {/* ── Scrollable content ────────────────────────────────────────── */}
-      <ScrollView
-        ref={scrollRef}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
-        showsVerticalScrollIndicator={false}
+      <Animated.View
+        style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}
       >
-        {years?.map((year, i) => (
-          <YearCard
-            key={year.id}
-            year={year}
-            index={i}
-            onPress={() =>
-              router.push({
-                pathname: "/year/[id]",
-                params: { id: year.id, index: String(i) },
-              })
-            }
-          />
-        ))}
+        {/* ── Scrollable content ────────────────────────────────────────── */}
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: insets.bottom + 100 },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {years?.map((year, i) => (
+            <YearCard
+              key={year.id}
+              year={year}
+              index={i}
+              onPress={() =>
+                router.push({
+                  pathname: "/year/[id]",
+                  params: { id: year.id, index: String(i) },
+                })
+              }
+            />
+          ))}
 
-        {(!years || years.length === 0) && (
-          <View style={styles.emptyState}>
-            <View style={[styles.emptyIcon, { backgroundColor: "#f0f9ff" }]}>
-              <Feather name="book-open" size={32} color={colors.primary} />
+          {(!years || years.length === 0) && (
+            <View style={styles.emptyState}>
+              <View style={[styles.emptyIcon, { backgroundColor: "#f0f9ff" }]}>
+                <Feather name="book-open" size={32} color={colors.primary} />
+              </View>
+              <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
+                No content yet
+              </Text>
+              <Text
+                style={[styles.emptyText, { color: colors.mutedForeground }]}
+              >
+                Your content will appear here once years and modules are added
+                to your database.
+              </Text>
             </View>
-            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>No content yet</Text>
-            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-              Your content will appear here once years and modules are added to your database.
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+          )}
+        </ScrollView>
       </Animated.View>
     </View>
   );
@@ -203,25 +278,71 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  title: { fontSize: 36, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
+  title: {
+    fontSize: 36,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -0.5,
+  },
   subtitle: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 3 },
 
   content: { paddingTop: 20 },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
   loadingText: { fontSize: 14, fontFamily: "Inter_400Regular" },
 
-  emptyState: { alignItems: "center", paddingHorizontal: 40, paddingTop: 60, gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  emptyState: {
+    alignItems: "center",
+    paddingHorizontal: 40,
+    paddingTop: 60,
+    gap: 12,
+  },
+  emptyIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   emptyTitle: { fontSize: 18, fontFamily: "Inter_600SemiBold" },
-  emptyText: { fontSize: 14, fontFamily: "Inter_400Regular", textAlign: "center", lineHeight: 20 },
+  emptyText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+    lineHeight: 20,
+  },
 
-  errorContainer: { alignItems: "center", paddingHorizontal: 24, paddingTop: 40, paddingBottom: 60, gap: 16 },
-  errorIcon: { width: 64, height: 64, borderRadius: 20, alignItems: "center", justifyContent: "center", marginBottom: 4 },
-  errorTitle: { fontSize: 20, fontFamily: "Inter_700Bold", letterSpacing: -0.5, textAlign: "center" },
+  errorContainer: {
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingTop: 40,
+    paddingBottom: 60,
+    gap: 16,
+  },
+  errorIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: -0.5,
+    textAlign: "center",
+  },
   infoBox: { width: "100%", padding: 16, borderRadius: 14, borderWidth: 1 },
   infoText: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 20 },
   bold: { fontFamily: "Inter_700Bold" },
   mono: { fontFamily: "Inter_600SemiBold" },
-  retryBtn: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 14, marginTop: 4 },
+  retryBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginTop: 4,
+  },
   retryText: { color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" },
 });

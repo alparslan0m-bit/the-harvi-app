@@ -38,7 +38,7 @@ export default function SubjectScreen() {
   if (!subject) return null;
 
   const completedCount = subject.lectures.filter(
-    (lec) => completedIds.has(lec.external_id) || completedIds.has(lec.id)
+    (lec) => completedIds.has(lec.external_id) || completedIds.has(lec.id),
   ).length;
 
   const totalCount = subject.lectures.length;
@@ -49,7 +49,11 @@ export default function SubjectScreen() {
       <View
         style={[
           styles.header,
-          { paddingTop: topPad + 14, backgroundColor: colors.background, borderBottomColor: colors.border },
+          {
+            paddingTop: topPad + 14,
+            backgroundColor: colors.background,
+            borderBottomColor: colors.border,
+          },
         ]}
       >
         <TouchableOpacity
@@ -60,17 +64,30 @@ export default function SubjectScreen() {
           <Feather name="arrow-left" size={18} color={colors.foreground} />
         </TouchableOpacity>
 
-        <Text style={[styles.headerTitle, { color: colors.foreground }]} numberOfLines={2}>
+        <Text
+          style={[styles.headerTitle, { color: colors.foreground }]}
+          numberOfLines={2}
+        >
           {subject.name}
         </Text>
       </View>
 
       {/* ── Download row ─────────────────────────────────────────────────── */}
       {totalCount > 0 && (
-        <View style={[styles.downloadRow, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
+        <View
+          style={[
+            styles.downloadRow,
+            {
+              borderBottomColor: colors.border,
+              backgroundColor: colors.background,
+            },
+          ]}
+        >
           <View style={styles.downloadLeft}>
             <Feather name="wifi-off" size={13} color={colors.mutedForeground} />
-            <Text style={[styles.downloadLabel, { color: colors.mutedForeground }]}>
+            <Text
+              style={[styles.downloadLabel, { color: colors.mutedForeground }]}
+            >
               Offline access
             </Text>
           </View>
@@ -85,23 +102,35 @@ export default function SubjectScreen() {
 
       {/* ── New-questions banner ─────────────────────────────────────────── */}
       {status === "stale" && newQuestionCount > 0 && (
-        <View style={[styles.staleBanner, { backgroundColor: "#fefce8", borderColor: "#fde047" }]}>
+        <View
+          style={[
+            styles.staleBanner,
+            { backgroundColor: "#fefce8", borderColor: "#fde047" },
+          ]}
+        >
           <Feather name="alert-circle" size={14} color="#92400e" />
           <Text style={[styles.staleText, { color: "#92400e" }]}>
-            {newQuestionCount} new question{newQuestionCount !== 1 ? "s" : ""} added to this subject — tap "Update available" to get the latest.
+            {newQuestionCount} new question{newQuestionCount !== 1 ? "s" : ""}{" "}
+            added to this subject — tap "Update available" to get the latest.
           </Text>
         </View>
       )}
 
       {/* ── Lecture list ─────────────────────────────────────────────────── */}
       <ScrollView
-        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 100 }]}
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: insets.bottom + 100 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>LECTURES</Text>
+        <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
+          LECTURES
+        </Text>
 
         {subject.lectures.map((lec, i) => {
-          const isCompleted = completedIds.has(lec.external_id) || completedIds.has(lec.id);
+          const isCompleted =
+            completedIds.has(lec.external_id) || completedIds.has(lec.id);
           const info = lectureInfo.find((li) => li.lectureId === lec.id);
           const isCached = info?.isCached ?? false;
           const hasNewQuestions = info?.isStale ?? false;
@@ -126,8 +155,14 @@ export default function SubjectScreen() {
 
         {subject.lectures.length === 0 && (
           <View style={styles.empty}>
-            <Feather name="book-open" size={36} color={colors.mutedForeground} />
-            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>No lectures yet</Text>
+            <Feather
+              name="book-open"
+              size={36}
+              color={colors.mutedForeground}
+            />
+            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
+              No lectures yet
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -152,7 +187,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexShrink: 0,
   },
-  headerTitle: { flex: 1, fontSize: 36, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
+  headerTitle: {
+    flex: 1,
+    fontSize: 36,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -0.5,
+  },
 
   downloadRow: {
     flexDirection: "row",
@@ -175,7 +215,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
   },
-  staleText: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18 },
+  staleText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 18,
+  },
 
   list: { paddingTop: 24 },
   sectionLabel: {

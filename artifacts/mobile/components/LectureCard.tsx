@@ -49,13 +49,27 @@ export function LectureCard({
         animStyle,
       ]}
       onPress={onPress}
-      onPressIn={() => { scale.value = withSpring(0.98, { damping: 20 }); }}
-      onPressOut={() => { scale.value = withSpring(1, { damping: 20 }); }}
+      onPressIn={() => {
+        scale.value = withSpring(0.98, { damping: 20 });
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1, { damping: 20 });
+      }}
       activeOpacity={1}
     >
       {/* Index / completed badge */}
-      <View style={[styles.indexBadge, { backgroundColor: completed ? "#dcfce7" : colors.muted }]}>
-        <Text style={[styles.indexText, { color: completed ? colors.success : colors.mutedForeground }]}>
+      <View
+        style={[
+          styles.indexBadge,
+          { backgroundColor: completed ? "#dcfce7" : colors.muted },
+        ]}
+      >
+        <Text
+          style={[
+            styles.indexText,
+            { color: completed ? colors.success : colors.mutedForeground },
+          ]}
+        >
           {index + 1}
         </Text>
       </View>
@@ -63,7 +77,10 @@ export function LectureCard({
       <View style={styles.textCol}>
         {/* Title row with optional "NEW" badge */}
         <View style={styles.titleRow}>
-          <Text style={[styles.title, { color: colors.foreground }]} numberOfLines={2}>
+          <Text
+            style={[styles.title, { color: colors.foreground }]}
+            numberOfLines={2}
+          >
             {lecture.name}
           </Text>
           {hasNewQuestions && (
@@ -83,7 +100,9 @@ export function LectureCard({
           {isCached && !hasNewQuestions && (
             <View style={styles.cachedChip}>
               <Feather name="download" size={9} color={colors.primary} />
-              <Text style={[styles.cachedText, { color: colors.primary }]}>cached</Text>
+              <Text style={[styles.cachedText, { color: colors.primary }]}>
+                downloaded
+              </Text>
             </View>
           )}
         </View>
@@ -95,7 +114,9 @@ export function LectureCard({
           <Feather name="check" size={14} color="#fff" />
         </View>
       ) : (
-        <View style={[styles.playIcon, { backgroundColor: colors.primary + "15" }]}>
+        <View
+          style={[styles.playIcon, { backgroundColor: colors.primary + "15" }]}
+        >
           <Feather name="play-circle" size={18} color={colors.primary} />
         </View>
       )}
@@ -128,12 +149,17 @@ const styles = StyleSheet.create({
   },
   indexText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   textCol: { flex: 1, gap: 3 },
-  titleRow: { flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flexWrap: "wrap",
+  },
   title: {
-    fontSize: 15,
-    fontFamily: "Inter_500Medium",
-    letterSpacing: -0.2,
-    lineHeight: 20,
+    fontSize: 17,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: -0.3,
+    lineHeight: 22,
     flexShrink: 1,
   },
   newBadge: {
@@ -156,8 +182,8 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   cachedText: {
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+    fontFamily: "Inter_600SemiBold",
   },
   checkCircle: {
     width: 28,
