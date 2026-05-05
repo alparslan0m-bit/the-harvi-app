@@ -2,13 +2,15 @@ import { BlurView } from "expo-blur";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
 import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
-import { SymbolView } from "expo-symbols";
-import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
+import { TabIcon } from "@/components";
 
+/**
+ * Native tab layout for devices supporting liquid glass effects.
+ */
 function NativeTabLayout() {
   return (
     <NativeTabs>
@@ -28,9 +30,13 @@ function NativeTabLayout() {
   );
 }
 
+/**
+ * Standard tab layout for Web, Android, and older iOS versions.
+ */
 function ClassicTabLayout() {
   const colors = useColors();
   const colorScheme = useColorScheme();
+  
   const isDark = colorScheme === "dark";
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
@@ -69,60 +75,37 @@ function ClassicTabLayout() {
         name="(learn)"
         options={{
           title: "Learn",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="books.vertical" tintColor={color} size={24} />
-            ) : (
-              <Feather name="book-open" size={22} color={color} />
-            ),
+          tabBarIcon: ({ color }) => (
+            <TabIcon name="book-open" sfName="books.vertical" color={color} />
+          ),
         }}
       />
-      <Tabs.Screen
-        name="(learn)/year/[id]"
-        options={{ href: null }}
-      />
-      <Tabs.Screen
-        name="(learn)/module/[id]"
-        options={{ href: null }}
-      />
-      <Tabs.Screen
-        name="(learn)/subject/[id]"
-        options={{ href: null }}
-      />
-      <Tabs.Screen
-        name="year/[id]"
-        options={{ href: null }}
-      />
-      <Tabs.Screen
-        name="module/[id]"
-        options={{ href: null }}
-      />
-      <Tabs.Screen
-        name="subject/[id]"
-        options={{ href: null }}
-      />
+      
+      {/* Hide internal routes from tab bar */}
+      <Tabs.Screen name="(learn)/year/[id]" options={{ href: null }} />
+      <Tabs.Screen name="(learn)/module/[id]" options={{ href: null }} />
+      <Tabs.Screen name="(learn)/subject/[id]" options={{ href: null }} />
+      <Tabs.Screen name="year/[id]" options={{ href: null }} />
+      <Tabs.Screen name="module/[id]" options={{ href: null }} />
+      <Tabs.Screen name="subject/[id]" options={{ href: null }} />
+
       <Tabs.Screen
         name="stats"
         options={{
           title: "Stats",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="chart.bar" tintColor={color} size={24} />
-            ) : (
-              <Feather name="bar-chart-2" size={22} color={color} />
-            ),
+          tabBarIcon: ({ color }) => (
+            <TabIcon name="bar-chart-2" sfName="chart.bar" color={color} />
+          ),
         }}
       />
+      
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="person.circle" tintColor={color} size={24} />
-            ) : (
-              <Feather name="user" size={22} color={color} />
-            ),
+          tabBarIcon: ({ color }) => (
+            <TabIcon name="user" sfName="person.circle" color={color} />
+          ),
         }}
       />
     </Tabs>
