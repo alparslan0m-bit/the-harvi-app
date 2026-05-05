@@ -56,6 +56,14 @@ export function useSubjectCache(subject: Subject | undefined): SubjectCacheState
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [lectureInfo, setLectureInfo] = useState<LectureCacheInfo[]>([]);
   const downloading = useRef(false);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const loadState = useCallback(async () => {
     if (!subject || subject.lectures.length === 0) return;
@@ -100,6 +108,8 @@ export function useSubjectCache(subject: Subject | undefined): SubjectCacheState
     setProgress({ done: 0, total: subject.lectures.length });
 
     for (let i = 0; i < subject.lectures.length; i++) {
+      if (!isMounted.current) break; // Halt if user navigated away
+
       const lec = subject.lectures[i];
       try {
         const questions = await fetchQuestions(lec.id);
@@ -109,11 +119,16 @@ export function useSubjectCache(subject: Subject | undefined): SubjectCacheState
       } catch {
         // Continue — one failed lecture shouldn't abort the whole download
       }
-      setProgress({ done: i + 1, total: subject.lectures.length });
+      
+      if (isMounted.current) {
+        setProgress({ done: i + 1, total: subject.lectures.length });
+      }
     }
 
-    downloading.current = false;
-    await loadState();
+    if (isMounted.current) {
+      downloading.current = false;
+      await loadState();
+    }
   }, [subject, loadState]);
 
   const newQuestionCount = lectureInfo.reduce(

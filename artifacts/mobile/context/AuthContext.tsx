@@ -13,7 +13,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string) => Promise<{ error: string | null }>;
-  signInWithGoogle: () => Promise<{ error: string | null }>;
+  signInWithGoogle: () => Promise<{ error: string | null; cancelled?: boolean }>;
   signOut: () => Promise<void>;
 }
 
@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: error?.message ?? null };
   };
 
-  const signInWithGoogle = async (): Promise<{ error: string | null }> => {
+  const signInWithGoogle = async (): Promise<{ error: string | null; cancelled?: boolean }> => {
     try {
       const redirectTo = Linking.createURL("/auth/callback");
 
@@ -141,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (result.type === "cancel" || result.type === "dismiss") {
-        return { error: null };
+        return { error: null, cancelled: true };
       }
 
       return { error: "Sign-in was not completed." };

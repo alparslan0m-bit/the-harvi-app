@@ -106,40 +106,45 @@ function computeStats(rows: RawRow[], lectureMap: Map<string, string>): UserStat
   const average_score = rows.reduce((s, r) => s + (r.score ?? 0), 0) / rows.length;
   const best_score = Math.max(...rows.map((r) => r.score ?? 0));
 
-  // ── Streak (robust) ───────────────────────────────────────────────────────
-  const DAY_MS = 86_400_000;
+  // ── Streak (DST-safe calendar arithmetic) ────────────────────────────────
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const todayMs = today.getTime();
 
-  const dayTimestamps = [
+  // Normalize each quiz date to a "YYYY-MM-DD" string to avoid ms-level DST issues
+  const dayStrings = [
     ...new Set(
       rows.map((r) => {
         const d = new Date(r.created_at);
-        d.setHours(0, 0, 0, 0);
-        return d.getTime();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       })
     ),
-  ].sort((a, b) => b - a);
+  ].sort((a, b) => (a > b ? -1 : a < b ? 1 : 0)); // descending
 
   let streak = 0;
-  if (dayTimestamps.length > 0) {
-    const mostRecent = dayTimestamps[0];
-    const startFromToday = mostRecent === todayMs;
-    const startFromYesterday = mostRecent === todayMs - DAY_MS;
+  if (dayStrings.length > 0) {
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    const mostRecent = dayStrings[0];
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+
+    const startFromToday = mostRecent === todayStr;
+    const startFromYesterday = mostRecent === yesterdayStr;
 
     if (startFromToday || startFromYesterday) {
       const offsetStart = startFromToday ? 0 : 1;
-      for (let i = 0; i < dayTimestamps.length; i++) {
-        const expected = todayMs - (offsetStart + i) * DAY_MS;
-        if (dayTimestamps[i] === expected) streak++;
+      for (let i = 0; i < dayStrings.length; i++) {
+        const expected = new Date(today);
+        expected.setDate(today.getDate() - (offsetStart + i));
+        const expectedStr = `${expected.getFullYear()}-${String(expected.getMonth() + 1).padStart(2, "0")}-${String(expected.getDate()).padStart(2, "0")}`;
+        if (dayStrings[i] === expectedStr) streak++;
         else break;
       }
     }
   }
 
   // ── Weekly activity ───────────────────────────────────────────────────────
-  const weekStart = new Date(todayMs);
+  const weekStart = new Date(today);
   weekStart.setDate(weekStart.getDate() - weekStart.getDay());
   const weekStartMs = weekStart.getTime();
 

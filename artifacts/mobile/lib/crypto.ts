@@ -58,6 +58,6 @@ export function decryptAnswer(encrypted: string): { answer: number; explanation:
     }
   } catch { /* fall through */ }
 
-  console.warn("[decrypt] ALL FAILED - returning index 0 fallback for:", encrypted.slice(0, 20) + "...");
-  return { answer: 0, explanation: "" };
+  console.error("[decrypt] ALL PATHS FAILED — no valid answer for:", encrypted.slice(0, 20) + "...");
+  return { answer: -1, explanation: "" };
 }

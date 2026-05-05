@@ -119,9 +119,17 @@ export function QuizImage({ uri, caption }: Props) {
       return;
     }
 
-    resolveSource(uri).then(setSource).catch(() => {
-      setSource({ uri });
+    let cancelled = false;
+
+    resolveSource(uri).then(s => {
+      if (!cancelled) setSource(s);
+    }).catch(() => {
+      if (!cancelled) setSource({ uri });
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [uri]);
 
   if (!uri) return null;

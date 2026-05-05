@@ -10,6 +10,10 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   );
 }
 
+// Single shared client — reused across all requests to avoid memory leaks.
+// getUser(token) only validates the JWT; it doesn't need per-request state.
+const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 /**
  * Express middleware that validates a Supabase JWT supplied as
  *   Authorization: Bearer <access_token>
@@ -33,12 +37,10 @@ export async function requireAuth(
   const token = authHeader.slice(7);
 
   try {
-    // createClient with the user's token so getUser validates it server-side
-    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const {
       data: { user },
       error,
-    } = await client.auth.getUser(token);
+    } = await supabaseAdmin.auth.getUser(token);
 
     if (error || !user) {
       req.log.warn({ supabaseError: error?.message }, "Auth: invalid token");

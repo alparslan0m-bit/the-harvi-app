@@ -67,7 +67,7 @@ export default function AuthScreen() {
       setLoading(false);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace("/(tabs)");
+      router.replace("/(tabs)" as any);
     }
   };
 
@@ -76,14 +76,16 @@ export default function AuthScreen() {
     setError(null);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-    const { error: err } = await signInWithGoogle();
+    const { error: err, cancelled } = await signInWithGoogle();
 
     setGoogleLoading(false);
-    if (err) {
+    if (cancelled) {
+      return; // User aborted the flow — do nothing
+    } else if (err) {
       setError(err);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } else {
-      router.replace("/(tabs)");
+      router.replace("/(tabs)" as any);
     }
   };
 

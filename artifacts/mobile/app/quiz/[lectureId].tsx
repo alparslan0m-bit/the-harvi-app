@@ -110,7 +110,8 @@ export default function QuizScreen() {
       if (!questions) return;
       const q: Question = questions[currentIndex];
       const { answer, explanation } = decryptAnswer(q.secure);
-      const isCorrect = selectedIndex === answer;
+      // answer === -1 means decryption failed — no option should be marked correct
+      const isCorrect = answer >= 0 && selectedIndex === answer;
 
       Haptics.notificationAsync(
         isCorrect
@@ -306,7 +307,7 @@ export default function QuizScreen() {
         topPad={topPad}
         onRetry={handleRetry}
         onReview={() => setReviewing(true)}
-        onHome={() => router.replace("/(tabs)")}
+        onHome={() => router.replace("/(tabs)" as any)}
       />
     );
   }

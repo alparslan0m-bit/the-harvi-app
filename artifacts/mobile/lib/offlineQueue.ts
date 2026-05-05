@@ -28,10 +28,17 @@ async function readQueue(): Promise<PendingQuizResult[]> {
 }
 
 async function writeQueue(queue: PendingQuizResult[]): Promise<void> {
+  const payload = JSON.stringify(queue);
   try {
-    await AsyncStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
-  } catch {
-    // best-effort
+    await AsyncStorage.setItem(QUEUE_KEY, payload);
+  } catch (firstErr) {
+    // Retry once — transient I/O errors are common on mobile
+    try {
+      await AsyncStorage.setItem(QUEUE_KEY, payload);
+    } catch (retryErr) {
+      console.error("[offlineQueue] CRITICAL: Failed to persist quiz result after retry", retryErr);
+      throw retryErr; // Let caller handle (show user notification)
+    }
   }
 }
 

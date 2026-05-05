@@ -1,24 +1,64 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { decryptAnswer, safeBtoa } from "@/lib/crypto";
-import { loadQuestionsFromCache, saveQuestionsToCache } from "@/lib/questionCache";
+import {
+  loadQuestionsFromCache,
+  saveQuestionsToCache,
+} from "@/lib/questionCache";
 import { supabase } from "@/lib/supabase";
 import { Question } from "@/types";
 
 const LECTURE_FK_CANDIDATES = [
-  "lecture_id", "subject_id", "topic_id", "lesson_id", "lec_id", "content_id", "parent_id",
+  "lecture_id",
+  "subject_id",
+  "topic_id",
+  "lesson_id",
+  "lec_id",
+  "content_id",
+  "parent_id",
 ];
-const TEXT_CANDIDATES = ["text", "question", "body", "content", "question_text", "stem"];
+const TEXT_CANDIDATES = [
+  "text",
+  "question",
+  "body",
+  "content",
+  "question_text",
+  "stem",
+];
 const OPTIONS_CANDIDATES = ["options", "answers", "choices", "opts"];
-const ANSWER_CANDIDATES = ["answer", "correct_answer", "correct", "answer_index", "correct_index", "correct_answer_index"];
-const EXPLANATION_CANDIDATES = ["explanation", "rationale", "reason", "feedback", "solution", "comment"];
+const ANSWER_CANDIDATES = [
+  "answer",
+  "correct_answer",
+  "correct",
+  "answer_index",
+  "correct_index",
+  "correct_answer_index",
+];
+const EXPLANATION_CANDIDATES = [
+  "explanation",
+  "rationale",
+  "reason",
+  "feedback",
+  "solution",
+  "comment",
+];
 const SECURE_CANDIDATES = ["secure", "encrypted", "encrypted_answer"];
-const IMAGE_URL_CANDIDATES = ["image_url", "image", "picture_url", "photo_url", "img_url", "image_link", "img", "media_url"];
+const IMAGE_URL_CANDIDATES = [
+  "image_url",
+  "image",
+  "picture_url",
+  "photo_url",
+  "img_url",
+  "image_link",
+  "img",
+  "media_url",
+];
 const XOR_KEY = "harvi-quiz-secure-key-2024";
 const QUIZ_CACHE_VERSION = "v2"; // Increment this to force cache clear
 
-
-function str(v: unknown): string { return String(v ?? ""); }
+function str(v: unknown): string {
+  return String(v ?? "");
+}
 
 function pick(row: Record<string, unknown>, candidates: string[]): unknown {
   for (const c of candidates) if (c in row) return row[c];
@@ -39,7 +79,14 @@ function extractOptionText(item: unknown): string {
   if (typeof item === "number") return String(item);
   if (item !== null && typeof item === "object") {
     const obj = item as Record<string, unknown>;
-    const val = obj.text ?? obj.option ?? obj.value ?? obj.label ?? obj.content ?? obj.name ?? obj.body;
+    const val =
+      obj.text ??
+      obj.option ??
+      obj.value ??
+      obj.label ??
+      obj.content ??
+      obj.name ??
+      obj.body;
     if (val !== undefined) return str(val);
     const firstStr = Object.values(obj).find((v) => typeof v === "string");
     if (firstStr !== undefined) return str(firstStr);
@@ -54,7 +101,11 @@ function parseOptions(raw: unknown): string[] {
   if (Array.isArray(raw)) {
     arr = raw;
   } else if (typeof raw === "string") {
-    try { arr = JSON.parse(raw); } catch { return [raw]; }
+    try {
+      arr = JSON.parse(raw);
+    } catch {
+      return [raw];
+    }
   }
   return arr.map(extractOptionText).filter(Boolean);
 }
@@ -78,18 +129,16 @@ function resolveAnswerIndex(rawAnswer: unknown, options: string[]): number {
     const lower = trimmed.toLowerCase();
 
     // 1. EXACT TEXT MATCH (Most reliable)
-    const exact = options.findIndex(o => o.trim().toLowerCase() === lower);
+    const exact = options.findIndex((o) => o.trim().toLowerCase() === lower);
     if (exact !== -1) return exact;
 
     // 2. Numeric string → convert and handle below
     const num = Number(trimmed);
     if (!isNaN(num) && trimmed !== "") {
-        // If it's N, it must be 1-based (since 0-based only goes to N-1)
-        if (num === n) return n - 1;
-        // TRUST 0-BASED FIRST: If it's within 0..N-1, use it as is
-        if (num >= 0 && num < n) return num;
-        // Fallback for 1-based (1..N)
-        if (num >= 1 && num <= n) return num - 1;
+      // DB has a constraint enforcing 0-based indexing, so we trust it as-is
+      if (num >= 0 && num < n) return num;
+      // If it's equal to N, it might be a legacy 1-based answer, so we correct it
+      if (num === n) return n - 1;
     }
 
     // 3. Single letter detection (A, B, C, D)
@@ -97,22 +146,34 @@ function resolveAnswerIndex(rawAnswer: unknown, options: string[]): number {
       const charCode = trimmed.toUpperCase().charCodeAt(0);
       if (charCode >= 65 && charCode < 65 + n) return charCode - 65;
 
-      const arabicMap: Record<string, number> = { "أ": 0, "ب": 1, "ج": 2, "د": 3, "ا": 0 };
-      if (trimmed in arabicMap && arabicMap[trimmed] < n) return arabicMap[trimmed];
+      const arabicMap: Record<string, number> = {
+        أ: 0,
+        ب: 1,
+        ج: 2,
+        د: 3,
+        ا: 0,
+      };
+      if (trimmed in arabicMap && arabicMap[trimmed] < n)
+        return arabicMap[trimmed];
     }
 
-    // 4. Substring matching (Last resort)
-    const contained = options.findIndex(o => lower.includes(o.trim().toLowerCase()) && o.trim().length > 5);
-    if (contained !== -1) return contained;
+    // 4. Substring matching (Last resort — only if exactly ONE option matches)
+    const containedMatches = options
+      .map((o, i) => ({ i, text: o.trim().toLowerCase() }))
+      .filter(({ text }) => lower.includes(text) && text.length > 5);
+    if (containedMatches.length === 1) return containedMatches[0].i;
 
-    const sub = options.findIndex(o => o.trim().toLowerCase().includes(lower) && lower.length > 5);
-    if (sub !== -1) return sub;
+    const subMatches = options
+      .map((o, i) => ({ i, text: o.trim().toLowerCase() }))
+      .filter(({ text }) => text.includes(lower) && lower.length > 5);
+    if (subMatches.length === 1) return subMatches[0].i;
   }
 
   if (typeof rawAnswer === "number") {
-    if (rawAnswer === n) return n - 1;
+    // DB has a constraint enforcing 0-based indexing, so we trust it as-is
     if (rawAnswer >= 0 && rawAnswer < n) return rawAnswer;
-    if (rawAnswer >= 1 && rawAnswer <= n) return rawAnswer - 1;
+    // If it's equal to N, it might be a legacy 1-based answer, so we correct it
+    if (rawAnswer === n) return n - 1;
   }
 
   return 0;
@@ -130,25 +191,41 @@ function buildSecure(row: Record<string, unknown>, options: string[]): string {
       let decrypted = "";
       for (let i = 0; i < decoded.length; i++) {
         decrypted += String.fromCharCode(
-          decoded.charCodeAt(i) ^ XOR_KEY.charCodeAt(i % XOR_KEY.length)
+          decoded.charCodeAt(i) ^ XOR_KEY.charCodeAt(i % XOR_KEY.length),
         );
       }
       const parsed = JSON.parse(decrypted);
       if (typeof parsed.answer === "number") {
-        const resolved = resolveAnswerIndex(parsed.answer, options);
-        console.log(`[db] Secure path success: resolved to ${resolved}`);
-        return safeBtoa(JSON.stringify({ answer: resolved, explanation: parsed.explanation ?? "" }));
+        // Secure field stores a resolved 0-based index — trust directly, just bounds-check
+        const idx = Math.max(0, Math.min(parsed.answer, options.length - 1));
+        console.log(`[db] Secure path success (XOR): direct index ${idx}`);
+        return safeBtoa(
+          JSON.stringify({
+            answer: idx,
+            explanation: parsed.explanation ?? "",
+          }),
+        );
       }
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
 
     try {
       const parsed = JSON.parse(rawSecure);
       if (typeof parsed.answer === "number") {
-        const resolved = resolveAnswerIndex(parsed.answer, options);
-        console.log(`[db] JSON path success: resolved to ${resolved}`);
-        return safeBtoa(JSON.stringify({ answer: resolved, explanation: parsed.explanation ?? "" }));
+        // JSON secure field stores a resolved 0-based index — trust directly, just bounds-check
+        const idx = Math.max(0, Math.min(parsed.answer, options.length - 1));
+        console.log(`[db] JSON path success: direct index ${idx}`);
+        return safeBtoa(
+          JSON.stringify({
+            answer: idx,
+            explanation: parsed.explanation ?? "",
+          }),
+        );
       }
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
 
   return safeBtoa(JSON.stringify({ answer: answerIndex, explanation }));
@@ -156,9 +233,12 @@ function buildSecure(row: Record<string, unknown>, options: string[]): string {
 
 function shuffleOptions(
   options: string[],
-  correctIndex: number
+  correctIndex: number,
 ): { options: string[]; correctIndex: number } {
-  const tagged = options.map((opt, i) => ({ opt, correct: i === correctIndex }));
+  const tagged = options.map((opt, i) => ({
+    opt,
+    correct: i === correctIndex,
+  }));
   const shuffled = shuffle(tagged);
   return {
     options: shuffled.map((x) => x.opt),
@@ -179,34 +259,52 @@ export async function fetchQuestions(lectureId: string): Promise<Question[]> {
 
     if (error) {
       if (error.code === "42703" || error.code === "22P02") continue;
-      throw new Error(`questions table: ${error.message} (code: ${error.code})`);
+      throw new Error(
+        `questions table: ${error.message} (code: ${error.code})`,
+      );
     }
 
     if (data && data.length > 0) {
-      console.log(`[fetch] questions matched FK column: ${fkCol} for ID: ${lectureId} (${data.length} items)`);
-      const raw: Question[] = data.map((row: Record<string, unknown>, i: number) => {
-        const options = parseOptions(pick(row, OPTIONS_CANDIDATES));
-        const imageUrl = str(pick(row, IMAGE_URL_CANDIDATES) ?? "").trim();
-        return {
-          id: str(row.id ?? i),
-          text: str(pick(row, TEXT_CANDIDATES) ?? ""),
-          options,
-          secure: buildSecure(row, options),
-          image_url: imageUrl || undefined,
-        };
-      });
+      console.log(
+        `[fetch] questions matched FK column: ${fkCol} for ID: ${lectureId} (${data.length} items)`,
+      );
+      const raw: Question[] = data.map(
+        (row: Record<string, unknown>, i: number) => {
+          const options = parseOptions(pick(row, OPTIONS_CANDIDATES));
+          const imageUrl = str(pick(row, IMAGE_URL_CANDIDATES) ?? "").trim();
+          return {
+            id: str(row.id ?? i),
+            text: str(pick(row, TEXT_CANDIDATES) ?? ""),
+            options,
+            secure: buildSecure(row, options),
+            image_url: imageUrl || undefined,
+          };
+        },
+      );
 
       const shuffledQs = shuffle(raw);
 
       return shuffledQs.map((q) => {
         try {
           const { answer, explanation } = decryptAnswer(q.secure);
-          const { options: newOpts, correctIndex: newCorrect } = shuffleOptions(q.options, answer);
-          
+          // answer === -1 means decryption totally failed — preserve original order
+          if (answer < 0 || answer >= q.options.length) {
+            console.warn(
+              `[quiz] Skipping shuffle for question ${q.id}: invalid answer index ${answer}`,
+            );
+            return q;
+          }
+          const { options: newOpts, correctIndex: newCorrect } = shuffleOptions(
+            q.options,
+            answer,
+          );
+
           return {
             ...q,
             options: newOpts,
-            secure: safeBtoa(JSON.stringify({ answer: newCorrect, explanation })),
+            secure: safeBtoa(
+              JSON.stringify({ answer: newCorrect, explanation }),
+            ),
           };
         } catch {
           return q;
@@ -237,7 +335,7 @@ export function useQuizQuestions(lectureId: string, initialData?: Question[]) {
           return cached.questions;
         }
         throw new Error(
-          "You're offline and this lecture hasn't been downloaded yet.\n\nDownload the subject while online to take quizzes offline."
+          "You're offline and this lecture hasn't been downloaded yet.\n\nDownload the subject while online to take quizzes offline.",
         );
       }
     },
@@ -249,7 +347,8 @@ export function useQuizQuestions(lectureId: string, initialData?: Question[]) {
     staleTime: 0,
     networkMode: "offlineFirst",
     // Pre-populated from AsyncStorage before query resolves → instant open
-    initialData: initialData && initialData.length > 0 ? initialData : undefined,
+    initialData:
+      initialData && initialData.length > 0 ? initialData : undefined,
     // Treat as stale so a fresh fetch still happens in the background
     initialDataUpdatedAt: 0,
   });

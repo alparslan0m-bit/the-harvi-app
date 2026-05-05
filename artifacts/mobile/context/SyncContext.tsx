@@ -72,7 +72,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     flushing.current = true;
     setIsSyncing(true);
 
-    const synced: string[] = [];
+    let anySynced = false;
 
     for (const item of queue) {
       const { error } = await supabase.from("quiz_results").insert({
@@ -85,21 +85,15 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!error) {
-        synced.push(item.localId);
+        // Remove immediately so a crash mid-loop doesn't cause duplicates on next open
+        await removeSynced([item.localId]);
+        anySynced = true;
       }
     }
 
-    if (synced.length > 0) {
-      await removeSynced(synced);
-
-      // Remaining queue may still have IDs — rebuild the progress cache
-      // to exclude the just-synced items (they are now in Supabase).
-      // The invalidation below will re-fetch and write a fresh cache.
-      if (user?.id) {
-        // Force a blank progress cache so the next fetch rebuilds from Supabase
-        await writeProgressCache(user.id, new Set<string>());
-      }
-
+    if (anySynced) {
+      // The invalidation below will re-fetch and naturally overwrite the progress cache
+      // without aggressively blanking it to an empty Set first.
       queryClient.invalidateQueries({ queryKey: ["stats"] });
       queryClient.invalidateQueries({ queryKey: ["progress"] });
     }
