@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 
-const FEEDBACK_MIN = 10;
+const FEEDBACK_MIN = 1;
 const FEEDBACK_MAX = 500;
 const COOLDOWN_SECS = 60;
 

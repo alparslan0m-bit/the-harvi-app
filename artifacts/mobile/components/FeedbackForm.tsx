@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet, Keyboard } from 'react-native';
 import { Feather } from "@expo/vector-icons";
 import { useFeedback } from "@/hooks/useFeedback";
 import { useColors } from "@/hooks/useColors";
@@ -24,30 +24,32 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <TextInput
-        style={[styles.textarea, {
-          color: colors.foreground,
-          borderColor: feedbackError ? colors.destructive + "4D" : (isFocused ? colors.primary : colors.border),
-          backgroundColor: colors.background,
-        }]}
-        placeholder="Share your thoughts, report a bug, or suggest a feature…"
-        placeholderTextColor={colors.mutedForeground}
-        multiline
-        numberOfLines={4}
-        value={feedbackText}
-        onChangeText={updateText}
-        textAlignVertical="top"
-        maxLength={500}
-        editable={!isDisabled}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-      />
+      <View style={styles.inputArea}>
+        <TextInput
+          style={[styles.textarea, {
+            color: colors.foreground,
+            borderColor: feedbackError ? colors.destructive + "4D" : (isFocused ? colors.primary : colors.border),
+            backgroundColor: colors.background,
+          }]}
+          placeholder="Share your thoughts, report a bug, or suggest a feature…"
+          placeholderTextColor={colors.mutedForeground}
+          multiline
+          numberOfLines={4}
+          value={feedbackText}
+          onChangeText={updateText}
+          textAlignVertical="top"
+          maxLength={500}
+          editable={!isDisabled}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        />
 
-      <Text style={[styles.charCount, {
-        color: feedbackText.length >= 480 ? colors.destructive : feedbackText.length >= 400 ? colors.warning : colors.mutedForeground,
-      }]}>
-        {feedbackText.length} / 500
-      </Text>
+        <Text style={[styles.charCount, {
+          color: feedbackText.length >= 480 ? colors.destructive : feedbackText.length >= 400 ? colors.warning : colors.mutedForeground,
+        }]}>
+          {feedbackText.length} / 500
+        </Text>
+      </View>
 
       {feedbackSent && (
         <View style={[styles.alertBox, { backgroundColor: colors.success + "1A", borderColor: colors.success + "33" }]}>
@@ -94,27 +96,32 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
 
 const styles = StyleSheet.create({
   card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 24, gap: 12 },
+  inputArea: { position: "relative" },
   textarea: { 
     borderWidth: 1, 
     borderRadius: 14, 
     padding: 14, 
+    paddingBottom: 30,
     fontSize: 14, 
     fontFamily: "Inter_400Regular", 
-    minHeight: 96, 
+    minHeight: 110, 
     lineHeight: 22 
   },
-  charCount: { fontSize: 11, fontFamily: "Inter_400Regular", textAlign: "right", marginTop: 4, marginBottom: 2 },
+  charCount: { 
+    position: "absolute",
+    bottom: 8,
+    right: 12,
+    fontSize: 10, 
+    fontFamily: "Inter_500Medium", 
+  },
   alertBox: { flexDirection: "row", alignItems: "center", gap: 8, padding: 12, borderRadius: 12, borderWidth: 1 },
   alertText: { fontSize: 13, fontFamily: "Inter_500Medium" },
   submitBtn: { 
-    paddingVertical: 14, 
-    borderRadius: 14, 
+    paddingVertical: 16, 
+    borderRadius: 12, 
     alignItems: "center",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
+    justifyContent: "center",
   },
-  submitBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  submitBtnText: { fontSize: 16, fontFamily: "Inter_600SemiBold" },
   cooldownContainer: { flexDirection: "row", alignItems: "center", gap: 6 },
 });
