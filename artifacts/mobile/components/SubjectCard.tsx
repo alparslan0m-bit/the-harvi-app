@@ -19,9 +19,16 @@ interface Props {
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-export function SubjectCard({ subject, index, completedCount, onPress }: Props) {
+export function SubjectCard({
+  subject,
+  index,
+  completedCount,
+  onPress,
+}: Props) {
   const scale = useSharedValue(1);
-  const gradient = colors.yearGradients[index % colors.yearGradients.length] as [string, string];
+  const gradient = colors.yearGradients[
+    index % colors.yearGradients.length
+  ] as [string, string];
 
   const total = subject.lectures.length;
   const progress = total > 0 ? completedCount / total : 0;
@@ -35,8 +42,12 @@ export function SubjectCard({ subject, index, completedCount, onPress }: Props) 
     <AnimatedTouchable
       style={[styles.card, animStyle]}
       onPress={onPress}
-      onPressIn={() => { scale.value = withSpring(0.97, { damping: 20 }); }}
-      onPressOut={() => { scale.value = withSpring(1, { damping: 20 }); }}
+      onPressIn={() => {
+        scale.value = withSpring(0.97, { damping: 20 });
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1, { damping: 20 });
+      }}
       activeOpacity={1}
     >
       <LinearGradient
@@ -47,20 +58,30 @@ export function SubjectCard({ subject, index, completedCount, onPress }: Props) 
       >
         {/* Title row */}
         <View style={styles.row}>
-          <Text style={styles.title} numberOfLines={2}>{subject.name}</Text>
+          <Text style={styles.title} numberOfLines={2}>
+            {subject.name}
+          </Text>
           {/* Completion badge */}
           <View style={[styles.badge, allDone && styles.badgeDone]}>
-            {allDone
-              ? <Text style={styles.badgeText}>✓</Text>
-              : <Text style={styles.badgeText}>{completedCount}/{total}</Text>
-            }
+            {allDone ? (
+              <Text style={styles.badgeText}>✓</Text>
+            ) : (
+              <Text style={styles.badgeText}>
+                {completedCount}/{total}
+              </Text>
+            )}
           </View>
         </View>
 
         {/* Progress bar */}
         {total > 0 && (
           <View style={styles.barTrack}>
-            <View style={[styles.barFill, { width: `${Math.round(progress * 100)}%` as `${number}%` }]} />
+            <View
+              style={[
+                styles.barFill,
+                { width: `${Math.round(progress * 100)}%` as `${number}%` },
+              ]}
+            />
           </View>
         )}
 

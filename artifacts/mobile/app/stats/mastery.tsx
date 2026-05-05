@@ -99,11 +99,19 @@ function LectureCard({
   const bg    = masteryBg(mastery, colors);
 
   return (
-    <View style={[cardStyles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
+    <View style={[
+      cardStyles.card, 
+      { 
+        backgroundColor: colors.card, 
+        borderColor: color + "33"
+      }
+    ]}>
       <View style={[cardStyles.accent, { backgroundColor: color }]} />
       <View style={cardStyles.body}>
         <View style={cardStyles.topRow}>
-          <Text style={[cardStyles.rank, { color: colors.mutedForeground }]}>#{rank}</Text>
+          <View style={[cardStyles.rankBadge, { backgroundColor: colors.muted }]}>
+            <Text style={[cardStyles.rankText, { color: colors.mutedForeground }]}>{rank}</Text>
+          </View>
           <Text style={[cardStyles.name, { color: colors.foreground }]} numberOfLines={2}>
             {subject}
           </Text>
@@ -125,21 +133,23 @@ function LectureCard({
 const cardStyles = StyleSheet.create({
   card: {
     flexDirection: "row",
-    borderRadius: 18,
-    borderWidth: 1,
-    marginBottom: 10,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    marginBottom: 12,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
   },
   accent: { width: 4 },
-  body: { flex: 1, paddingHorizontal: 14, paddingVertical: 14, gap: 10 },
-  topRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
-  rank: { fontSize: 12, fontFamily: "Inter_500Medium", marginTop: 2, minWidth: 24 },
-  name: { flex: 1, fontSize: 14, fontFamily: "Inter_600SemiBold", lineHeight: 20 },
+  body: { flex: 1, paddingHorizontal: 16, paddingVertical: 16, gap: 12 },
+  topRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  rankBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rankText: { fontSize: 11, fontFamily: "Inter_700Bold" },
+  name: { flex: 1, fontSize: 15, fontFamily: "Inter_600SemiBold", lineHeight: 21 },
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -218,7 +228,7 @@ export default function MasteryScreen() {
         )}
 
         {/* ── Search ──────────────────────────────────────────────────── */}
-        <View style={[styles.searchWrap, { backgroundColor: colors.background, borderColor: colors.border }]}>
+        <View style={[styles.searchWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Feather name="search" size={16} color={colors.mutedForeground} />
           <TextInput
             style={[styles.searchInput, { color: colors.foreground }]}
@@ -231,7 +241,7 @@ export default function MasteryScreen() {
           />
           {search.length > 0 && (
             <Pressable onPress={() => setSearch("")} hitSlop={8}>
-              <Feather name="x" size={15} color={colors.mutedForeground} />
+              <Feather name="x-circle" size={15} color={colors.mutedForeground} />
             </Pressable>
           )}
         </View>

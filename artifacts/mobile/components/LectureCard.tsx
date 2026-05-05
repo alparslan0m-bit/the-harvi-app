@@ -43,8 +43,8 @@ export function LectureCard({
       style={[
         styles.card,
         {
-          backgroundColor: completed ? colors.success + "0F" : colors.background,
-          borderColor: completed ? colors.success + "4D" : colors.border,
+          backgroundColor: colors.card,
+          borderColor: colors.border,
         },
         animStyle,
       ]}
@@ -57,11 +57,19 @@ export function LectureCard({
       }}
       activeOpacity={1}
     >
-      {/* Index / completed badge */}
+      {/* Vertical Accent Stripe */}
+      <View 
+        style={[
+          styles.accentStripe, 
+          { backgroundColor: completed ? colors.success : colors.primary + "33" }
+        ]} 
+      />
+
+      {/* Index Badge */}
       <View
         style={[
           styles.indexBadge,
-          { backgroundColor: completed ? colors.success + "22" : colors.muted },
+          { backgroundColor: completed ? colors.success + "1A" : colors.muted },
         ]}
       >
         <Text
@@ -75,7 +83,6 @@ export function LectureCard({
       </View>
 
       <View style={styles.textCol}>
-        {/* Title row with optional "NEW" badge */}
         <View style={styles.titleRow}>
           <Text
             style={[styles.title, { color: colors.foreground }]}
@@ -90,7 +97,6 @@ export function LectureCard({
           )}
         </View>
 
-        {/* Meta row: question count + cached indicator */}
         <View style={styles.metaRow}>
           {lecture.question_count != null && lecture.question_count > 0 && (
             <Text style={[styles.meta, { color: colors.mutedForeground }]}>
@@ -110,12 +116,12 @@ export function LectureCard({
 
       {/* Right icon */}
       {completed ? (
-        <View style={[styles.checkCircle, { backgroundColor: colors.success }]}>
-          <Feather name="check" size={14} color="#fff" />
+        <View style={[styles.checkCircle, { backgroundColor: colors.success + "1A" }]}>
+          <Feather name="check" size={14} color={colors.success} />
         </View>
       ) : (
         <View
-          style={[styles.playIcon, { backgroundColor: colors.primary + "15" }]}
+          style={[styles.playIcon, { backgroundColor: colors.primary + "1A" }]}
         >
           <Feather name="play-circle" size={18} color={colors.primary} />
         </View>
@@ -130,15 +136,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginHorizontal: 20,
     marginBottom: 10,
-    padding: 14,
+    paddingVertical: 14,
+    paddingRight: 16,
     borderRadius: 16,
     borderWidth: 1,
-    gap: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    overflow: "hidden",
+  },
+  accentStripe: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 5,
   },
   indexBadge: {
     width: 32,
@@ -146,6 +155,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
+    marginLeft: 16,
+    marginRight: 12,
   },
   indexText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   textCol: { flex: 1, gap: 3 },

@@ -90,26 +90,11 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
     router.replace("/auth");
   };
 
-  const handleToggleTheme = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (theme === "light") setTheme("dark");
-    else if (theme === "dark") setTheme("system");
-    else setTheme("light");
-  };
 
-  const themeLabel = theme === "system" ? "System Default" : theme === "dark" ? "Dark Mode" : "Light Mode";
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <ActionRow
-        icon={theme === "dark" ? "moon" : theme === "light" ? "sun" : "smartphone"}
-        label={`Theme: ${themeLabel}`}
-        onPress={handleToggleTheme}
-        color={colors.primary}
-        bgColor={colors.primary + "1A"}
-      />
 
-      <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
       <ActionRow
         icon="trash-2"

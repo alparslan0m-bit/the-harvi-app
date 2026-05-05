@@ -49,11 +49,15 @@ function ClassicTabLayout() {
         headerShown: false,
         tabBarStyle: {
           position: "absolute",
-          backgroundColor: isIOS ? "transparent" : colors.background,
-          borderTopWidth: isWeb ? 1 : StyleSheet.hairlineWidth,
+          backgroundColor: isIOS ? "transparent" : colors.card,
+          borderTopWidth: isWeb ? 1 : 0,
           borderTopColor: colors.border,
-          elevation: 0,
-          ...(isWeb ? { height: 84 } : {}),
+          elevation: 8,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.05,
+          shadowRadius: 10,
+          ...(isWeb ? { height: 84 } : { height: 60 + (isIOS ? 0 : 4) }),
         },
         tabBarBackground: () =>
           isIOS ? (

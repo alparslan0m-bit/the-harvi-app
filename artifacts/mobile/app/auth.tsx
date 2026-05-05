@@ -45,6 +45,7 @@ export default function AuthScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
+  const [focusedField, setFocusedField] = useState<"email" | "password" | null>(null);
 
   // Compute the exact redirect URL for this device/environment
   const redirectUrl = Linking.createURL("/auth/callback");
@@ -215,10 +216,14 @@ export default function AuthScreen() {
           <View
             style={[
               styles.inputWrap,
-              { borderColor: colors.border, backgroundColor: colors.card },
+              { 
+                borderColor: focusedField === "email" ? colors.primary : colors.border, 
+                backgroundColor: colors.card,
+                borderWidth: focusedField === "email" ? 2 : 1,
+              },
             ]}
           >
-            <Feather name="mail" size={18} color={colors.mutedForeground} />
+            <Feather name="mail" size={18} color={focusedField === "email" ? colors.primary : colors.mutedForeground} />
             <TextInput
               style={[styles.input, { color: colors.foreground }]}
               placeholder="Email address"
@@ -228,6 +233,8 @@ export default function AuthScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              onFocus={() => setFocusedField("email")}
+              onBlur={() => setFocusedField(null)}
             />
           </View>
 
@@ -235,10 +242,14 @@ export default function AuthScreen() {
           <View
             style={[
               styles.inputWrap,
-              { borderColor: colors.border, backgroundColor: colors.card },
+              { 
+                borderColor: focusedField === "password" ? colors.primary : colors.border, 
+                backgroundColor: colors.card,
+                borderWidth: focusedField === "password" ? 2 : 1,
+              },
             ]}
           >
-            <Feather name="lock" size={18} color={colors.mutedForeground} />
+            <Feather name="lock" size={18} color={focusedField === "password" ? colors.primary : colors.mutedForeground} />
             <TextInput
               style={[styles.input, { color: colors.foreground }]}
               placeholder="Password"
@@ -247,12 +258,14 @@ export default function AuthScreen() {
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
+              onFocus={() => setFocusedField("password")}
+              onBlur={() => setFocusedField(null)}
             />
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
               <Feather
                 name={showPassword ? "eye-off" : "eye"}
                 size={18}
-                color={colors.mutedForeground}
+                color={focusedField === "password" ? colors.primary : colors.mutedForeground}
               />
             </TouchableOpacity>
           </View>

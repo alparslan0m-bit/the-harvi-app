@@ -103,6 +103,13 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
           activeOpacity={0.82}
           disabled={!!answered}
         >
+          <View 
+            style={[
+              styles.selectionRing, 
+              { borderColor: isCorrect ? colors.success : isWrong ? colors.destructive : "transparent" }
+            ]} 
+          />
+
           <View style={[styles.badge, { backgroundColor: labelBg }]}>
             <Text style={[styles.badgeText, { color: labelColor }]}>
               {label}
@@ -150,5 +157,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Inter_500Medium",
     lineHeight: 21,
+    zIndex: 2,
+  },
+  selectionRing: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 18,
+    borderWidth: 2,
+    zIndex: 1,
   },
 });

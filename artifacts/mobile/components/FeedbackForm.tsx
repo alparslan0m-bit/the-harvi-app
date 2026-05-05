@@ -20,13 +20,14 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
     cooldownSecs, isDisabled, isTooShort,
     handleSubmit,
   } = useFeedback(userId);
+  const [isFocused, setIsFocused] = React.useState(false);
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <TextInput
         style={[styles.textarea, {
           color: colors.foreground,
-          borderColor: feedbackError ? colors.destructive + "4D" : colors.border,
+          borderColor: feedbackError ? colors.destructive + "4D" : (isFocused ? colors.primary : colors.border),
           backgroundColor: colors.background,
         }]}
         placeholder="Share your thoughts, report a bug, or suggest a feature…"
@@ -38,6 +39,8 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
         textAlignVertical="top"
         maxLength={500}
         editable={!isDisabled}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
       />
 
       <Text style={[styles.charCount, {
@@ -63,10 +66,16 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
       )}
 
       <TouchableOpacity
-        style={[styles.submitBtn, { backgroundColor: isDisabled || isTooShort ? colors.muted : colors.primary }]}
+        style={[
+          styles.submitBtn, 
+          { 
+            backgroundColor: isDisabled || isTooShort ? colors.muted : colors.primary,
+            shadowColor: colors.primary,
+          }
+        ]}
         onPress={handleSubmit}
         disabled={isDisabled || isTooShort}
-        activeOpacity={0.8}
+        activeOpacity={0.85}
       >
         {submitting ? (
           <ActivityIndicator color="#fff" size="small" />
@@ -97,7 +106,15 @@ const styles = StyleSheet.create({
   charCount: { fontSize: 11, fontFamily: "Inter_400Regular", textAlign: "right", marginTop: 4, marginBottom: 2 },
   alertBox: { flexDirection: "row", alignItems: "center", gap: 8, padding: 12, borderRadius: 12, borderWidth: 1 },
   alertText: { fontSize: 13, fontFamily: "Inter_500Medium" },
-  submitBtn: { paddingVertical: 14, borderRadius: 14, alignItems: "center" },
+  submitBtn: { 
+    paddingVertical: 14, 
+    borderRadius: 14, 
+    alignItems: "center",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
+  },
   submitBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   cooldownContainer: { flexDirection: "row", alignItems: "center", gap: 6 },
 });

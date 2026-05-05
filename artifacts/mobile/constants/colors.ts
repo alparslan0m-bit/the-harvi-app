@@ -24,28 +24,52 @@ const colors = {
     warningForeground: "#ffffff",
   },
   dark: {
-    text: "#F2F2F7", // Soft white to prevent astigmatism blur
-    tint: "#38bdf8", // Glowing sky blue
-    background: "#000000", // True OLED Black
-    foreground: "#FFFFFF", // Crisp white
-    card: "#121212", // Clean, subtle elevation
+    text: "#F1F5F9",
+    tint: "#38bdf8",
+    background: "#0f172a", // Midnight Slate
+    foreground: "#FFFFFF",
+    card: "#1e293b", // Slate card
     cardForeground: "#FFFFFF",
-    primary: "#0ea5e9", // Brand sky blue
+    primary: "#38bdf8",
     primaryForeground: "#ffffff",
-    secondary: "#1C1C1E", // Native iOS secondary surface
-    secondaryForeground: "#EBEBF5",
-    muted: "#1C1C1E", // Native iOS tertiary
-    mutedForeground: "#8E8E93", // Native iOS muted text
+    secondary: "#334155",
+    secondaryForeground: "#F1F5F9",
+    muted: "#1e293b",
+    mutedForeground: "#94a3b8",
     accent: "#38bdf8",
-    accentForeground: "#000000",
-    destructive: "#FF453A", // Vibrant neon red
+    accentForeground: "#0f172a",
+    destructive: "#f43f5e",
     destructiveForeground: "#ffffff",
-    border: "#2C2C2E", // Barely-there crisp lines
-    input: "#2C2C2E",
-    success: "#32D74B", // Vibrant neon green
-    successForeground: "#000000",
-    warning: "#FF9F0A", // Vibrant neon orange
-    warningForeground: "#000000",
+    border: "#334155",
+    input: "#334155",
+    success: "#10b981",
+    successForeground: "#ffffff",
+    warning: "#f59e0b",
+    warningForeground: "#ffffff",
+  },
+  pink: {
+    text: "#27272a",
+    tint: "#db2777",
+    background: "#fff1f2",
+    foreground: "#831843",
+    card: "#ffffff",
+    cardForeground: "#27272a",
+    primary: "#db2777",
+    primaryForeground: "#ffffff",
+    secondary: "#fce7f3",
+    secondaryForeground: "#be185d",
+    muted: "#fdf2f8",
+    mutedForeground: "#be185d",
+    accent: "#db2777",
+    accentForeground: "#ffffff",
+    destructive: "#ef4444",
+    destructiveForeground: "#ffffff",
+    border: "#fbcfe8",
+    input: "#fbcfe8",
+    success: "#10b981",
+    successForeground: "#ffffff",
+    warning: "#f59e0b",
+    warningForeground: "#ffffff",
   },
   radius: 24,
   yearGradients: [

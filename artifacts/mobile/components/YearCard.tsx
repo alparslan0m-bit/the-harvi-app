@@ -22,12 +22,6 @@ export function YearCard({ year, index, onPress }: Props) {
   const scale = useSharedValue(1);
   const gradient = colors.yearGradients[index % colors.yearGradients.length] as [string, string];
 
-  const totalSubjects = year.modules.reduce((sum, m) => sum + m.subjects.length, 0);
-  const totalLectures = year.modules.reduce(
-    (sum, m) => sum + m.subjects.reduce((s2, sub) => s2 + sub.lectures.length, 0),
-    0
-  );
-
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
@@ -75,20 +69,6 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   content: { zIndex: 2 },
-  badge: {
-    alignSelf: "flex-start",
-    backgroundColor: "rgba(255,255,255,0.25)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 100,
-    marginBottom: 10,
-  },
-  badgeText: {
-    color: "#fff",
-    fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
-    letterSpacing: 0.5,
-  },
   title: {
     color: "#fff",
     fontSize: 22,
@@ -96,9 +76,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     marginBottom: 8,
   },
-  meta: { flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" },
-  metaText: { color: "rgba(255,255,255,0.8)", fontSize: 13, fontFamily: "Inter_400Regular" },
-  metaDot: { color: "rgba(255,255,255,0.5)", fontSize: 13 },
   decorCircle: {
     position: "absolute",
     width: 120,

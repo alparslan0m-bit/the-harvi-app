@@ -59,11 +59,11 @@ export function ProfileHeroCard({ avatarId, displayName, email, memberSince, ini
 
       {/* Edit button */}
       <TouchableOpacity
-        style={[styles.editBtn, { backgroundColor: colors.muted }]}
+        style={[styles.editBtn, { backgroundColor: colors.primary + "15" }]}
         onPress={() => router.push("/profile/edit")}
-        activeOpacity={0.8}
+        activeOpacity={0.7}
       >
-        <Feather name="edit-2" size={15} color={colors.foreground} />
+        <Feather name="edit-3" size={15} color={colors.primary} />
       </TouchableOpacity>
     </View>
   );

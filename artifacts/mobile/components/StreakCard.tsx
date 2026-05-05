@@ -1,4 +1,5 @@
 import { Feather } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -51,8 +52,19 @@ export function StreakCard({ streak }: { streak: number }) {
   return (
     <View style={[
       styles.card,
-      { backgroundColor: isActive ? colors.warning + "0A" : colors.card, borderColor: isActive ? colors.warning + "4D" : colors.border },
+      { 
+        backgroundColor: colors.card, 
+        borderColor: isActive ? colors.warning + "4D" : colors.border 
+      },
     ]}>
+      {isActive && (
+        <LinearGradient
+          colors={[colors.warning + "0A", colors.warning + "1A"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      )}
       <View style={styles.left}>
         <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
           <Animated.View style={zapStyle}>

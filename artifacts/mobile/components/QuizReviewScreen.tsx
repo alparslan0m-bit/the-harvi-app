@@ -154,9 +154,15 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
 
                 {/* Explanation */}
                 {!!item.explanation && (
-                  <View style={[styles.explanation, { backgroundColor: colors.primary + "1A", borderColor: colors.primary + "4D" }]}>
-                    <Feather name="info" size={13} color={colors.primary} />
-                    <Text style={[styles.explanationText, { color: colors.foreground }]}>{item.explanation}</Text>
+                  <View style={[styles.explanation, { backgroundColor: colors.primary + "0A", borderColor: colors.primary + "1A" }]}>
+                    <View style={[styles.explanationStripe, { backgroundColor: colors.primary }]} />
+                    <View style={styles.explanationContent}>
+                      <View style={styles.explanationHeader}>
+                        <Feather name="info" size={13} color={colors.primary} />
+                        <Text style={[styles.explanationLabel, { color: colors.primary }]}>EXPLANATION</Text>
+                      </View>
+                      <Text style={[styles.explanationText, { color: colors.foreground }]}>{item.explanation}</Text>
+                    </View>
                   </View>
                 )}
               </View>
@@ -264,15 +270,31 @@ const styles = StyleSheet.create({
   // ── Explanation ─────────────────────────────────────────────────────────
   explanation: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 8,
-    padding: 11,
     borderRadius: 12,
     borderWidth: 1,
     marginTop: 2,
+    overflow: "hidden",
+  },
+  explanationStripe: {
+    width: 4,
+    height: "100%",
+  },
+  explanationContent: {
+    flex: 1,
+    padding: 11,
+    gap: 6,
+  },
+  explanationHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  explanationLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.5,
   },
   explanationText: {
-    flex: 1,
     fontSize: 13,
     fontFamily: "Inter_400Regular",
     lineHeight: 19,

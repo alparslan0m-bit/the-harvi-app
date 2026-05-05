@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AvatarPicker } from "@/components/AvatarPicker";
 import { AvatarById, AvatarId } from "@/components/DoctorAvatars";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { useColors } from "@/hooks/useColors";
 
 const AVATAR_KEY = "harvi:avatar";
@@ -26,6 +27,7 @@ export default function EditProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const [avatarId, setAvatarId] = useState<AvatarId | null>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -163,6 +165,50 @@ export default function EditProfileScreen() {
             Email cannot be changed
           </Text>
         </View>
+        
+        {/* ── Appearance ────────────────────────────────────────────────── */}
+        <View style={styles.fieldGroup}>
+          <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>APPEARANCE</Text>
+          <View style={styles.themeRow}>
+            {[
+              { id: "system", label: "System", icon: "settings" },
+              { id: "dark", label: "Dark", icon: "moon" },
+              { id: "pink", label: "Pink", icon: "heart" },
+            ].map((item) => {
+              const active = theme === item.id;
+              const accent = item.id === "pink" ? "#db2777" : colors.primary;
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[
+                    styles.themeBtn,
+                    { 
+                      backgroundColor: active ? (item.id === "pink" ? "#db27771A" : colors.primary + "1A") : colors.card,
+                      borderColor: active ? accent : colors.border,
+                    }
+                  ]}
+                  onPress={() => {
+                    setTheme(item.id as any);
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Feather 
+                    name={item.icon as any} 
+                    size={16} 
+                    color={active ? accent : colors.mutedForeground} 
+                  />
+                  <Text style={[
+                    styles.themeBtnText, 
+                    { color: active ? accent : colors.mutedForeground }
+                  ]}>
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
 
         {/* ── Save button ──────────────────────────────────────────────── */}
         <TouchableOpacity
@@ -293,4 +339,24 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   saveBtnText: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: "#fff" },
+  themeRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  themeBtn: {
+    flex: 1,
+    minWidth: "45%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1.5,
+  },
+  themeBtnText: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+  },
 });

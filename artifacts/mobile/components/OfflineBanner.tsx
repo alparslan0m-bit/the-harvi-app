@@ -56,11 +56,19 @@ export function OfflineBanner({ isOnline, pendingCount, isSyncing }: Props) {
     : "";
 
   return (
-    <Animated.View style={[styles.banner, { backgroundColor: bg }, animStyle]}>
-      <View style={styles.inner}>
-        <Feather name={icon} size={13} color="#fff" />
-        <Text style={styles.text}>{label}</Text>
-      </View>
+    <Animated.View 
+      style={[
+        styles.banner, 
+        { 
+          backgroundColor: colors.card,
+          borderColor: bg + "33",
+        }, 
+        animStyle
+      ]}
+    >
+      <View style={[styles.indicator, { backgroundColor: bg }]} />
+      <Feather name={icon} size={11} color={bg} />
+      <Text style={[styles.text, { color: colors.foreground }]}>{label}</Text>
     </Animated.View>
   );
 }
@@ -68,23 +76,30 @@ export function OfflineBanner({ isOnline, pendingCount, isSyncing }: Props) {
 const styles = StyleSheet.create({
   banner: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
+    top: 60,
+    alignSelf: "center",
     zIndex: 999,
-    paddingVertical: 7,
-    paddingHorizontal: 16,
-  },
-  inner: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 7,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    gap: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  indicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   text: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Inter_600SemiBold",
-    color: "#fff",
     letterSpacing: 0.1,
   },
 });
