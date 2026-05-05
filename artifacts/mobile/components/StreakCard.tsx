@@ -44,14 +44,14 @@ export function StreakCard({ streak }: { streak: number }) {
   }));
 
   const isActive = streak > 0;
-  const iconBg = isActive ? "#fffbeb" : colors.muted;
-  const iconColor = isActive ? "#f59e0b" : colors.mutedForeground;
-  const numColor = isActive ? "#b45309" : colors.mutedForeground;
+  const iconBg = isActive ? colors.warning + "1A" : colors.muted;
+  const iconColor = isActive ? colors.warning : colors.mutedForeground;
+  const numColor = isActive ? colors.warning : colors.mutedForeground;
 
   return (
     <View style={[
       styles.card,
-      { backgroundColor: isActive ? "#fffdf0" : colors.card, borderColor: isActive ? "#fde68a" : colors.border },
+      { backgroundColor: isActive ? colors.warning + "0A" : colors.card, borderColor: isActive ? colors.warning + "4D" : colors.border },
     ]}>
       <View style={styles.left}>
         <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>

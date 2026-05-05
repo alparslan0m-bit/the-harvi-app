@@ -12,9 +12,9 @@ export function RecentResultCard({ result }: Props) {
   const colors = useColors();
 
   const scoreBg =
-    result.score >= 80 ? "#d1fae5" :
-    result.score >= 50 ? "#fef3c7" :
-    "#fee2e2";
+    result.score >= 80 ? colors.success + "1A" :
+    result.score >= 50 ? colors.warning + "1A" :
+    colors.destructive + "1A";
 
   const scoreColor =
     result.score >= 80 ? colors.success :

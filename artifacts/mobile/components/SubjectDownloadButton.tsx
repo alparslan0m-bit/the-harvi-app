@@ -44,9 +44,9 @@ export function SubjectDownloadButton({
 
   if (status === "downloaded") {
     return (
-      <Animated.View entering={FadeIn} style={[styles.pill, { backgroundColor: "#dcfce7" }]}>
-        <Feather name="check-circle" size={14} color="#15803d" />
-        <Text style={[styles.label, { color: "#15803d" }]}>Downloaded</Text>
+      <Animated.View entering={FadeIn} style={[styles.pill, { backgroundColor: colors.success + "1A" }]}>
+        <Feather name="check-circle" size={14} color={colors.success} />
+        <Text style={[styles.label, { color: colors.success }]}>Downloaded</Text>
       </Animated.View>
     );
   }
@@ -56,10 +56,10 @@ export function SubjectDownloadButton({
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.8}
-        style={[styles.pill, { backgroundColor: "#fef9c3", borderWidth: 1, borderColor: "#fde047" }]}
+        style={[styles.pill, { backgroundColor: colors.warning + "1A", borderWidth: 1, borderColor: colors.warning + "4D" }]}
       >
-        <Feather name="refresh-cw" size={13} color="#92400e" />
-        <Text style={[styles.label, { color: "#92400e" }]}>
+        <Feather name="refresh-cw" size={13} color={colors.warning} />
+        <Text style={[styles.label, { color: colors.warning }]}>
           {newQuestionCount > 0
             ? `${newQuestionCount} new question${newQuestionCount !== 1 ? "s" : ""}`
             : "Update available"}

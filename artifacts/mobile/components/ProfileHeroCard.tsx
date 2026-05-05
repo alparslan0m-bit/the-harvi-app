@@ -23,7 +23,7 @@ export function ProfileHeroCard({ avatarId, displayName, email, memberSince, ini
       <View style={styles.avatarWrap}>
         <View style={[styles.avatarRing, { borderColor: colors.primary + "40" }]}>
           {avatarId ? (
-            <View style={[styles.avatarIllustration, { backgroundColor: "#f0f9ff" }]}>
+            <View style={[styles.avatarIllustration, { backgroundColor: colors.primary + "1A" }]}>
               <AvatarById id={avatarId} size={54} />
             </View>
           ) : (

@@ -10,6 +10,7 @@ import { clearProgressCache } from "@/hooks/useProgress";
 import { supabase } from "@/lib/supabase";
 import { clearAllLectureCache } from "@/lib/questionCache";
 import { clearQueueForUser } from "@/lib/offlineQueue";
+import { useTheme } from "@/context/ThemeContext";
 
 interface AccountActionsProps {
   userId?: string;
@@ -22,6 +23,7 @@ interface AccountActionsProps {
  */
 export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
   const colors = useColors();
+  const { theme, setTheme } = useTheme();
 
   const queryClient = useQueryClient();
 
@@ -88,14 +90,33 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
     router.replace("/auth");
   };
 
+  const handleToggleTheme = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (theme === "light") setTheme("dark");
+    else if (theme === "dark") setTheme("system");
+    else setTheme("light");
+  };
+
+  const themeLabel = theme === "system" ? "System Default" : theme === "dark" ? "Dark Mode" : "Light Mode";
+
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <ActionRow
+        icon={theme === "dark" ? "moon" : theme === "light" ? "sun" : "smartphone"}
+        label={`Theme: ${themeLabel}`}
+        onPress={handleToggleTheme}
+        color={colors.primary}
+        bgColor={colors.primary + "1A"}
+      />
+
+      <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
       <ActionRow
         icon="trash-2"
         label="Clear Quiz History"
         onPress={handleClearHistory}
-        color="#ef4444"
-        bgColor="#fee2e2"
+        color={colors.destructive}
+        bgColor={colors.destructive + "1A"}
       />
       
       <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -104,8 +125,8 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
         icon="download-cloud"
         label="Clear Downloaded Lectures"
         onPress={handleClearDownloads}
-        color="#f97316"
-        bgColor="#fff7ed"
+        color={colors.warning}
+        bgColor={colors.warning + "1A"}
       />
 
       <View style={[styles.divider, { backgroundColor: colors.border }]} />

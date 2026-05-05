@@ -143,8 +143,8 @@ export default function AuthScreen() {
             style={[
               styles.setupToggle,
               {
-                backgroundColor: showSetup ? "#eff6ff" : colors.muted,
-                borderColor: showSetup ? "#bfdbfe" : colors.border,
+                backgroundColor: showSetup ? colors.primary + "1A" : colors.muted,
+                borderColor: showSetup ? colors.primary + "33" : colors.border,
               },
             ]}
             onPress={() => setShowSetup((v) => !v)}
@@ -152,12 +152,12 @@ export default function AuthScreen() {
             <Feather
               name={showSetup ? "chevron-up" : "info"}
               size={14}
-              color={showSetup ? "#1d4ed8" : colors.mutedForeground}
+              color={showSetup ? colors.primary : colors.mutedForeground}
             />
             <Text
               style={[
                 styles.setupToggleText,
-                { color: showSetup ? "#1d4ed8" : colors.mutedForeground },
+                { color: showSetup ? colors.primary : colors.mutedForeground },
               ]}
             >
               {showSetup ? "Hide Supabase setup" : "Google not working? Tap to see setup"}
@@ -165,7 +165,7 @@ export default function AuthScreen() {
           </TouchableOpacity>
 
           {showSetup && (
-            <View style={[styles.setupBox, { backgroundColor: "#eff6ff", borderColor: "#bfdbfe" }]}>
+            <View style={[styles.setupBox, { backgroundColor: colors.primary + "1A", borderColor: colors.primary + "33" }]}>
               <Text style={styles.setupTitle}>
                 Add this URL to Supabase → Authentication → URL Configuration → Redirect URLs:
               </Text>
@@ -261,7 +261,7 @@ export default function AuthScreen() {
             <View
               style={[
                 styles.errorBox,
-                { backgroundColor: "#fef2f2", borderColor: "#fecaca" },
+                { backgroundColor: colors.destructive + "1A", borderColor: colors.destructive + "33" },
               ]}
             >
               <Feather name="alert-circle" size={14} color={colors.destructive} />
@@ -357,14 +357,14 @@ const styles = StyleSheet.create({
   setupTitle: {
     fontSize: 12,
     fontFamily: "Inter_600SemiBold",
-    color: "#1e40af",
+    color: "#475569",
     lineHeight: 16,
   },
   urlBox: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "#dbeafe",
+    backgroundColor: "rgba(0,0,0,0.05)",
     borderRadius: 8,
     padding: 10,
   },
@@ -372,13 +372,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 11,
     fontFamily: "Inter_500Medium",
-    color: "#1d4ed8",
+    color: "#64748b",
     lineHeight: 16,
   },
   setupNote: {
     fontSize: 11,
     fontFamily: "Inter_400Regular",
-    color: "#1e40af",
+    color: "#64748b",
     lineHeight: 17,
   },
   monoSmall: {

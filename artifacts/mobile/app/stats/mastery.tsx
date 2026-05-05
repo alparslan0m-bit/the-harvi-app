@@ -43,10 +43,10 @@ function masteryColor(m: number, colors: ReturnType<typeof useColors>) {
   return colors.destructive;
 }
 
-function masteryBg(m: number) {
-  if (m >= 80) return "#d1fae5";
-  if (m >= 50) return "#fef3c7";
-  return "#fee2e2";
+function masteryBg(m: number, colors: ReturnType<typeof useColors>) {
+  if (m >= 80) return colors.success + "1A";
+  if (m >= 50) return colors.warning + "1A";
+  return colors.destructive + "1A";
 }
 
 // ── Animated progress bar ────────────────────────────────────────────────────
@@ -68,7 +68,7 @@ const barStyles = StyleSheet.create({
     flex: 1,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#e2e8f0",
+    backgroundColor: "rgba(0,0,0,0.05)",
     overflow: "hidden",
   },
   fill: { height: "100%", borderRadius: 3 },
@@ -96,7 +96,7 @@ function LectureCard({
   subject, mastery, rank, colors,
 }: { subject: string; mastery: number; rank: number; colors: ReturnType<typeof useColors> }) {
   const color = masteryColor(mastery, colors);
-  const bg    = masteryBg(mastery);
+  const bg    = masteryBg(mastery, colors);
 
   return (
     <View style={[cardStyles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
@@ -184,7 +184,7 @@ export default function MasteryScreen() {
   }, [all, search, filter]);
 
   return (
-    <View style={[styles.root, { backgroundColor: "#f8fafc" }]}>
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <View style={[styles.header, { paddingTop: topPad + 12, backgroundColor: colors.background, borderBottomColor: colors.border }]}>
@@ -197,7 +197,7 @@ export default function MasteryScreen() {
             {all.length} lecture{all.length !== 1 ? "s" : ""} tracked
           </Text>
         </View>
-        <View style={[styles.avgBadge, { backgroundColor: "#eff6ff" }]}>
+        <View style={[styles.avgBadge, { backgroundColor: colors.primary + "1A" }]}>
           <Text style={[styles.avgLabel, { color: colors.primary }]}>Avg</Text>
           <Text style={[styles.avgValue, { color: colors.primary }]}>{overallAvg}%</Text>
         </View>
@@ -211,9 +211,9 @@ export default function MasteryScreen() {
         {/* ── Summary pills ───────────────────────────────────────────── */}
         {all.length > 0 && (
           <View style={styles.pillRow}>
-            <SummaryPill count={counts.strong}    label="Strong"    bg="#d1fae5" textColor={colors.success} />
-            <SummaryPill count={counts.improving} label="Improving" bg="#fef3c7" textColor={colors.warning} />
-            <SummaryPill count={counts.weak}      label="Needs Work" bg="#fee2e2" textColor={colors.destructive} />
+            <SummaryPill count={counts.strong}    label="Strong"    bg={colors.success + "1A"} textColor={colors.success} />
+            <SummaryPill count={counts.improving} label="Improving" bg={colors.warning + "1A"} textColor={colors.warning} />
+            <SummaryPill count={counts.weak}      label="Needs Work" bg={colors.destructive + "1A"} textColor={colors.destructive} />
           </View>
         )}
 

@@ -43,8 +43,8 @@ export function LectureCard({
       style={[
         styles.card,
         {
-          backgroundColor: completed ? "#f0fdf4" : colors.background,
-          borderColor: completed ? "#bbf7d0" : colors.border,
+          backgroundColor: completed ? colors.success + "0F" : colors.background,
+          borderColor: completed ? colors.success + "4D" : colors.border,
         },
         animStyle,
       ]}
@@ -61,7 +61,7 @@ export function LectureCard({
       <View
         style={[
           styles.indexBadge,
-          { backgroundColor: completed ? "#dcfce7" : colors.muted },
+          { backgroundColor: completed ? colors.success + "22" : colors.muted },
         ]}
       >
         <Text
@@ -84,7 +84,7 @@ export function LectureCard({
             {lecture.name}
           </Text>
           {hasNewQuestions && (
-            <View style={styles.newBadge}>
+            <View style={[styles.newBadge, { backgroundColor: colors.primary }]}>
               <Text style={styles.newBadgeText}>NEW</Text>
             </View>
           )}
@@ -163,7 +163,6 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   newBadge: {
-    backgroundColor: "#0ea5e9",
     borderRadius: 5,
     paddingHorizontal: 5,
     paddingVertical: 2,

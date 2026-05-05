@@ -245,13 +245,13 @@ export default function QuizScreen() {
         <View
           style={[
             styles.errorIcon,
-            { backgroundColor: isOfflineError ? "#fef9c3" : "#fef2f2" },
+            { backgroundColor: isOfflineError ? colors.warning + "1A" : colors.destructive + "1A" },
           ]}
         >
           <Feather
             name={isOfflineError ? "wifi-off" : "alert-circle"}
             size={32}
-            color={isOfflineError ? "#92400e" : colors.destructive}
+            color={isOfflineError ? colors.warning : colors.destructive}
           />
         </View>
         <Text style={[styles.errorTitle, { color: colors.foreground }]}>
@@ -419,8 +419,8 @@ export default function QuizScreen() {
               style={[
                 styles.explanationBox,
                 isCorrectAnswer
-                  ? { backgroundColor: "#f0fdf4", borderColor: "#bbf7d0" }
-                  : { backgroundColor: "#f0f9ff", borderColor: "#bae6fd" },
+                  ? { backgroundColor: colors.success + "12", borderColor: colors.success + "4D" }
+                  : { backgroundColor: colors.primary + "12", borderColor: colors.primary + "4D" },
               ]}
             >
               <View style={styles.explanationHeader}>
@@ -428,20 +428,20 @@ export default function QuizScreen() {
                   style={[
                     styles.explanationIconBox,
                     {
-                      backgroundColor: isCorrectAnswer ? "#dcfce7" : "#e0f2fe",
+                      backgroundColor: isCorrectAnswer ? colors.success + "22" : colors.primary + "22",
                     },
                   ]}
                 >
                   <Feather
                     name={isCorrectAnswer ? "check" : "info"}
                     size={13}
-                    color={isCorrectAnswer ? "#16a34a" : colors.primary}
+                    color={isCorrectAnswer ? colors.success : colors.primary}
                   />
                 </View>
                 <Text
                   style={[
                     styles.explanationTitle,
-                    { color: isCorrectAnswer ? "#16a34a" : colors.primary },
+                    { color: isCorrectAnswer ? colors.success : colors.primary },
                   ]}
                 >
                   Explanation
@@ -450,7 +450,7 @@ export default function QuizScreen() {
               <Text
                 style={[
                   styles.explanationText,
-                  { color: isCorrectAnswer ? "#14532d" : "#0c4a6e" },
+                  { color: colors.foreground },
                 ]}
               >
                 {answered.explanation ||

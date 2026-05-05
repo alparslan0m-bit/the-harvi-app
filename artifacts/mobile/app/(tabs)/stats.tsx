@@ -66,9 +66,9 @@ export default function StatsScreen() {
           <Text style={[styles.title, { color: colors.foreground }]}>Statistics</Text>
         </View>
         {!isOnline && (
-          <View style={[styles.cachePill, { backgroundColor: "#fef3c7", marginBottom: 2 }]}>
-            <Feather name="wifi-off" size={11} color="#92400e" />
-            <Text style={[styles.cacheText, { color: "#92400e" }]}>
+          <View style={[styles.cachePill, { backgroundColor: colors.warning + "1A", marginBottom: 2 }]}>
+            <Feather name="wifi-off" size={11} color={colors.warning} />
+            <Text style={[styles.cacheText, { color: colors.warning }]}>
               {pendingCount > 0 ? `${pendingCount} offline` : "Offline mode"}
             </Text>
           </View>
@@ -186,7 +186,7 @@ function MasterySection({ masteryData }: { masteryData: any[] }) {
 function EmptyNudge() {
   const colors = useColors();
   return (
-    <View style={[styles.nudgeCard, { backgroundColor: "#f0f9ff", borderColor: "#bae6fd" }]}>
+    <View style={[styles.nudgeCard, { backgroundColor: colors.primary + "12", borderColor: colors.primary + "33" }]}>
       <View style={[styles.nudgeIcon, { backgroundColor: colors.primary + "20" }]}>
         <Feather name="bar-chart-2" size={24} color={colors.primary} />
       </View>

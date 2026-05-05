@@ -8,6 +8,8 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { useColors } from "@/hooks/useColors";
+
 interface Props {
   isOnline: boolean;
   pendingCount: number;
@@ -15,6 +17,7 @@ interface Props {
 }
 
 export function OfflineBanner({ isOnline, pendingCount, isSyncing }: Props) {
+  const colors = useColors();
   const translateY = useSharedValue(-60);
   const opacity = useSharedValue(0);
 
@@ -35,7 +38,7 @@ export function OfflineBanner({ isOnline, pendingCount, isSyncing }: Props) {
     opacity: opacity.value,
   }));
 
-  const bg = !isOnline ? "#92400e" : isSyncing ? "#1d4ed8" : "#166534";
+  const bg = !isOnline ? colors.warning : isSyncing ? colors.primary : colors.success;
   const icon: React.ComponentProps<typeof Feather>["name"] = !isOnline
     ? "wifi-off"
     : isSyncing

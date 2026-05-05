@@ -23,6 +23,30 @@ const colors = {
     warning: "#f59e0b",
     warningForeground: "#ffffff",
   },
+  dark: {
+    text: "#F2F2F7", // Soft white to prevent astigmatism blur
+    tint: "#38bdf8", // Glowing sky blue
+    background: "#000000", // True OLED Black
+    foreground: "#FFFFFF", // Crisp white
+    card: "#121212", // Clean, subtle elevation
+    cardForeground: "#FFFFFF",
+    primary: "#0ea5e9", // Brand sky blue
+    primaryForeground: "#ffffff",
+    secondary: "#1C1C1E", // Native iOS secondary surface
+    secondaryForeground: "#EBEBF5",
+    muted: "#1C1C1E", // Native iOS tertiary
+    mutedForeground: "#8E8E93", // Native iOS muted text
+    accent: "#38bdf8",
+    accentForeground: "#000000",
+    destructive: "#FF453A", // Vibrant neon red
+    destructiveForeground: "#ffffff",
+    border: "#2C2C2E", // Barely-there crisp lines
+    input: "#2C2C2E",
+    success: "#32D74B", // Vibrant neon green
+    successForeground: "#000000",
+    warning: "#FF9F0A", // Vibrant neon orange
+    warningForeground: "#000000",
+  },
   radius: 24,
   yearGradients: [
     ["#0ea5e9", "#0284c7"],

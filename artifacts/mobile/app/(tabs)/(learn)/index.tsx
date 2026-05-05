@@ -34,7 +34,7 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={styles.errorContainer}
     >
-      <View style={[styles.errorIcon, { backgroundColor: "#fef2f2" }]}>
+      <View style={[styles.errorIcon, { backgroundColor: colors.destructive + "1A" }]}>
         <Feather name="alert-triangle" size={28} color={colors.destructive} />
       </View>
       <Text style={[styles.errorTitle, { color: colors.foreground }]}>
@@ -48,10 +48,10 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
         <View
           style={[
             styles.infoBox,
-            { backgroundColor: "#fef2f2", borderColor: "#fecaca" },
+            { backgroundColor: colors.destructive + "1A", borderColor: colors.destructive + "33" },
           ]}
         >
-          <Text style={[styles.infoText, { color: "#7f1d1d" }]}>
+          <Text style={[styles.infoText, { color: colors.foreground }]}>
             One or more tables (<Text style={styles.mono}>years</Text>,{" "}
             <Text style={styles.mono}>modules</Text>,{" "}
             <Text style={styles.mono}>subjects</Text>,{" "}
@@ -65,10 +65,10 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
         <View
           style={[
             styles.infoBox,
-            { backgroundColor: "#fffbeb", borderColor: "#fde68a" },
+            { backgroundColor: colors.warning + "1A", borderColor: colors.warning + "33" },
           ]}
         >
-          <Text style={[styles.infoText, { color: "#78350f" }]}>
+          <Text style={[styles.infoText, { color: colors.foreground }]}>
             Row Level Security is blocking reads.{"\n\n"}
             In{" "}
             <Text style={styles.bold}>
@@ -86,10 +86,10 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
         <View
           style={[
             styles.infoBox,
-            { backgroundColor: "#f0f9ff", borderColor: "#bae6fd" },
+            { backgroundColor: colors.primary + "1A", borderColor: colors.primary + "33" },
           ]}
         >
-          <Text style={[styles.infoText, { color: "#0c4a6e" }]} selectable>
+          <Text style={[styles.infoText, { color: colors.foreground }]} selectable>
             {error.message}
           </Text>
         </View>
@@ -250,7 +250,7 @@ export default function LearnScreen() {
 
           {(!years || years.length === 0) && (
             <View style={styles.emptyState}>
-              <View style={[styles.emptyIcon, { backgroundColor: "#f0f9ff" }]}>
+              <View style={[styles.emptyIcon, { backgroundColor: colors.primary + "1A" }]}>
                 <Feather name="book-open" size={32} color={colors.primary} />
               </View>
               <Text style={[styles.emptyTitle, { color: colors.foreground }]}>

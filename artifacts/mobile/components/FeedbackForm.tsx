@@ -26,7 +26,7 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
       <TextInput
         style={[styles.textarea, {
           color: colors.foreground,
-          borderColor: feedbackError ? "#fca5a5" : colors.border,
+          borderColor: feedbackError ? colors.destructive + "4D" : colors.border,
           backgroundColor: colors.background,
         }]}
         placeholder="Share your thoughts, report a bug, or suggest a feature…"
@@ -41,22 +41,22 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
       />
 
       <Text style={[styles.charCount, {
-        color: feedbackText.length >= 480 ? "#dc2626" : feedbackText.length >= 400 ? "#d97706" : colors.mutedForeground,
+        color: feedbackText.length >= 480 ? colors.destructive : feedbackText.length >= 400 ? colors.warning : colors.mutedForeground,
       }]}>
         {feedbackText.length} / 500
       </Text>
 
       {feedbackSent && (
-        <View style={[styles.alertBox, { backgroundColor: "#d1fae5", borderColor: "#6ee7b7" }]}>
-          <Feather name="check-circle" size={14} color="#059669" />
-          <Text style={[styles.alertText, { color: "#059669" }]}>Feedback sent — thank you!</Text>
+        <View style={[styles.alertBox, { backgroundColor: colors.success + "1A", borderColor: colors.success + "33" }]}>
+          <Feather name="check-circle" size={14} color={colors.success} />
+          <Text style={[styles.alertText, { color: colors.foreground }]}>Feedback sent — thank you!</Text>
         </View>
       )}
 
       {feedbackError && (
-        <View style={[styles.alertBox, { backgroundColor: "#fee2e2", borderColor: "#fca5a5" }]}>
-          <Feather name="alert-circle" size={14} color="#dc2626" />
-          <Text style={[styles.alertText, { color: "#dc2626", flex: 1 }]} numberOfLines={3}>
+        <View style={[styles.alertBox, { backgroundColor: colors.destructive + "1A", borderColor: colors.destructive + "33" }]}>
+          <Feather name="alert-circle" size={14} color={colors.destructive} />
+          <Text style={[styles.alertText, { color: colors.foreground, flex: 1 }]} numberOfLines={3}>
             {feedbackError}
           </Text>
         </View>

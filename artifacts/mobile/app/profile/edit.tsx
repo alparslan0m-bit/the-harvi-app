@@ -106,7 +106,7 @@ export default function EditProfileScreen() {
           >
             <View style={[styles.avatarRing, { borderColor: colors.primary }]}>
               {avatarId ? (
-                <View style={[styles.avatarInner, { backgroundColor: "#f0f9ff" }]}>
+                <View style={[styles.avatarInner, { backgroundColor: colors.primary + "1A" }]}>
                   <AvatarById id={avatarId} size={90} />
                 </View>
               ) : (

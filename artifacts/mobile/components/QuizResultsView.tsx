@@ -22,11 +22,11 @@ import { useColors } from "@/hooks/useColors";
 
 // ── Score tier helpers ────────────────────────────────────────────────────────
 
-function getRingColor(score: number): string {
-  if (score >= 80) return "#059669";
-  if (score >= 70) return "#f59e0b";
-  if (score >= 60) return "#f97316";
-  return "#dc2626";
+function getRingColor(score: number, colors: ReturnType<typeof useColors>): string {
+  if (score >= 80) return colors.success;
+  if (score >= 70) return colors.warning;
+  if (score >= 60) return colors.warning;
+  return colors.destructive;
 }
 
 function getGrade(score: number): string {
@@ -132,7 +132,7 @@ export function ResultsView({
     opacity: ringOpacity.value,
   }));
 
-  const ringColor = getRingColor(score);
+  const ringColor = getRingColor(score, colors);
   const grade = getGrade(score);
   const title = getTitle(score);
   const message = getMessage(score);
@@ -172,8 +172,8 @@ export function ResultsView({
 
         {/* ── Stat pills ── */}
         <Animated.View entering={FadeInDown.delay(300).duration(400).springify()} style={styles.pills}>
-          <StatPill value={correctCount} label="Correct"  color="#059669"        icon="check-circle" />
-          <StatPill value={wrongCount}   label="Wrong"    color="#dc2626"        icon="x-circle" />
+          <StatPill value={correctCount} label="Correct"  color={colors.success}        icon="check-circle" />
+          <StatPill value={wrongCount}   label="Wrong"    color={colors.destructive}        icon="x-circle" />
           <StatPill value={totalCount}   label="Total"    color={colors.primary} icon="help-circle" />
         </Animated.View>
 
@@ -199,10 +199,10 @@ export function ResultsView({
         {saveError && !savedOffline && (
           <Animated.View
             entering={FadeIn.duration(300)}
-            style={[styles.statusPill, { backgroundColor: "#fee2e2", borderColor: "#fca5a5" }]}
+            style={[styles.statusPill, { backgroundColor: colors.destructive + "1A", borderColor: colors.destructive + "4D" }]}
           >
-            <Feather name="alert-triangle" size={13} color="#dc2626" />
-            <Text style={[styles.statusText, { color: "#dc2626", flex: 1 }]} selectable>
+            <Feather name="alert-triangle" size={13} color={colors.destructive} />
+            <Text style={[styles.statusText, { color: colors.destructive, flex: 1 }]} selectable>
               Save failed: {saveError}
             </Text>
           </Animated.View>

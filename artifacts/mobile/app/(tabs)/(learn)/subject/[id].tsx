@@ -105,11 +105,11 @@ export default function SubjectScreen() {
         <View
           style={[
             styles.staleBanner,
-            { backgroundColor: "#fefce8", borderColor: "#fde047" },
+            { backgroundColor: colors.warning + "1A", borderColor: colors.warning + "4D" },
           ]}
         >
-          <Feather name="alert-circle" size={14} color="#92400e" />
-          <Text style={[styles.staleText, { color: "#92400e" }]}>
+          <Feather name="alert-circle" size={14} color={colors.warning} />
+          <Text style={[styles.staleText, { color: colors.foreground }]}>
             {newQuestionCount} new question{newQuestionCount !== 1 ? "s" : ""}{" "}
             added to this subject — tap "Update available" to get the latest.
           </Text>

@@ -58,13 +58,13 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
   let textColor = colors.foreground;
 
   if (isCorrect) {
-    bgColor = "#dcfce7";
-    borderColor = "#4ade80";
-    textColor = "#14532d";
+    bgColor = colors.success + "1A";
+    borderColor = colors.success + "4D";
+    textColor = colors.foreground;
   } else if (isWrong) {
-    bgColor = "#fee2e2";
-    borderColor = "#f87171";
-    textColor = "#7f1d1d";
+    bgColor = colors.destructive + "1A";
+    borderColor = colors.destructive + "4D";
+    textColor = colors.foreground;
   } else if (isDimmed) {
     bgColor = colors.muted;
     borderColor = "transparent";
@@ -74,9 +74,9 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
   const label = String.fromCharCode(65 + index);
 
   const labelBg = isCorrect
-    ? "#4ade80"
+    ? colors.success
     : isWrong
-      ? "#f87171"
+      ? colors.destructive
       : isDimmed
         ? colors.border
         : colors.muted;
@@ -117,9 +117,9 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
           </Text>
 
           {isCorrect && (
-            <Feather name="check-circle" size={20} color="#16a34a" />
+            <Feather name="check-circle" size={20} color={colors.success} />
           )}
-          {isWrong && <Feather name="x-circle" size={20} color="#dc2626" />}
+          {isWrong && <Feather name="x-circle" size={20} color={colors.destructive} />}
         </TouchableOpacity>
       </Animated.View>
     </Animated.View>
