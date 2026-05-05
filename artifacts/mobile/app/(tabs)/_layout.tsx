@@ -12,7 +12,7 @@ import { useColors } from "@/hooks/useColors";
 function NativeTabLayout() {
   return (
     <NativeTabs>
-      <NativeTabs.Trigger name="index">
+      <NativeTabs.Trigger name="(learn)">
         <Icon sf={{ default: "books.vertical", selected: "books.vertical.fill" }} />
         <Label>Learn</Label>
       </NativeTabs.Trigger>
@@ -66,7 +66,7 @@ function ClassicTabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="(learn)"
         options={{
           title: "Learn",
           tabBarIcon: ({ color }) =>
@@ -76,6 +76,30 @@ function ClassicTabLayout() {
               <Feather name="book-open" size={22} color={color} />
             ),
         }}
+      />
+      <Tabs.Screen
+        name="(learn)/year/[id]"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="(learn)/module/[id]"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="(learn)/subject/[id]"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="year/[id]"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="module/[id]"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
+        name="subject/[id]"
+        options={{ href: null }}
       />
       <Tabs.Screen
         name="stats"
