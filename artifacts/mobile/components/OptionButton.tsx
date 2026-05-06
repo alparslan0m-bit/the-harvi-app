@@ -34,7 +34,7 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
     if (!answered) return;
     if (index === answered.correct) {
       scale.value = withSequence(
-        withSpring(1.04, { damping: 10, stiffness: 220 }),
+        withSpring(1.05, { damping: 10, stiffness: 220 }),
         withSpring(1, { damping: 15 }),
       );
     } else if (index === answered.selected && index !== answered.correct) {
@@ -58,15 +58,13 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
   let textColor = colors.foreground;
 
   if (isCorrect) {
-    bgColor = colors.success + "1A";
-    borderColor = colors.success + "4D";
-    textColor = colors.foreground;
+    bgColor = colors.success + "12";
+    borderColor = colors.success + "66";
   } else if (isWrong) {
-    bgColor = colors.destructive + "1A";
-    borderColor = colors.destructive + "4D";
-    textColor = colors.foreground;
+    bgColor = colors.destructive + "12";
+    borderColor = colors.destructive + "66";
   } else if (isDimmed) {
-    bgColor = colors.muted;
+    bgColor = colors.muted + "40";
     borderColor = "transparent";
     textColor = colors.mutedForeground;
   }
@@ -95,18 +93,18 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
           onPress={() => {
             if (answered) return;
             scale.value = withSequence(
-              withSpring(0.97, { damping: 20 }),
+              withSpring(0.96, { damping: 20 }),
               withSpring(1, { damping: 20 }),
             );
             onSelect(index);
           }}
-          activeOpacity={0.82}
+          activeOpacity={0.88}
           disabled={!!answered}
         >
           <View 
             style={[
-              styles.selectionRing, 
-              { borderColor: isCorrect ? colors.success : isWrong ? colors.destructive : "transparent" }
+              styles.innerGlow, 
+              { borderColor: isCorrect ? colors.success + "33" : isWrong ? colors.destructive + "33" : "rgba(255,255,255,0.1)" }
             ]} 
           />
 
@@ -137,32 +135,35 @@ const styles = StyleSheet.create({
   option: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 15,
-    paddingHorizontal: 14,
-    borderRadius: 18,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 22,
     borderWidth: 1.5,
-    gap: 13,
+    gap: 14,
+    overflow: "hidden",
+    position: "relative",
+  },
+  innerGlow: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    zIndex: 1,
   },
   badge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 34,
+    height: 34,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
-  },
-  badgeText: { fontSize: 13, fontFamily: "Inter_700Bold", letterSpacing: 0.2 },
-  optionText: {
-    flex: 1,
-    fontSize: 15,
-    fontFamily: "Inter_500Medium",
-    lineHeight: 21,
     zIndex: 2,
   },
-  selectionRing: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 18,
-    borderWidth: 2,
-    zIndex: 1,
+  badgeText: { fontSize: 14, fontFamily: "Inter_700Bold", letterSpacing: 0.2 },
+  optionText: {
+    flex: 1,
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
+    lineHeight: 22,
+    zIndex: 2,
   },
 });

@@ -66,74 +66,75 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
+    <View style={[editStyles.root, { backgroundColor: colors.background }]}>
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <View style={[styles.header, {
-        paddingTop: topPad + 12,
-        borderBottomColor: colors.border,
+      <View style={[editStyles.header, {
+        paddingTop: topPad + 14,
+        borderBottomColor: "transparent",
         backgroundColor: colors.background,
       }]}>
         <TouchableOpacity
-          style={[styles.backBtn, { backgroundColor: colors.muted }]}
+          style={[editStyles.backBtn, { backgroundColor: colors.muted }]}
           onPress={handleCancel}
-          activeOpacity={0.7}
+          activeOpacity={0.75}
         >
           <Feather name="arrow-left" size={18} color={colors.foreground} />
         </TouchableOpacity>
 
-        <Text style={[styles.headerTitle, { color: colors.foreground }]}>Edit Profile</Text>
+        <Text style={[editStyles.headerTitle, { color: colors.foreground }]}>Edit Profile</Text>
 
         <TouchableOpacity
-          style={[styles.headerBtn, { backgroundColor: colors.primary }]}
+          style={[editStyles.headerBtn, { backgroundColor: colors.primary }]}
           onPress={handleSave}
-          activeOpacity={0.8}
+          activeOpacity={0.88}
         >
-          <Text style={[styles.headerBtnText, { color: "#fff" }]}>Save</Text>
+          <Text style={[editStyles.headerBtnText, { color: "#fff" }]}>Save</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40 }]}
+        contentContainerStyle={[editStyles.content, { paddingBottom: insets.bottom + 40 }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
 
         {/* ── Avatar ───────────────────────────────────────────────────── */}
-        <View style={styles.avatarSection}>
+        <View style={editStyles.avatarSection}>
           <TouchableOpacity
             onPress={() => setPickerVisible(true)}
             activeOpacity={0.8}
-            style={styles.avatarWrap}
+            style={editStyles.avatarWrap}
           >
-            <View style={[styles.avatarRing, { borderColor: colors.primary }]}>
+            <View style={[editStyles.avatarRing, { borderColor: colors.primary }]}>
               {avatarId ? (
-                <View style={[styles.avatarInner, { backgroundColor: colors.primary + "1A" }]}>
-                  <AvatarById id={avatarId} size={90} />
+                <View style={[editStyles.avatarInner, { backgroundColor: colors.primary + "1A" }]}>
+                  <AvatarById id={avatarId} size={86} />
                 </View>
               ) : (
-                <View style={[styles.avatarInner, { backgroundColor: colors.primary }]}>
-                  <Text style={styles.avatarInitialText}>{initial}</Text>
+                <View style={[editStyles.avatarInner, { backgroundColor: colors.primary }]}>
+                  <Text style={editStyles.avatarInitialText}>{initial}</Text>
                 </View>
               )}
             </View>
-            <View style={[styles.editBadge, { backgroundColor: colors.primary, borderColor: colors.background }]}>
-              <Feather name="smile" size={15} color="#fff" />
+            <View style={[editStyles.editBadge, { backgroundColor: colors.primary, borderColor: colors.background }]}>
+              <Feather name="camera" size={14} color="#fff" />
             </View>
           </TouchableOpacity>
-          <Text style={[styles.avatarHint, { color: colors.mutedForeground }]}>
-            Tap to change avatar
+          <Text style={[editStyles.avatarHint, { color: colors.mutedForeground }]}>
+            Tap to change medical avatar
           </Text>
         </View>
 
         {/* ── Name field ───────────────────────────────────────────────── */}
-        <View style={styles.fieldGroup}>
-          <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>DISPLAY NAME</Text>
-          <View style={[styles.fieldBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Feather name="user" size={16} color={colors.mutedForeground} style={styles.fieldIcon} />
+        <View style={editStyles.fieldGroup}>
+          <Text style={[editStyles.fieldLabel, { color: colors.mutedForeground }]}>DISPLAY NAME</Text>
+          <View style={[editStyles.fieldBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={[editStyles.innerBorder, { borderColor: "rgba(255,255,255,0.1)" }]} />
+            <Feather name="user" size={16} color={colors.mutedForeground} style={editStyles.fieldIcon} />
             <TextInput
               ref={nameRef}
-              style={[styles.fieldInput, { color: colors.foreground }]}
+              style={[editStyles.fieldInput, { color: colors.foreground }]}
               value={nameInput}
               onChangeText={setNameInput}
               placeholder="Your name"
@@ -152,24 +153,24 @@ export default function EditProfileScreen() {
         </View>
 
         {/* ── Email field (read-only) ───────────────────────────────────── */}
-        <View style={styles.fieldGroup}>
-          <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>EMAIL</Text>
-          <View style={[styles.fieldBox, { backgroundColor: colors.muted, borderColor: colors.border }]}>
-            <Feather name="mail" size={16} color={colors.mutedForeground} style={styles.fieldIcon} />
-            <Text style={[styles.fieldReadOnly, { color: colors.mutedForeground }]} numberOfLines={1}>
+        <View style={editStyles.fieldGroup}>
+          <Text style={[editStyles.fieldLabel, { color: colors.mutedForeground }]}>EMAIL</Text>
+          <View style={[editStyles.fieldBox, { backgroundColor: colors.muted + "80", borderColor: colors.border }]}>
+            <Feather name="mail" size={16} color={colors.mutedForeground} style={editStyles.fieldIcon} />
+            <Text style={[editStyles.fieldReadOnly, { color: colors.mutedForeground }]} numberOfLines={1}>
               {user?.email}
             </Text>
             <Feather name="lock" size={13} color={colors.mutedForeground} />
           </View>
-          <Text style={[styles.fieldNote, { color: colors.mutedForeground }]}>
-            Email cannot be changed
+          <Text style={[editStyles.fieldNote, { color: colors.mutedForeground }]}>
+            Primary account email (secured)
           </Text>
         </View>
         
         {/* ── Appearance ────────────────────────────────────────────────── */}
-        <View style={styles.fieldGroup}>
-          <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>APPEARANCE</Text>
-          <View style={styles.themeRow}>
+        <View style={editStyles.fieldGroup}>
+          <Text style={[editStyles.fieldLabel, { color: colors.mutedForeground }]}>APPEARANCE</Text>
+          <View style={editStyles.themeRow}>
             {[
               { id: "harvi", label: "Harvi", icon: "activity" },
               { id: "dark", label: "Dark", icon: "moon" },
@@ -181,7 +182,7 @@ export default function EditProfileScreen() {
                 <TouchableOpacity
                   key={item.id}
                   style={[
-                    styles.themeBtn,
+                    editStyles.themeBtn,
                     { 
                       backgroundColor: active ? (item.id === "pink" ? "#db27771A" : colors.primary + "1A") : colors.card,
                       borderColor: active ? accent : colors.border,
@@ -191,7 +192,7 @@ export default function EditProfileScreen() {
                     setTheme(item.id as any);
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   }}
-                  activeOpacity={0.7}
+                  activeOpacity={0.75}
                 >
                   <Feather 
                     name={item.icon as any} 
@@ -199,7 +200,7 @@ export default function EditProfileScreen() {
                     color={active ? accent : colors.mutedForeground} 
                   />
                   <Text style={[
-                    styles.themeBtnText, 
+                    editStyles.themeBtnText, 
                     { color: active ? accent : colors.mutedForeground }
                   ]}>
                     {item.label}
@@ -212,12 +213,12 @@ export default function EditProfileScreen() {
 
         {/* ── Save button ──────────────────────────────────────────────── */}
         <TouchableOpacity
-          style={[styles.saveBtn, { backgroundColor: colors.primary }]}
+          style={[editStyles.saveBtn, { backgroundColor: colors.primary }]}
           onPress={handleSave}
-          activeOpacity={0.85}
+          activeOpacity={0.88}
         >
-          <Feather name="check" size={16} color="#fff" />
-          <Text style={styles.saveBtnText}>Save Changes</Text>
+          <Feather name="check" size={18} color="#fff" />
+          <Text style={editStyles.saveBtnText}>Save Changes</Text>
         </TouchableOpacity>
 
       </ScrollView>
@@ -232,49 +233,49 @@ export default function EditProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const editStyles = StyleSheet.create({
   root: { flex: 1 },
 
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   headerBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
   },
-  headerBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  headerBtnText: { fontSize: 14, fontFamily: "Nunito_800ExtraBold" },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
   },
-  headerTitle: { fontSize: 20, fontFamily: "Nunito_700Bold", letterSpacing: -0.3 },
+  headerTitle: { fontSize: 24, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
 
-  content: { paddingHorizontal: 24, paddingTop: 36 },
+  content: { paddingHorizontal: 24, paddingTop: 26 },
 
-  avatarSection: { alignItems: "center", marginBottom: 40 },
+  avatarSection: { alignItems: "center", marginBottom: 32 },
   avatarWrap: { position: "relative" },
   avatarRing: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 116,
+    height: 116,
+    borderRadius: 58,
     borderWidth: 3,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarInner: {
-    width: 106,
-    height: 106,
-    borderRadius: 53,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -284,48 +285,58 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 4,
     right: 4,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     borderWidth: 3,
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarHint: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 12 },
+  avatarHint: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 12 },
 
   fieldGroup: { marginBottom: 24 },
   fieldLabel: {
     fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Inter_800ExtraBold",
     letterSpacing: 0.8,
-    marginBottom: 8,
+    marginBottom: 10,
     marginLeft: 2,
   },
   fieldBox: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 16,
+    borderWidth: 1.5,
+    borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    gap: 10,
+    gap: 12,
+    position: "relative",
+    overflow: "hidden",
   },
-  fieldIcon: { flexShrink: 0 },
+  innerBorder: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    zIndex: 1,
+  },
+  fieldIcon: { flexShrink: 0, zIndex: 2 },
   fieldInput: {
     flex: 1,
-    fontSize: 15,
-    fontFamily: "Inter_500Medium",
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
     padding: 0,
+    zIndex: 2,
   },
   fieldReadOnly: {
     flex: 1,
     fontSize: 15,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Inter_500Medium",
+    zIndex: 2,
   },
   fieldNote: {
     fontSize: 11,
     fontFamily: "Inter_400Regular",
-    marginTop: 6,
+    marginTop: 8,
     marginLeft: 2,
   },
 
@@ -333,12 +344,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 10,
     paddingVertical: 16,
-    borderRadius: 18,
-    marginTop: 8,
+    borderRadius: 24,
+    marginTop: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
   },
-  saveBtnText: { fontSize: 16, fontFamily: "Inter_600SemiBold", color: "#fff" },
+  saveBtnText: { fontSize: 17, fontFamily: "Nunito_800ExtraBold", color: "#fff" },
   themeRow: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -352,11 +368,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1.5,
   },
   themeBtnText: {
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    fontFamily: "Inter_700Bold",
   },
 });

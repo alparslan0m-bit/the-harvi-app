@@ -34,7 +34,12 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={styles.errorContainer}
     >
-      <View style={[styles.errorIcon, { backgroundColor: colors.destructive + "1A" }]}>
+      <View
+        style={[
+          styles.errorIcon,
+          { backgroundColor: colors.destructive + "1A" },
+        ]}
+      >
         <Feather name="alert-triangle" size={28} color={colors.destructive} />
       </View>
       <Text style={[styles.errorTitle, { color: colors.foreground }]}>
@@ -48,7 +53,10 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
         <View
           style={[
             styles.infoBox,
-            { backgroundColor: colors.destructive + "1A", borderColor: colors.destructive + "33" },
+            {
+              backgroundColor: colors.destructive + "1A",
+              borderColor: colors.destructive + "33",
+            },
           ]}
         >
           <Text style={[styles.infoText, { color: colors.foreground }]}>
@@ -65,7 +73,10 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
         <View
           style={[
             styles.infoBox,
-            { backgroundColor: colors.warning + "1A", borderColor: colors.warning + "33" },
+            {
+              backgroundColor: colors.warning + "1A",
+              borderColor: colors.warning + "33",
+            },
           ]}
         >
           <Text style={[styles.infoText, { color: colors.foreground }]}>
@@ -86,10 +97,16 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
         <View
           style={[
             styles.infoBox,
-            { backgroundColor: colors.primary + "1A", borderColor: colors.primary + "33" },
+            {
+              backgroundColor: colors.primary + "1A",
+              borderColor: colors.primary + "33",
+            },
           ]}
         >
-          <Text style={[styles.infoText, { color: colors.foreground }]} selectable>
+          <Text
+            style={[styles.infoText, { color: colors.foreground }]}
+            selectable
+          >
             {error.message}
           </Text>
         </View>
@@ -153,14 +170,13 @@ export default function LearnScreen() {
             styles.header,
             {
               paddingTop: topPad + 14,
-              borderBottomColor: colors.border,
+              borderBottomColor: "transparent",
               backgroundColor: colors.background,
             },
           ]}
         >
-          <Text style={[styles.title, { color: colors.foreground }]}>
-            Harvi
-          </Text>
+          <Text style={[styles.title, { color: colors.foreground }]}>Harvi</Text>
+          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Questions you need</Text>
         </View>
         <Animated.View
           style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}
@@ -186,7 +202,7 @@ export default function LearnScreen() {
             styles.header,
             {
               paddingTop: topPad + 14,
-              borderBottomColor: colors.border,
+              borderBottomColor: "transparent",
               backgroundColor: colors.background,
             },
           ]}
@@ -214,12 +230,13 @@ export default function LearnScreen() {
           styles.header,
           {
             paddingTop: topPad + 14,
-            borderBottomColor: colors.border,
+            borderBottomColor: "transparent",
             backgroundColor: colors.background,
           },
         ]}
       >
         <Text style={[styles.title, { color: colors.foreground }]}>Harvi</Text>
+        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Questions you need</Text>
       </View>
 
       <Animated.View
@@ -250,7 +267,12 @@ export default function LearnScreen() {
 
           {(!years || years.length === 0) && (
             <View style={styles.emptyState}>
-              <View style={[styles.emptyIcon, { backgroundColor: colors.primary + "1A" }]}>
+              <View
+                style={[
+                  styles.emptyIcon,
+                  { backgroundColor: colors.primary + "1A" },
+                ]}
+              >
                 <Feather name="book-open" size={32} color={colors.primary} />
               </View>
               <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
@@ -279,11 +301,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   title: {
-    fontSize: 36,
+    fontSize: 38,
     fontFamily: "Nunito_800ExtraBold",
     letterSpacing: -0.5,
   },
-  subtitle: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 3 },
+  subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", marginTop: -2 },
 
   content: { paddingTop: 20 },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },

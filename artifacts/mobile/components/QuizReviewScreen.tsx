@@ -32,7 +32,7 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
     <View style={{ flex: 1, backgroundColor: colors.background }}>
 
       {/* ── Header ── */}
-      <View style={[styles.header, { paddingTop: topPad + 10, backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { paddingTop: topPad + 14, backgroundColor: colors.background, borderBottomColor: colors.border }]}>
         <TouchableOpacity
           onPress={onBack}
           style={[styles.backBtn, { backgroundColor: colors.muted }]}
@@ -44,7 +44,7 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
         <View style={styles.headerText}>
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>Review Answers</Text>
           <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
-            {totalCount} question{totalCount !== 1 ? "s" : ""}
+            {totalCount} medical question{totalCount !== 1 ? "s" : ""}
           </Text>
         </View>
       </View>
@@ -78,7 +78,7 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
         {history.map((item, qi) => {
           const isCorrect = item.selected === item.correct;
           const accentColor = isCorrect ? colors.success : colors.destructive;
-          const accentBg = isCorrect ? colors.success + "1A" : colors.destructive + "1A";
+          const accentBg = isCorrect ? colors.success + "12" : colors.destructive + "12";
           const accentBorder = isCorrect ? colors.success + "4D" : colors.destructive + "4D";
 
           return (
@@ -87,16 +87,17 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
               entering={FadeInDown.delay(qi * 40).duration(350).springify()}
               style={[styles.card, { backgroundColor: colors.card, borderColor: accentBorder }]}
             >
+              <View style={[styles.innerBorder, { borderColor: accentColor + "20" }]} />
               {/* Card header */}
               <View style={[styles.cardHeader, { backgroundColor: accentBg, borderBottomColor: accentBorder }]}>
                 <View style={[styles.qNumBadge, { backgroundColor: accentColor + "22" }]}>
                   <Text style={[styles.qNumText, { color: accentColor }]}>Q{qi + 1}</Text>
                 </View>
                 <Text style={[styles.cardStatus, { color: accentColor }]}>
-                  {isCorrect ? "Correct" : "Incorrect"}
+                  {isCorrect ? "Correctly Answered" : "Needs Review"}
                 </Text>
                 <Feather
-                  name={isCorrect ? "check-circle" : "x-circle"}
+                  name={isCorrect ? "check-circle" : "alert-circle"}
                   size={17}
                   color={accentColor}
                 />
@@ -128,11 +129,11 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
                     let labelColor = colors.mutedForeground;
 
                     if (isCorrectOpt) {
-                      bg = colors.success + "1A"; border = colors.success + "4D";
-                      textCol = colors.foreground; labelBg = colors.success; labelColor = colors.background;
+                      bg = colors.success + "12"; border = colors.success + "4D";
+                      textCol = colors.foreground; labelBg = colors.success; labelColor = "#fff";
                     } else if (isSelectedOpt) {
-                      bg = colors.destructive + "1A"; border = colors.destructive + "4D";
-                      textCol = colors.foreground; labelBg = colors.destructive; labelColor = colors.background;
+                      bg = colors.destructive + "12"; border = colors.destructive + "4D";
+                      textCol = colors.foreground; labelBg = colors.destructive; labelColor = "#fff";
                     }
 
                     return (
@@ -142,7 +143,7 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
                             {String.fromCharCode(65 + oi)}
                           </Text>
                         </View>
-                        <Text style={[styles.optionText, { color: textCol }]} numberOfLines={3}>
+                        <Text style={[styles.optionText, { color: textCol }]} numberOfLines={5}>
                           {opt}
                         </Text>
                         {isCorrectOpt && <Feather name="check" size={14} color={colors.success} />}
@@ -154,7 +155,7 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
 
                 {/* Explanation */}
                 {!!item.explanation && (
-                  <View style={[styles.explanation, { backgroundColor: colors.primary + "0A", borderColor: colors.primary + "1A" }]}>
+                  <View style={[styles.explanation, { backgroundColor: colors.primary + "0A", borderColor: colors.primary + "20" }]}>
                     <View style={[styles.explanationStripe, { backgroundColor: colors.primary }]} />
                     <View style={styles.explanationContent}>
                       <View style={styles.explanationHeader}>
@@ -180,8 +181,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 13,
-    paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   backBtn: {
@@ -193,96 +194,103 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   headerText: { flex: 1 },
-  headerTitle: { fontSize: 26, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
-  headerSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
+  headerTitle: { fontSize: 28, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
+  headerSub: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 1 },
 
   // ── Summary strip ───────────────────────────────────────────────────────
   summaryStrip: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 24,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  summaryItem: { flex: 1, alignItems: "center", gap: 3 },
+  summaryItem: { flex: 1, alignItems: "center", gap: 4 },
   summaryDot: { width: 8, height: 8, borderRadius: 4 },
-  summaryNum: { fontSize: 22, fontFamily: "Inter_700Bold", letterSpacing: -0.8 },
-  summaryLabel: { fontSize: 11, fontFamily: "Inter_500Medium" },
-  summaryDivider: { width: 1, height: 36, marginHorizontal: 8 },
+  summaryNum: { fontSize: 24, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.8 },
+  summaryLabel: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  summaryDivider: { width: 1, height: 38, marginHorizontal: 8 },
 
   // ── Cards ───────────────────────────────────────────────────────────────
-  list: { padding: 16, gap: 14 },
+  list: { padding: 16, gap: 16 },
 
   card: {
-    borderRadius: 20,
+    borderRadius: 26,
     borderWidth: 1.5,
     overflow: "hidden",
+    position: "relative",
+  },
+  innerBorder: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 26,
+    borderWidth: 1.5,
+    zIndex: 1,
   },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
   },
   qNumBadge: {
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-    borderRadius: 7,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  qNumText: { fontSize: 12, fontFamily: "Inter_700Bold", letterSpacing: 0.2 },
-  cardStatus: { flex: 1, fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  qNumText: { fontSize: 12, fontFamily: "Inter_800ExtraBold", letterSpacing: 0.2 },
+  cardStatus: { flex: 1, fontSize: 14, fontFamily: "Inter_700Bold" },
 
-  cardBody: { padding: 14, gap: 10 },
+  cardBody: { padding: 18, gap: 14 },
 
   questionText: {
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-    lineHeight: 22,
+    fontSize: 17,
+    fontFamily: "Nunito_800ExtraBold",
+    lineHeight: 24,
     letterSpacing: -0.2,
   },
 
   reviewImageWrap: { marginBottom: 4 },
 
   // ── Options in review ───────────────────────────────────────────────────
-  optionList: { gap: 6 },
+  optionList: { gap: 8 },
   optionRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 9,
-    paddingVertical: 9,
-    paddingHorizontal: 11,
-    borderRadius: 11,
+    gap: 10,
+    paddingVertical: 11,
+    paddingHorizontal: 12,
+    borderRadius: 14,
     borderWidth: 1.5,
   },
   optionBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
   },
-  optionBadgeText: { fontSize: 11, fontFamily: "Inter_700Bold" },
-  optionText: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 18 },
+  optionBadgeText: { fontSize: 12, fontFamily: "Inter_700Bold" },
+  optionText: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium", lineHeight: 20 },
 
   // ── Explanation ─────────────────────────────────────────────────────────
   explanation: {
     flexDirection: "row",
-    borderRadius: 12,
-    borderWidth: 1,
-    marginTop: 2,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    marginTop: 4,
     overflow: "hidden",
   },
   explanationStripe: {
-    width: 4,
+    width: 5,
     height: "100%",
   },
   explanationContent: {
     flex: 1,
-    padding: 11,
-    gap: 6,
+    padding: 14,
+    gap: 8,
   },
   explanationHeader: {
     flexDirection: "row",
@@ -290,13 +298,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   explanationLabel: {
-    fontSize: 10,
-    fontFamily: "Inter_700Bold",
+    fontSize: 11,
+    fontFamily: "Inter_800ExtraBold",
     letterSpacing: 0.5,
   },
   explanationText: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: "Inter_400Regular",
-    lineHeight: 19,
+    lineHeight: 21,
   },
 });

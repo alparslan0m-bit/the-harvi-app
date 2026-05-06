@@ -23,13 +23,18 @@ export function StatCard({ label, value, icon, accent }: Props) {
         },
       ]}
     >
-      <View style={[styles.iconWrap, { backgroundColor: accent ? "rgba(255,255,255,0.2)" : colors.muted }]}>
-        {icon}
+      <View style={[styles.headerRow]}>
+        <View style={[styles.iconWrap, { backgroundColor: accent ? "rgba(255,255,255,0.2)" : colors.primary + "10" }]}>
+          {icon}
+        </View>
       </View>
-      <Text style={[styles.value, { color: accent ? "#fff" : colors.foreground }]}>{value}</Text>
-      <Text style={[styles.label, { color: accent ? "rgba(255,255,255,0.7)" : colors.mutedForeground }]}>
-        {label}
-      </Text>
+      
+      <View style={styles.content}>
+        <Text style={[styles.value, { color: accent ? "#fff" : colors.foreground }]}>{value}</Text>
+        <Text style={[styles.label, { color: accent ? "rgba(255,255,255,0.8)" : colors.mutedForeground }]}>
+          {label}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -37,31 +42,40 @@ export function StatCard({ label, value, icon, accent }: Props) {
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    padding: 16,
-    borderRadius: 20,
+    padding: 18,
+    borderRadius: 24,
     borderWidth: 1,
-    gap: 8,
+    minHeight: 110,
+    justifyContent: "space-between",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowRadius: 12,
+    elevation: 2,
+  },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    marginBottom: 4,
   },
   iconWrap: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
   },
+  content: {
+    gap: 0,
+  },
   value: {
-    fontSize: 26,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: -0.8,
+    fontSize: 24,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -0.5,
   },
   label: {
     fontSize: 12,
     fontFamily: "Inter_500Medium",
-    letterSpacing: 0.1,
+    letterSpacing: 0,
   },
 });

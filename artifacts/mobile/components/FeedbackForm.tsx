@@ -1,5 +1,13 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet, Keyboard } from 'react-native';
+import React from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+  Keyboard,
+} from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useFeedback } from "@/hooks/useFeedback";
 import { useColors } from "@/hooks/useColors";
@@ -15,22 +23,47 @@ interface FeedbackFormProps {
 export function FeedbackForm({ userId }: FeedbackFormProps) {
   const colors = useColors();
   const {
-    feedbackText, updateText,
-    submitting, feedbackSent, feedbackError,
-    cooldownSecs, isDisabled, isTooShort,
+    feedbackText,
+    updateText,
+    submitting,
+    feedbackSent,
+    feedbackError,
+    cooldownSecs,
+    isDisabled,
+    isTooShort,
     handleSubmit,
   } = useFeedback(userId);
   const [isFocused, setIsFocused] = React.useState(false);
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View style={[styles.card, { backgroundColor: colors.card }]}>
+      <View style={styles.header}>
+        <View
+          style={[
+            styles.headerIconWrap,
+            { backgroundColor: colors.primary + "1A" },
+          ]}
+        >
+          <Feather name="message-square" size={14} color={colors.primary} />
+        </View>
+        <Text style={[styles.headerLabel, { color: colors.foreground }]}>
+          Feedback
+        </Text>
+      </View>
       <View style={styles.inputArea}>
         <TextInput
-          style={[styles.textarea, {
-            color: colors.foreground,
-            borderColor: feedbackError ? colors.destructive + "4D" : (isFocused ? colors.primary : colors.border),
-            backgroundColor: colors.background,
-          }]}
+          style={[
+            styles.textarea,
+            {
+              color: colors.foreground,
+              borderColor: feedbackError
+                ? colors.destructive + "4D"
+                : isFocused
+                  ? colors.primary
+                  : colors.border,
+              backgroundColor: colors.background,
+            },
+          ]}
           placeholder="Share your thoughts, report a bug, or suggest a feature…"
           placeholderTextColor={colors.mutedForeground}
           multiline
@@ -44,24 +77,55 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
           onBlur={() => setIsFocused(false)}
         />
 
-        <Text style={[styles.charCount, {
-          color: feedbackText.length >= 480 ? colors.destructive : feedbackText.length >= 400 ? colors.warning : colors.mutedForeground,
-        }]}>
+        <Text
+          style={[
+            styles.charCount,
+            {
+              color:
+                feedbackText.length >= 480
+                  ? colors.destructive
+                  : feedbackText.length >= 400
+                    ? colors.warning
+                    : colors.mutedForeground,
+            },
+          ]}
+        >
           {feedbackText.length} / 500
         </Text>
       </View>
 
       {feedbackSent && (
-        <View style={[styles.alertBox, { backgroundColor: colors.success + "1A", borderColor: colors.success + "33" }]}>
+        <View
+          style={[
+            styles.alertBox,
+            {
+              backgroundColor: colors.success + "1A",
+              borderColor: colors.success + "33",
+            },
+          ]}
+        >
           <Feather name="check-circle" size={14} color={colors.success} />
-          <Text style={[styles.alertText, { color: colors.foreground }]}>Feedback sent — thank you!</Text>
+          <Text style={[styles.alertText, { color: colors.foreground }]}>
+            Feedback sent — thank you!
+          </Text>
         </View>
       )}
 
       {feedbackError && (
-        <View style={[styles.alertBox, { backgroundColor: colors.destructive + "1A", borderColor: colors.destructive + "33" }]}>
+        <View
+          style={[
+            styles.alertBox,
+            {
+              backgroundColor: colors.destructive + "1A",
+              borderColor: colors.destructive + "33",
+            },
+          ]}
+        >
           <Feather name="alert-circle" size={14} color={colors.destructive} />
-          <Text style={[styles.alertText, { color: colors.foreground, flex: 1 }]} numberOfLines={3}>
+          <Text
+            style={[styles.alertText, { color: colors.foreground, flex: 1 }]}
+            numberOfLines={3}
+          >
             {feedbackError}
           </Text>
         </View>
@@ -69,11 +133,12 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
 
       <TouchableOpacity
         style={[
-          styles.submitBtn, 
-          { 
-            backgroundColor: isDisabled || isTooShort ? colors.muted : colors.primary,
+          styles.submitBtn,
+          {
+            backgroundColor:
+              isDisabled || isTooShort ? colors.muted : colors.primary,
             shadowColor: colors.primary,
-          }
+          },
         ]}
         onPress={handleSubmit}
         disabled={isDisabled || isTooShort}
@@ -84,10 +149,21 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
         ) : cooldownSecs > 0 ? (
           <View style={styles.cooldownContainer}>
             <Feather name="clock" size={14} color={colors.mutedForeground} />
-            <Text style={[styles.submitBtnText, { color: colors.mutedForeground }]}>Wait {cooldownSecs}s</Text>
+            <Text
+              style={[styles.submitBtnText, { color: colors.mutedForeground }]}
+            >
+              Wait {cooldownSecs}s
+            </Text>
           </View>
         ) : (
-          <Text style={[styles.submitBtnText, { color: isTooShort ? colors.mutedForeground : "#fff" }]}>Submit Feedback</Text>
+          <Text
+            style={[
+              styles.submitBtnText,
+              { color: isTooShort ? colors.mutedForeground : "#fff" },
+            ]}
+          >
+            Submit Feedback
+          </Text>
         )}
       </TouchableOpacity>
     </View>
@@ -95,30 +171,55 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 24, gap: 12 },
-  inputArea: { position: "relative" },
-  textarea: { 
-    borderWidth: 1, 
-    borderRadius: 14, 
-    padding: 14, 
-    paddingBottom: 30,
-    fontSize: 14, 
-    fontFamily: "Inter_400Regular", 
-    minHeight: 110, 
-    lineHeight: 22 
+  card: { borderRadius: 24, padding: 20, marginBottom: 24, gap: 16 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 4,
   },
-  charCount: { 
+  headerIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerLabel: {
+    fontSize: 16,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -0.4,
+  },
+  inputArea: { position: "relative" },
+  textarea: {
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 16,
+    paddingBottom: 32,
+    fontSize: 16,
+    fontFamily: "Inter_500Medium",
+    minHeight: 120,
+    lineHeight: 24,
+  },
+  charCount: {
     position: "absolute",
     bottom: 8,
     right: 12,
-    fontSize: 10, 
-    fontFamily: "Inter_500Medium", 
+    fontSize: 10,
+    fontFamily: "Inter_500Medium",
   },
-  alertBox: { flexDirection: "row", alignItems: "center", gap: 8, padding: 12, borderRadius: 12, borderWidth: 1 },
+  alertBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
   alertText: { fontSize: 13, fontFamily: "Inter_500Medium" },
-  submitBtn: { 
-    paddingVertical: 16, 
-    borderRadius: 12, 
+  submitBtn: {
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },

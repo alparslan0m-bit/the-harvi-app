@@ -50,28 +50,43 @@ function ClassicTabLayout() {
         tabBarStyle: {
           position: "absolute",
           backgroundColor: isIOS ? "transparent" : colors.card,
-          borderTopWidth: isWeb ? 1 : 0,
-          borderTopColor: colors.border,
-          elevation: 8,
+          borderTopWidth: 0,
+          elevation: 12,
           shadowColor: "#000",
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.05,
-          shadowRadius: 10,
-          ...(isWeb ? { height: 84 } : { height: 60 + (isIOS ? 0 : 4) }),
+          shadowOffset: { width: 0, height: -6 },
+          shadowOpacity: 0.12,
+          shadowRadius: 18,
+          ...(isWeb ? { height: 90 } : { height: 70 + (isIOS ? 0 : 4) }),
         },
-        tabBarBackground: () =>
-          isIOS ? (
-            <BlurView
-              intensity={100}
-              tint={isDark ? "dark" : "light"}
-              style={StyleSheet.absoluteFill}
-            />
-          ) : isWeb ? (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
-          ) : null,
+        tabBarBackground: () => (
+          <View style={StyleSheet.absoluteFill}>
+            {isIOS ? (
+              <BlurView
+                intensity={85}
+                tint={isDark ? "dark" : "light"}
+                style={StyleSheet.absoluteFill}
+              />
+            ) : (
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.card }]} />
+            )}
+            {/* Rim-light top border */}
+            <View style={{
+              height: 1.5,
+              backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.03)",
+              width: "100%",
+              position: "absolute",
+              top: 0,
+            }} />
+          </View>
+        ),
         tabBarLabelStyle: {
-          fontFamily: "Inter_500Medium",
-          fontSize: 11,
+          fontFamily: "Inter_700Bold",
+          fontSize: 12,
+          marginTop: -1,
+          marginBottom: isIOS ? 0 : 4,
+        },
+        tabBarIconStyle: {
+          marginTop: 4,
         },
       }}
     >

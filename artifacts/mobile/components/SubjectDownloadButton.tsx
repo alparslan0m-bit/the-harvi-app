@@ -87,14 +87,14 @@ const styles = StyleSheet.create({
   pill: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 20,
+    gap: 7,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    borderRadius: 22,
   },
   label: {
     fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
-    letterSpacing: 0.1,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: -0.1,
   },
 });

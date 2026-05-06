@@ -34,7 +34,7 @@ export default function YearScreen() {
           {
             paddingTop: topPad + 14,
             backgroundColor: colors.background,
-            borderBottomColor: colors.border,
+            borderBottomColor: "transparent",
           },
         ]}
       >

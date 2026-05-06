@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import React from "react";
+import { View, Text, TouchableOpacity, Alert, StyleSheet } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -38,9 +38,9 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
           style: "destructive",
           onPress: async () => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-            
+
             const uid = userId ?? "";
-            
+
             // 1. Clear everything locally immediately
             await Promise.all([
               clearStatsCache(uid),
@@ -52,17 +52,20 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
             try {
               await supabase.from("quiz_results").delete().eq("user_id", uid);
             } catch (error) {
-              console.warn("[handleClearHistory] Remote delete failed (possibly offline):", error);
+              console.warn(
+                "[handleClearHistory] Remote delete failed (possibly offline):",
+                error,
+              );
             }
 
             // 3. Force refresh UI
             queryClient.invalidateQueries({ queryKey: ["stats", uid] });
             queryClient.invalidateQueries({ queryKey: ["progress", uid] });
-            
+
             Alert.alert("History Cleared", "Your quiz history has been reset.");
           },
         },
-      ]
+      ],
     );
   };
 
@@ -80,7 +83,7 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
             await clearAllLectureCache();
           },
         },
-      ]
+      ],
     );
   };
 
@@ -90,12 +93,21 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
     router.replace("/auth");
   };
 
-
-
   return (
-    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-
-
+    <View style={[styles.card, { backgroundColor: colors.card }]}>
+      <View style={styles.header}>
+        <View
+          style={[
+            styles.headerIconWrap,
+            { backgroundColor: colors.primary + "1A" },
+          ]}
+        >
+          <Feather name="settings" size={14} color={colors.primary} />
+        </View>
+        <Text style={[styles.headerLabel, { color: colors.foreground }]}>
+          Account
+        </Text>
+      </View>
       <ActionRow
         icon="trash-2"
         label="Clear Quiz History"
@@ -103,7 +115,7 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
         color={colors.destructive}
         bgColor={colors.destructive + "1A"}
       />
-      
+
       <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
       <ActionRow
@@ -138,7 +150,11 @@ interface ActionRowProps {
 function ActionRow({ icon, label, onPress, color, bgColor }: ActionRowProps) {
   const colors = useColors();
   return (
-    <TouchableOpacity style={styles.actionRow} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.actionRow}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       <View style={[styles.actionIconWrap, { backgroundColor: bgColor }]}>
         <Feather name={icon} size={15} color={color} />
       </View>
@@ -149,9 +165,45 @@ function ActionRow({ icon, label, onPress, color, bgColor }: ActionRowProps) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 20, borderWidth: 1, padding: 16, marginBottom: 24, gap: 0 },
-  actionRow: { flexDirection: "row", alignItems: "center", gap: 14, paddingVertical: 13, paddingHorizontal: 2 },
-  actionIconWrap: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center" },
-  actionLabel: { flex: 1, fontSize: 15, fontFamily: "Inter_500Medium" },
-  divider: { height: StyleSheet.hairlineWidth, marginHorizontal: 2 },
+  card: {
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 24,
+    gap: 0,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  headerIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerLabel: {
+    fontSize: 16,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -0.4,
+  },
+  actionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+  },
+  actionIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  actionLabel: { flex: 1, fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  divider: { height: StyleSheet.hairlineWidth, marginHorizontal: 4 },
 });

@@ -52,7 +52,7 @@ export default function SubjectScreen() {
           {
             paddingTop: topPad + 14,
             backgroundColor: colors.background,
-            borderBottomColor: colors.border,
+            borderBottomColor: "transparent",
           },
         ]}
       >
@@ -61,15 +61,20 @@ export default function SubjectScreen() {
           style={[styles.backBtn, { backgroundColor: colors.muted }]}
           activeOpacity={0.7}
         >
-          <Feather name="arrow-left" size={18} color={colors.foreground} />
+          <Feather name="arrow-left" size={20} color={colors.foreground} />
         </TouchableOpacity>
 
-        <Text
-          style={[styles.headerTitle, { color: colors.foreground }]}
-          numberOfLines={2}
-        >
-          {subject.name}
-        </Text>
+        <View style={styles.titleWrapper}>
+          <Text
+            style={[styles.headerTitle, { color: colors.foreground }]}
+            numberOfLines={2}
+          >
+            {subject.name}
+          </Text>
+        </View>
+        
+        {/* Placeholder for balance */}
+        <View style={{ width: 40 }} />
       </View>
 
       {/* ── Download row ─────────────────────────────────────────────────── */}
@@ -174,33 +179,32 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    gap: 12,
   },
   backBtn: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    flexShrink: 0,
   },
+  titleWrapper: { flex: 1, alignItems: "center" },
   headerTitle: {
-    flex: 1,
-    fontSize: 36,
+    fontSize: 24,
     fontFamily: "Nunito_800ExtraBold",
-    letterSpacing: -0.5,
+    textAlign: "center",
+    letterSpacing: -0.8,
+    lineHeight: 28,
   },
-
   downloadRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 12,
+    borderBottomWidth: 1.5,
   },
   downloadLeft: { flexDirection: "row", alignItems: "center", gap: 7 },
   downloadLabel: { fontSize: 13, fontFamily: "Inter_400Regular" },

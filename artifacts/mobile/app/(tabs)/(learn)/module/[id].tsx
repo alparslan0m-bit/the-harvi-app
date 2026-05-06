@@ -42,7 +42,7 @@ export default function ModuleScreen() {
           {
             paddingTop: topPad + 14,
             backgroundColor: colors.background,
-            borderBottomColor: colors.border,
+            borderBottomColor: "transparent",
           },
         ]}
       >

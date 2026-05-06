@@ -38,21 +38,43 @@ export default function ProfileScreen() {
 
   const initial = (user?.email?.[0] ?? "U").toUpperCase();
   const memberSince = user?.created_at
-    ? new Date(user.created_at).toLocaleDateString("en-GB", { month: "long", year: "numeric" })
+    ? new Date(user.created_at).toLocaleDateString("en-GB", {
+        month: "long",
+        year: "numeric",
+      })
     : null;
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       {/* --- Fixed Header --- */}
-      <View style={[styles.header, { paddingTop: topPad + 14, borderBottomColor: colors.border, backgroundColor: colors.background }]}>
-        <Text style={[styles.title, { color: colors.foreground }]}>Profile</Text>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: topPad + 14,
+            borderBottomColor: "transparent",
+            backgroundColor: colors.background,
+          },
+        ]}
+      >
+        <Text style={[styles.title, { color: colors.foreground }]}>
+          Profile
+        </Text>
+        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+          Manage your medical account
+        </Text>
       </View>
 
-      <Animated.View style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}>
+      <Animated.View
+        style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}
+      >
         <ScrollView
           ref={scrollRef}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 100 }]}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: insets.bottom + 100 },
+          ]}
         >
           {/* --- Hero Section --- */}
           <ProfileHeroCard
@@ -64,32 +86,20 @@ export default function ProfileScreen() {
           />
 
           {/* --- Feedback Section --- */}
-          <SectionLabel icon="message-square" label="FEEDBACK" />
           <FeedbackForm userId={user?.id} />
 
-          {/* --- Account Section --- */}
-          <SectionLabel icon="settings" label="ACCOUNT" />
           <AccountActions userId={user?.id} onSignOut={signOut} />
 
-          <Text style={[styles.versionText, { color: colors.mutedForeground }]}>Harvi · v1.0.0</Text>
+          <Text style={[styles.versionText, { color: colors.mutedForeground }]}>
+            Harvi · v1.0.0
+          </Text>
         </ScrollView>
       </Animated.View>
     </View>
   );
 }
 
-/**
- * Shared Section Label component for the profile screen.
- */
-function SectionLabel({ icon, label }: { icon: keyof typeof Feather.glyphMap; label: string }) {
-  const colors = useColors();
-  return (
-    <View style={styles.sectionLabel}>
-      <Feather name={icon} size={13} color={colors.mutedForeground} />
-      <Text style={[styles.sectionLabelText, { color: colors.mutedForeground }]}>{label}</Text>
-    </View>
-  );
-}
+
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
@@ -98,9 +108,18 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  title: { fontSize: 36, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
-  content: { paddingTop: 24, paddingHorizontal: 20 },
-  sectionLabel: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10, marginLeft: 2 },
-  sectionLabelText: { fontSize: 11, fontFamily: "Inter_600SemiBold", letterSpacing: 0.8 },
-  versionText: { textAlign: "center", fontSize: 12, fontFamily: "Inter_400Regular", marginTop: -8, marginBottom: 4 },
+  title: {
+    fontSize: 38,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -0.5,
+  },
+  subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", marginTop: -2 },
+  content: { paddingTop: 20, paddingHorizontal: 20 },
+  versionText: {
+    textAlign: "center",
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    marginTop: 12,
+    marginBottom: 12,
+  },
 });

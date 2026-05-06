@@ -14,113 +14,169 @@ interface Props {
   initial: string;
 }
 
-export function ProfileHeroCard({ avatarId, displayName, email, memberSince, initial }: Props) {
+export function ProfileHeroCard({
+  avatarId,
+  displayName,
+  email,
+  memberSince,
+  initial,
+}: Props) {
   const colors = useColors();
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      {/* Avatar */}
-      <View style={styles.avatarWrap}>
-        <View style={[styles.avatarRing, { borderColor: colors.primary + "40" }]}>
-          {avatarId ? (
-            <View style={[styles.avatarIllustration, { backgroundColor: colors.primary + "1A" }]}>
-              <AvatarById id={avatarId} size={54} />
-            </View>
-          ) : (
-            <View style={[styles.avatarInitial, { backgroundColor: colors.primary }]}>
-              <Text style={styles.avatarInitialText}>{initial}</Text>
-            </View>
-          )}
+    <View style={[styles.card, { backgroundColor: colors.card }]}>
+      <View style={styles.topSection}>
+        {/* Avatar */}
+        <View style={styles.avatarWrap}>
+          <View
+            style={[
+              styles.avatarRing,
+              { backgroundColor: colors.primary + "0A" },
+            ]}
+          >
+            {avatarId ? (
+              <View style={[styles.avatarIllustration]}>
+                <AvatarById id={avatarId} size={50} />
+              </View>
+            ) : (
+              <View
+                style={[
+                  styles.avatarInitial,
+                  { backgroundColor: colors.primary },
+                ]}
+              >
+                <Text style={styles.avatarInitialText}>{initial}</Text>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
 
-      {/* User Info Stack */}
-      <View style={styles.infoStack}>
-        <Text
-          style={[
-            displayName ? styles.heroName : styles.heroNamePlaceholder,
-            { color: displayName ? colors.foreground : colors.mutedForeground },
-          ]}
-          numberOfLines={1}
-        >
-          {displayName || "Add your name"}
-        </Text>
-
-        <Text style={[styles.heroEmail, { color: colors.mutedForeground }]} numberOfLines={1}>
-          {email}
-        </Text>
-
-        {memberSince && (
-          <Text style={[styles.memberText, { color: colors.primary }]}>
-            Joined {memberSince}
+        {/* User Info Stack */}
+        <View style={styles.infoStack}>
+          <Text
+            style={[
+              displayName ? styles.heroName : styles.heroNamePlaceholder,
+              {
+                color: displayName ? colors.foreground : colors.mutedForeground,
+              },
+            ]}
+            numberOfLines={1}
+          >
+            {displayName || "Add your name"}
           </Text>
-        )}
+
+          <Text
+            style={[styles.heroEmail, { color: colors.mutedForeground }]}
+            numberOfLines={1}
+          >
+            {email}
+          </Text>
+        </View>
+
+        {/* Edit button */}
+        <TouchableOpacity
+          style={[styles.editBtn, { backgroundColor: colors.primary + "15" }]}
+          onPress={() => router.push("/profile/edit")}
+          activeOpacity={0.7}
+        >
+          <Feather name="edit-3" size={16} color={colors.primary} />
+        </TouchableOpacity>
       </View>
 
-      {/* Edit button */}
-      <TouchableOpacity
-        style={[styles.editBtn, { backgroundColor: colors.primary + "15" }]}
-        onPress={() => router.push("/profile/edit")}
-        activeOpacity={0.7}
-      >
-        <Feather name="edit-3" size={15} color={colors.primary} />
-      </TouchableOpacity>
+      {memberSince && (
+        <View style={styles.footer}>
+          <Feather name="calendar" size={12} color={colors.mutedForeground} />
+          <Text style={[styles.memberText, { color: colors.mutedForeground }]}>
+            Joined at{" "}
+            <Text
+              style={{ color: colors.primary, fontFamily: "Inter_600SemiBold" }}
+            >
+              {memberSince}
+            </Text>
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
+    borderRadius: 20,
+    marginBottom: 24,
+    overflow: "hidden",
+  },
+  topSection: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 20,
-    borderWidth: 1,
     padding: 16,
-    marginBottom: 20,
     gap: 14,
   },
   avatarWrap: { flexShrink: 0 },
   avatarRing: {
-    width: 66,
-    height: 66,
-    borderRadius: 33,
-    borderWidth: 2,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarIllustration: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
   },
   avatarInitial: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarInitialText: { fontSize: 26, fontFamily: "Inter_700Bold", color: "#fff" },
-  
+  avatarInitialText: {
+    fontSize: 28,
+    fontFamily: "Inter_700Bold",
+    color: "#fff",
+  },
+
   infoStack: {
     flex: 1,
     justifyContent: "center",
     gap: 2,
   },
-  heroName: { fontSize: 19, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.2 },
-  heroNamePlaceholder: { fontSize: 15, fontFamily: "Inter_400Regular", fontStyle: "italic" },
-  heroEmail: { fontSize: 13, fontFamily: "Inter_400Regular", letterSpacing: -0.1 },
-  memberText: { fontSize: 11, fontFamily: "Inter_600SemiBold", marginTop: 2 },
-  
+  heroName: {
+    fontSize: 24,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -0.5,
+  },
+  heroNamePlaceholder: {
+    fontSize: 20,
+    fontFamily: "Inter_400Regular",
+    fontStyle: "italic",
+  },
+  heroEmail: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    letterSpacing: 0,
+  },
+
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  memberText: { fontSize: 11, fontFamily: "Inter_500Medium" },
+
   editBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    alignSelf: "flex-start",
+    alignSelf: "center",
   },
 });

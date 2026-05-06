@@ -245,7 +245,11 @@ export default function QuizScreen() {
         <View
           style={[
             styles.errorIcon,
-            { backgroundColor: isOfflineError ? colors.warning + "1A" : colors.destructive + "1A" },
+            {
+              backgroundColor: isOfflineError
+                ? colors.warning + "1A"
+                : colors.destructive + "1A",
+            },
           ]}
         >
           <Feather
@@ -304,7 +308,6 @@ export default function QuizScreen() {
         savedOffline={savedOffline}
         saveError={saveError}
         lectureName={lectureName}
-        topPad={topPad}
         onRetry={handleRetry}
         onReview={() => setReviewing(true)}
         onHome={() => router.replace("/(tabs)" as any)}
@@ -342,7 +345,15 @@ export default function QuizScreen() {
         </Text>
 
         {/* Question counter chip */}
-        <View style={[styles.counterChip, { backgroundColor: colors.muted }]}>
+        <View
+          style={[
+            styles.counterChip,
+            {
+              backgroundColor: colors.muted + "80",
+              borderColor: colors.border,
+            },
+          ]}
+        >
           <Text style={[styles.counterCurrent, { color: colors.foreground }]}>
             {currentIndex + 1}
           </Text>
@@ -419,8 +430,14 @@ export default function QuizScreen() {
               style={[
                 styles.explanationBox,
                 isCorrectAnswer
-                  ? { backgroundColor: colors.success + "12", borderColor: colors.success + "4D" }
-                  : { backgroundColor: colors.primary + "12", borderColor: colors.primary + "4D" },
+                  ? {
+                      backgroundColor: colors.success + "12",
+                      borderColor: colors.success + "4D",
+                    }
+                  : {
+                      backgroundColor: colors.primary + "12",
+                      borderColor: colors.primary + "4D",
+                    },
               ]}
             >
               <View style={styles.explanationHeader}>
@@ -428,7 +445,9 @@ export default function QuizScreen() {
                   style={[
                     styles.explanationIconBox,
                     {
-                      backgroundColor: isCorrectAnswer ? colors.success + "22" : colors.primary + "22",
+                      backgroundColor: isCorrectAnswer
+                        ? colors.success + "22"
+                        : colors.primary + "22",
                     },
                   ]}
                 >
@@ -441,17 +460,16 @@ export default function QuizScreen() {
                 <Text
                   style={[
                     styles.explanationTitle,
-                    { color: isCorrectAnswer ? colors.success : colors.primary },
+                    {
+                      color: isCorrectAnswer ? colors.success : colors.primary,
+                    },
                   ]}
                 >
                   Explanation
                 </Text>
               </View>
               <Text
-                style={[
-                  styles.explanationText,
-                  { color: colors.foreground },
-                ]}
+                style={[styles.explanationText, { color: colors.foreground }]}
               >
                 {answered.explanation ||
                   "No explanation available for this question."}
@@ -560,17 +578,18 @@ const styles = StyleSheet.create({
   counterChip: {
     flexDirection: "row",
     alignItems: "baseline",
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 10,
+    borderRadius: 12,
+    borderWidth: 1,
     flexShrink: 0,
   },
   counterCurrent: {
     fontSize: 14,
-    fontFamily: "Inter_700Bold",
+    fontFamily: "Inter_800ExtraBold",
     letterSpacing: -0.3,
   },
-  counterTotal: { fontSize: 12, fontFamily: "Inter_500Medium" },
+  counterTotal: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
 
   // ── Progress bar ────────────────────────────────────────────────────────
   progressTrack: { height: 5, width: "100%" },
@@ -593,10 +612,10 @@ const styles = StyleSheet.create({
   },
 
   questionText: {
-    fontSize: 22,
-    fontFamily: "Inter_700Bold",
+    fontSize: 21,
+    fontFamily: "Nunito_800ExtraBold",
     letterSpacing: -0.6,
-    lineHeight: 30,
+    lineHeight: 28,
     marginBottom: 24,
   },
 
@@ -605,10 +624,10 @@ const styles = StyleSheet.create({
 
   // ── Explanation ─────────────────────────────────────────────────────────
   explanationBox: {
-    padding: 16,
-    borderRadius: 18,
+    padding: 18,
+    borderRadius: 22,
     borderWidth: 1.5,
-    gap: 10,
+    gap: 12,
   },
   explanationHeader: { flexDirection: "row", alignItems: "center", gap: 9 },
   explanationIconBox: {
