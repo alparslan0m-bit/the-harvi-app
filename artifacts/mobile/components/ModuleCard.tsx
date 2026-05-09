@@ -20,7 +20,11 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export function ModuleCard({ module, index, onPress }: Props) {
   const scale = useSharedValue(1);
-  const gradient = (colors.yearGradients[index % colors.yearGradients.length] as [string, string]) ?? colors.yearGradients[0];
+  const gradient =
+    (colors.yearGradients[index % colors.yearGradients.length] as [
+      string,
+      string,
+    ]) ?? colors.yearGradients[0];
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -30,8 +34,12 @@ export function ModuleCard({ module, index, onPress }: Props) {
     <AnimatedTouchable
       style={[styles.card, animStyle]}
       onPress={onPress}
-      onPressIn={() => { scale.value = withSpring(0.96, { damping: 15 }); }}
-      onPressOut={() => { scale.value = withSpring(1, { damping: 15 }); }}
+      onPressIn={() => {
+        scale.value = withSpring(0.96, { damping: 15 });
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1, { damping: 15 });
+      }}
       activeOpacity={1}
     >
       <LinearGradient
@@ -40,7 +48,12 @@ export function ModuleCard({ module, index, onPress }: Props) {
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
-        <View style={[styles.innerBorder, { borderColor: "rgba(255,255,255,0.25)" }]} />
+        <View
+          style={[
+            styles.innerBorder,
+            { borderColor: "rgba(255,255,255,0.25)" },
+          ]}
+        />
         <View style={styles.content}>
           <Text style={styles.title}>{module.name}</Text>
         </View>

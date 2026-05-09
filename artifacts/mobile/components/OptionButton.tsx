@@ -101,11 +101,17 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
           activeOpacity={0.88}
           disabled={!!answered}
         >
-          <View 
+          <View
             style={[
-              styles.innerGlow, 
-              { borderColor: isCorrect ? colors.success + "33" : isWrong ? colors.destructive + "33" : "rgba(255,255,255,0.1)" }
-            ]} 
+              styles.innerGlow,
+              {
+                borderColor: isCorrect
+                  ? colors.success + "33"
+                  : isWrong
+                    ? colors.destructive + "33"
+                    : "rgba(255,255,255,0.1)",
+              },
+            ]}
           />
 
           <View style={[styles.badge, { backgroundColor: labelBg }]}>
@@ -124,7 +130,9 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
           {isCorrect && (
             <Feather name="check-circle" size={20} color={colors.success} />
           )}
-          {isWrong && <Feather name="x-circle" size={20} color={colors.destructive} />}
+          {isWrong && (
+            <Feather name="x-circle" size={20} color={colors.destructive} />
+          )}
         </TouchableOpacity>
       </Animated.View>
     </Animated.View>

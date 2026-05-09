@@ -72,7 +72,7 @@ export default function SubjectScreen() {
             {subject.name}
           </Text>
         </View>
-        
+
         {/* Placeholder for balance */}
         <View style={{ width: 40 }} />
       </View>
@@ -110,7 +110,10 @@ export default function SubjectScreen() {
         <View
           style={[
             styles.staleBanner,
-            { backgroundColor: colors.warning + "1A", borderColor: colors.warning + "4D" },
+            {
+              backgroundColor: colors.warning + "1A",
+              borderColor: colors.warning + "4D",
+            },
           ]}
         >
           <Feather name="alert-circle" size={14} color={colors.warning} />

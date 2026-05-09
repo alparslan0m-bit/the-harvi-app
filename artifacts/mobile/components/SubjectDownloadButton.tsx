@@ -1,6 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Animated, {
   FadeIn,
   useAnimatedStyle,
@@ -28,25 +34,32 @@ export function SubjectDownloadButton({
   const colors = useColors();
 
   if (status === "downloading") {
-    const pct = progress.total > 0
-      ? Math.round((progress.done / progress.total) * 100)
-      : 0;
+    const pct =
+      progress.total > 0
+        ? Math.round((progress.done / progress.total) * 100)
+        : 0;
 
     return (
-      <Animated.View entering={FadeIn} style={[styles.pill, { backgroundColor: colors.muted }]}>
+      <Animated.View
+        entering={FadeIn}
+        style={[styles.pill, { backgroundColor: colors.muted }]}
+      >
         <ActivityIndicator size="small" color={colors.primary} />
-        <Text style={[styles.label, { color: colors.foreground }]}>
-          {pct}%
-        </Text>
+        <Text style={[styles.label, { color: colors.foreground }]}>{pct}%</Text>
       </Animated.View>
     );
   }
 
   if (status === "downloaded") {
     return (
-      <Animated.View entering={FadeIn} style={[styles.pill, { backgroundColor: colors.success + "1A" }]}>
+      <Animated.View
+        entering={FadeIn}
+        style={[styles.pill, { backgroundColor: colors.success + "1A" }]}
+      >
         <Feather name="check-circle" size={14} color={colors.success} />
-        <Text style={[styles.label, { color: colors.success }]}>Downloaded</Text>
+        <Text style={[styles.label, { color: colors.success }]}>
+          Downloaded
+        </Text>
       </Animated.View>
     );
   }
@@ -56,7 +69,14 @@ export function SubjectDownloadButton({
       <TouchableOpacity
         onPress={onPress}
         activeOpacity={0.8}
-        style={[styles.pill, { backgroundColor: colors.warning + "1A", borderWidth: 1, borderColor: colors.warning + "4D" }]}
+        style={[
+          styles.pill,
+          {
+            backgroundColor: colors.warning + "1A",
+            borderWidth: 1,
+            borderColor: colors.warning + "4D",
+          },
+        ]}
       >
         <Feather name="refresh-cw" size={13} color={colors.warning} />
         <Text style={[styles.label, { color: colors.warning }]}>
@@ -73,7 +93,14 @@ export function SubjectDownloadButton({
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.8}
-      style={[styles.pill, { backgroundColor: colors.primary + "12", borderWidth: 1, borderColor: colors.primary + "30" }]}
+      style={[
+        styles.pill,
+        {
+          backgroundColor: colors.primary + "12",
+          borderWidth: 1,
+          borderColor: colors.primary + "30",
+        },
+      ]}
     >
       <Feather name="download" size={13} color={colors.primary} />
       <Text style={[styles.label, { color: colors.primary }]}>

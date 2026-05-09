@@ -58,7 +58,12 @@ export function SubjectCard({
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
-        <View style={[styles.innerBorder, { borderColor: "rgba(255,255,255,0.25)" }]} />
+        <View
+          style={[
+            styles.innerBorder,
+            { borderColor: "rgba(255,255,255,0.25)" },
+          ]}
+        />
         {/* Title row */}
         <View style={styles.row}>
           <Text style={styles.title} numberOfLines={2}>

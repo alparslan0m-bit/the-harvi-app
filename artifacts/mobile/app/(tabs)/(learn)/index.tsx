@@ -175,8 +175,12 @@ export default function LearnScreen() {
             },
           ]}
         >
-          <Text style={[styles.title, { color: colors.foreground }]}>Harvi</Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Questions you need</Text>
+          <Text style={[styles.title, { color: colors.foreground }]}>
+            Harvi
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+            Questions you need
+          </Text>
         </View>
         <Animated.View
           style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}
@@ -236,7 +240,9 @@ export default function LearnScreen() {
         ]}
       >
         <Text style={[styles.title, { color: colors.foreground }]}>Harvi</Text>
-        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Questions you need</Text>
+        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+          Questions you need
+        </Text>
       </View>
 
       <Animated.View

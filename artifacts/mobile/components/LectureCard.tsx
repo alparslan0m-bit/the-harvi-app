@@ -58,11 +58,13 @@ export function LectureCard({
       activeOpacity={1}
     >
       {/* Vertical Accent Stripe */}
-      <View 
+      <View
         style={[
-          styles.accentStripe, 
-          { backgroundColor: completed ? colors.success : colors.primary + "33" }
-        ]} 
+          styles.accentStripe,
+          {
+            backgroundColor: completed ? colors.success : colors.primary + "33",
+          },
+        ]}
       />
 
       {/* Index Badge */}
@@ -91,7 +93,9 @@ export function LectureCard({
             {lecture.name}
           </Text>
           {hasNewQuestions && (
-            <View style={[styles.newBadge, { backgroundColor: colors.primary }]}>
+            <View
+              style={[styles.newBadge, { backgroundColor: colors.primary }]}
+            >
               <Text style={styles.newBadgeText}>NEW</Text>
             </View>
           )}
@@ -116,7 +120,12 @@ export function LectureCard({
 
       {/* Right icon */}
       {completed ? (
-        <View style={[styles.checkCircle, { backgroundColor: colors.success + "1A" }]}>
+        <View
+          style={[
+            styles.checkCircle,
+            { backgroundColor: colors.success + "1A" },
+          ]}
+        >
           <Feather name="check" size={14} color={colors.success} />
         </View>
       ) : (

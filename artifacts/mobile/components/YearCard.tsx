@@ -48,7 +48,12 @@ export function YearCard({ year, index, onPress }: Props) {
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
-        <View style={[styles.innerBorder, { borderColor: "rgba(255,255,255,0.25)" }]} />
+        <View
+          style={[
+            styles.innerBorder,
+            { borderColor: "rgba(255,255,255,0.25)" },
+          ]}
+        />
         <View style={styles.content}>
           <Text style={styles.title}>{year.name}</Text>
         </View>
