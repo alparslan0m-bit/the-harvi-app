@@ -5,10 +5,7 @@ import {
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
-import {
-  Nunito_700Bold,
-  Nunito_800ExtraBold,
-} from "@expo-google-fonts/nunito";
+import { Nunito_700Bold, Nunito_800ExtraBold } from "@expo-google-fonts/nunito";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -16,6 +13,7 @@ import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/context/AuthContext";
@@ -34,17 +32,18 @@ const queryClient = new QueryClient({
   },
 });
 
-
 function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="auth" options={{ headerShown: false }} />
-      <Stack.Screen name="year/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="quiz/[lectureId]" options={{ headerShown: false }} />
       <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
       <Stack.Screen name="profile/edit" options={{ headerShown: false }} />
-      <Stack.Screen name="+not-found" options={{ headerShown: true, title: "Not Found" }} />
+      <Stack.Screen
+        name="+not-found"
+        options={{ headerShown: true, title: "Not Found" }}
+      />
     </Stack>
   );
 }
@@ -68,22 +67,25 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
 
   return (
-    <SafeAreaProvider>
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <KeyboardProvider>
-              <ThemeProvider>
-                <AuthProvider>
-                  <SyncProvider>
-                    <RootLayoutNav />
-                  </SyncProvider>
-                </AuthProvider>
-              </ThemeProvider>
-            </KeyboardProvider>
-          </GestureHandlerRootView>
-        </QueryClientProvider>
-      </ErrorBoundary>
-    </SafeAreaProvider>
+    <>
+      <ReducedMotionConfig mode={ReduceMotion.Never} />
+      <SafeAreaProvider>
+        <ErrorBoundary>
+          <QueryClientProvider client={queryClient}>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <KeyboardProvider>
+                <ThemeProvider>
+                  <AuthProvider>
+                    <SyncProvider>
+                      <RootLayoutNav />
+                    </SyncProvider>
+                  </AuthProvider>
+                </ThemeProvider>
+              </KeyboardProvider>
+            </GestureHandlerRootView>
+          </QueryClientProvider>
+        </ErrorBoundary>
+      </SafeAreaProvider>
+    </>
   );
 }

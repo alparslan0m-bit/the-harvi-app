@@ -100,14 +100,6 @@ function ClassicTabLayout() {
         }}
       />
       
-      {/* Hide internal routes from tab bar */}
-      <Tabs.Screen name="(learn)/year/[id]" options={{ href: null }} />
-      <Tabs.Screen name="(learn)/module/[id]" options={{ href: null }} />
-      <Tabs.Screen name="(learn)/subject/[id]" options={{ href: null }} />
-      <Tabs.Screen name="year/[id]" options={{ href: null }} />
-      <Tabs.Screen name="module/[id]" options={{ href: null }} />
-      <Tabs.Screen name="subject/[id]" options={{ href: null }} />
-
       <Tabs.Screen
         name="stats"
         options={{
