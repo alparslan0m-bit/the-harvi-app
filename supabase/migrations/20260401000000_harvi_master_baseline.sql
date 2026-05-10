@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS public.years (
     name TEXT NOT NULL,
     external_id TEXT NOT NULL UNIQUE,
     created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
     CONSTRAINT unique_year_name UNIQUE (name)
 );
 
@@ -36,6 +37,7 @@ CREATE TABLE IF NOT EXISTS public.modules (
     price_cents INTEGER NOT NULL DEFAULT 0,
     external_price_id TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
     CONSTRAINT unique_module_per_year UNIQUE (name, year_id)
 );
 
@@ -51,6 +53,7 @@ CREATE TABLE IF NOT EXISTS public.subjects (
     price_cents INTEGER NOT NULL DEFAULT 0,
     external_price_id TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
     CONSTRAINT unique_subject_per_module UNIQUE (name, module_id)
 );
 
@@ -62,6 +65,7 @@ CREATE TABLE IF NOT EXISTS public.lectures (
     external_id TEXT NOT NULL UNIQUE,
     order_index INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
     CONSTRAINT unique_lecture_per_subject UNIQUE (name, subject_id)
 );
 
@@ -70,11 +74,13 @@ CREATE TABLE IF NOT EXISTS public.questions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     lecture_id UUID NOT NULL REFERENCES public.lectures(id) ON DELETE CASCADE,
     text TEXT NOT NULL,
+    image_url TEXT,
     options JSONB NOT NULL, -- Format: ["Opt A", "Opt B", "Opt C", "Opt D"]
     correct_answer_index INTEGER NOT NULL,
     explanation TEXT,
     question_order INTEGER DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT now()
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- =============================================
@@ -137,8 +143,8 @@ CREATE TABLE IF NOT EXISTS public.purchases (
     payment_id TEXT, -- provider-specific reference
     payment_session_id TEXT, -- checkout session reference
     provider TEXT NOT NULL DEFAULT 'manual',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- =============================================
@@ -285,16 +291,20 @@ $$;
 -- 7. TRIGGERS & AUTOMATION
 -- =============================================
 
--- Profile Sync
-CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS trigger AS $$
+-- Profile Sync: Auth to Public
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.profiles (id, full_name, avatar_url)
   VALUES (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
-  RETURN new;
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- Real-time Stats Sync
 CREATE OR REPLACE FUNCTION sync_lecture_stats() RETURNS TRIGGER AS $$
@@ -311,12 +321,46 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS tr_sync_lecture_stats ON public.quiz_results;
 CREATE TRIGGER tr_sync_lecture_stats AFTER INSERT ON public.quiz_results FOR EACH ROW EXECUTE FUNCTION sync_lecture_stats();
 
+-- Trigger: Auto-Update Timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS tr_update_years_updated_at ON years;
+CREATE TRIGGER tr_update_years_updated_at BEFORE UPDATE ON years FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS tr_update_modules_updated_at ON modules;
+CREATE TRIGGER tr_update_modules_updated_at BEFORE UPDATE ON modules FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS tr_update_subjects_updated_at ON subjects;
+CREATE TRIGGER tr_update_subjects_updated_at BEFORE UPDATE ON subjects FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS tr_update_lectures_updated_at ON lectures;
+CREATE TRIGGER tr_update_lectures_updated_at BEFORE UPDATE ON lectures FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS tr_update_questions_updated_at ON questions;
+CREATE TRIGGER tr_update_questions_updated_at BEFORE UPDATE ON questions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS tr_update_profiles_updated_at ON profiles;
+CREATE TRIGGER tr_update_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- External ID Enforcement
+DROP TRIGGER IF EXISTS ensure_external_id_years ON years;
 CREATE TRIGGER ensure_external_id_years BEFORE INSERT OR UPDATE ON years FOR EACH ROW EXECUTE FUNCTION set_default_external_id();
+
+DROP TRIGGER IF EXISTS ensure_external_id_modules ON modules;
 CREATE TRIGGER ensure_external_id_modules BEFORE INSERT OR UPDATE ON modules FOR EACH ROW EXECUTE FUNCTION set_default_external_id();
+
+DROP TRIGGER IF EXISTS ensure_external_id_subjects ON subjects;
 CREATE TRIGGER ensure_external_id_subjects BEFORE INSERT OR UPDATE ON subjects FOR EACH ROW EXECUTE FUNCTION set_default_external_id();
+
+DROP TRIGGER IF EXISTS ensure_external_id_lectures ON lectures;
 CREATE TRIGGER ensure_external_id_lectures BEFORE INSERT OR UPDATE ON lectures FOR EACH ROW EXECUTE FUNCTION set_default_external_id();
 
 
