@@ -139,34 +139,6 @@ BEGIN
 END;
 $$;
 
--- =============================================
--- 6. SECURITY: ROW LEVEL SECURITY (RLS)
--- =============================================
-
-ALTER TABLE public.years ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.modules ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.lectures ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.questions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.quiz_results ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
-
--- Public Content (Read Only for everyone)
-CREATE POLICY "Public Read" ON public.years FOR SELECT USING (true);
-CREATE POLICY "Public Read" ON public.modules FOR SELECT USING (true);
-CREATE POLICY "Public Read" ON public.subjects FOR SELECT USING (true);
-CREATE POLICY "Public Read" ON public.lectures FOR SELECT USING (true);
-CREATE POLICY "Public Read" ON public.questions FOR SELECT USING (true);
-CREATE POLICY "Public Read" ON public.profiles FOR SELECT USING (true);
-
--- Personalized Data (Secure with ID Constant Wrapper)
-CREATE POLICY "Self Manage" ON public.profiles FOR UPDATE TO authenticated USING ((SELECT auth.uid()) = id);
-CREATE POLICY "Self Read" ON public.quiz_results FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
-CREATE POLICY "Self Insert" ON public.quiz_results FOR INSERT TO authenticated WITH CHECK ((SELECT auth.uid()) = user_id);
-
--- Feedback
-CREATE POLICY "Feedback Submissions" ON public.feedback FOR INSERT TO authenticated, anon WITH CHECK ( (auth.uid() = user_id) OR (user_id IS NULL) );
 
 -- =============================================
 -- 7. AUTOMATION: PROFILE SYNC TRIGGER

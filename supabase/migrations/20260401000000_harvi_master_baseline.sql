@@ -1,7 +1,7 @@
 -- 20260401000000_harvi_master_baseline.sql
--- Description: The Ultimate Harvi Master Baseline (Final Edition)
--- This file consolidates 100% of the Harvi Faculty Architecture: 
--- Core Schema, Security, Monetization, Analytics, and Performance Hardening.
+-- Description: The Complete Harvi Schema Blueprint
+-- Includes: Core Hierarchy, Student Data, Monetization Fields, Triggers, & Analytics.
+-- Note: Security and RLS are managed in the Unified RLS Policies file.
 
 BEGIN;
 
@@ -19,7 +19,7 @@ CREATE EXTENSION IF NOT EXISTS "pg_cron";
 CREATE TABLE IF NOT EXISTS public.years (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
-    external_id TEXT NOT NULL,
+    external_id TEXT NOT NULL UNIQUE,
     created_at TIMESTAMPTZ DEFAULT now(),
     CONSTRAINT unique_year_name UNIQUE (name)
 );
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS public.modules (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     year_id UUID NOT NULL REFERENCES public.years(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    external_id TEXT NOT NULL,
+    external_id TEXT NOT NULL UNIQUE,
     order_index INTEGER DEFAULT 0,
     -- Unified Monetization Logic
     is_free BOOLEAN NOT NULL DEFAULT false,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS public.subjects (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     module_id UUID NOT NULL REFERENCES public.modules(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    external_id TEXT NOT NULL,
+    external_id TEXT NOT NULL UNIQUE,
     order_index INTEGER DEFAULT 0,
     -- Unified Monetization Logic
     is_free BOOLEAN NOT NULL DEFAULT false,
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS public.lectures (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     subject_id UUID NOT NULL REFERENCES public.subjects(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    external_id TEXT NOT NULL,
+    external_id TEXT NOT NULL UNIQUE,
     order_index INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT now(),
     CONSTRAINT unique_lecture_per_subject UNIQUE (name, subject_id)
@@ -146,52 +146,6 @@ CREATE TABLE IF NOT EXISTS public.purchases (
 -- =============================================
 
 -- Admin Role Detection
-CREATE OR REPLACE FUNCTION public.is_admin()
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN (
-    SELECT (auth.jwt() ->> 'role' = 'service_role')
-    OR (EXISTS (
-      SELECT 1 FROM auth.users
-      WHERE id = auth.uid()
-      AND (raw_app_meta_data ->> 'role' = 'admin')
-    ))
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- The Master Access Gatekeeper
-CREATE OR REPLACE FUNCTION public.check_content_access(p_lecture_id UUID)
-RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-    SELECT 
-        is_admin() OR 
-        EXISTS (
-            SELECT 1 
-            FROM public.lectures l 
-            JOIN public.subjects s ON s.id = l.subject_id 
-            JOIN public.modules m ON m.id = s.module_id
-            WHERE l.id = p_lecture_id AND (
-                s.is_free = true OR 
-                m.is_free = true OR
-                EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.subject_id = s.id AND p.status = 'active') OR
-                EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = m.id AND p.status = 'active')
-            )
-        );
-$$;
-
--- UI Access Map
-CREATE OR REPLACE FUNCTION public.get_content_access_map()
-RETURNS TABLE (item_id UUID, item_type TEXT, has_access BOOLEAN, is_free BOOLEAN, price_cents INTEGER)
-LANGUAGE sql STABLE SECURITY DEFINER AS $$
-    -- Admin: Full Access
-    SELECT id, 'module', true, is_free, price_cents FROM public.modules WHERE is_admin()
-    UNION ALL
-    -- Non-Admin: Modules
-    SELECT m.id, 'module', (m.is_free OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = m.id AND p.status = 'active')), m.is_free, m.price_cents FROM public.modules m WHERE NOT is_admin()
-    UNION ALL
-    -- Non-Admin: Subjects
-    SELECT s.id, 'subject', (s.is_free OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = s.module_id AND p.status = 'active') OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.subject_id = s.id AND p.status = 'active')), s.is_free, s.price_cents FROM public.subjects s WHERE NOT is_admin();
-$$;
 
 -- Analytics: Streak Calculation
 CREATE OR REPLACE FUNCTION get_user_streak(user_uuid UUID)
@@ -224,39 +178,108 @@ BEGIN
 END;
 $$;
 
--- Deterministic Slug Generator
+-- Advanced Slug Generator (Collision Proof)
 CREATE OR REPLACE FUNCTION set_default_external_id() RETURNS TRIGGER AS $$
+DECLARE
+  base_slug TEXT;
+  final_slug TEXT;
+  slug_exists BOOLEAN;
 BEGIN
   IF NEW.external_id IS NULL OR trim(NEW.external_id) = '' THEN
     IF TG_TABLE_NAME = 'years' THEN
-      NEW.external_id := lower(regexp_replace(NEW.name, '[^a-zA-Z0-9]', '', 'g'));
+      base_slug := lower(regexp_replace(NEW.name, '[^a-zA-Z0-9]', '', 'g'));
     ELSE
-      NEW.external_id := trim(both '_' from lower(regexp_replace(trim(NEW.name), '[^a-zA-Z0-9]+', '_', 'g')));
+      base_slug := trim(both '_' from lower(regexp_replace(trim(NEW.name), '[^a-zA-Z0-9]+', '_', 'g')));
     END IF;
+    
+    final_slug := base_slug;
+    EXECUTE format('SELECT EXISTS(SELECT 1 FROM %I WHERE external_id = $1 AND id != $2)', TG_TABLE_NAME)
+    INTO slug_exists USING final_slug, NEW.id;
+    
+    IF slug_exists THEN
+       final_slug := base_slug || '_' || encode(gen_random_bytes(2), 'hex');
+    END IF;
+    NEW.external_id := final_slug;
   END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- =============================================
--- 6. ADMIN HELPERS (GOD MODE)
+-- 5. ANALYTICS & DASHBOARD FUNCTIONS
 -- =============================================
 
-CREATE OR REPLACE FUNCTION public.admin_grant_free_module(p_module_id UUID)
-RETURNS VOID AS $$
-BEGIN
-    IF NOT is_admin() THEN RAISE EXCEPTION 'Unauthorized'; END IF;
-    UPDATE public.modules SET is_free = true WHERE id = p_module_id;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+-- KPI: Aggregate Stats
+CREATE OR REPLACE FUNCTION get_user_aggregate_stats(user_uuid UUID)
+RETURNS TABLE(total_quizzes BIGINT, total_questions BIGINT, total_correct BIGINT, best_score INTEGER) 
+LANGUAGE SQL STABLE SECURITY DEFINER AS $$
+    SELECT 
+        COUNT(*)::BIGINT, 
+        COALESCE(SUM(total_questions), 0)::BIGINT, 
+        COALESCE(SUM(correct_answers), 0)::BIGINT, 
+        COALESCE(MAX(score), 0)::INTEGER
+    FROM public.quiz_results 
+    WHERE user_id = user_uuid;
+$$;
 
-CREATE OR REPLACE FUNCTION public.admin_grant_free_subject(p_subject_id UUID)
-RETURNS VOID AS $$
+-- KPI: Active Users
+CREATE OR REPLACE FUNCTION get_active_users_today()
+RETURNS INTEGER LANGUAGE sql SECURITY DEFINER AS $$
+  SELECT COUNT(DISTINCT user_id)::INTEGER FROM public.quiz_results WHERE created_at >= CURRENT_DATE;
+$$;
+
+-- Analytics: Comprehensive Summary (for charts)
+CREATE OR REPLACE FUNCTION get_analytics_summary(p_days INTEGER DEFAULT 30)
+RETURNS JSON LANGUAGE plpgsql STABLE SECURITY DEFINER AS $$
+DECLARE
+  result JSON;
+  start_date TIMESTAMPTZ := NOW() - (p_days || ' days')::INTERVAL;
 BEGIN
-    IF NOT is_admin() THEN RAISE EXCEPTION 'Unauthorized'; END IF;
-    UPDATE public.subjects SET is_free = true WHERE id = p_subject_id;
+  WITH
+    kpis AS (
+      SELECT COUNT(*)::INTEGER AS total_quizzes_taken, COALESCE(ROUND(AVG(score))::INTEGER, 0) AS average_score,
+        CASE WHEN COUNT(*) > 0 THEN ROUND(COUNT(*) FILTER (WHERE score >= 60) * 100.0 / COUNT(*))::INTEGER ELSE 0 END AS pass_rate,
+        COUNT(DISTINCT user_id)::INTEGER AS active_students
+      FROM quiz_results WHERE created_at >= start_date
+    ),
+    distribution AS (
+      SELECT json_agg(json_build_object('range', range, 'count', cnt)) AS data
+      FROM (
+        SELECT CASE WHEN bucket = 0 THEN '0-20%' WHEN bucket = 1 THEN '20-40%' WHEN bucket = 2 THEN '40-60%' WHEN bucket = 3 THEN '60-80%' ELSE '80-100%' END AS range, COALESCE(cnt, 0)::INTEGER AS cnt
+        FROM generate_series(0, 4) AS bucket
+        LEFT JOIN (SELECT LEAST(FLOOR(score / 20.01)::INTEGER, 4) AS bucket, COUNT(*)::INTEGER AS cnt FROM quiz_results WHERE created_at >= start_date GROUP BY 1) counts USING (bucket) ORDER BY bucket
+      ) sub
+    ),
+    activity AS (
+      SELECT json_agg(json_build_object('date', d::DATE, 'quizzes', COALESCE(cnt, 0)) ORDER BY d) AS data
+      FROM generate_series(start_date::DATE, CURRENT_DATE, '1 day'::INTERVAL) AS d
+      LEFT JOIN (SELECT created_at::DATE AS day, COUNT(*)::INTEGER AS cnt FROM quiz_results WHERE created_at >= start_date GROUP BY 1) counts ON counts.day = d::DATE
+    ),
+    top_lectures AS (
+      SELECT json_agg(json_build_object('name', COALESCE(l.name, 'Unknown'), 'attempts', ls.total_attempts) ORDER BY ls.total_attempts DESC) AS data
+      FROM lecture_statistics ls LEFT JOIN lectures l ON l.id = ls.lecture_id ORDER BY ls.total_attempts DESC LIMIT 5
+    )
+  SELECT json_build_object('totalQuizzesTaken', k.total_quizzes_taken, 'averageScore', k.average_score, 'passRate', k.pass_rate, 'activeStudents', k.active_students, 'scoreDistribution', COALESCE(d.data, '[]'::JSON), 'quizActivity', COALESCE(a.data, '[]'::JSON), 'topLectures', COALESCE(tl.data, '[]'::JSON)) INTO result
+  FROM kpis k, distribution d, activity a, top_lectures tl;
+  RETURN result;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
+
+-- Activity: Unified Feed
+CREATE OR REPLACE FUNCTION get_recent_activity()
+RETURNS JSON LANGUAGE plpgsql STABLE SECURITY DEFINER AS $$
+DECLARE result JSON;
+BEGIN
+  SELECT json_agg(row_data ORDER BY created_at DESC) INTO result FROM (
+    (SELECT json_build_object('id', id, 'type', 'Year', 'entityName', name, 'createdAt', created_at, 'href', '/admin?tab=content&level=modules&yearId=' || id) AS row_data, created_at FROM years ORDER BY created_at DESC LIMIT 3) UNION ALL
+    (SELECT json_build_object('id', id, 'type', 'Module', 'entityName', name, 'createdAt', created_at, 'href', '/admin?tab=content&level=subjects&moduleId=' || id), created_at FROM modules ORDER BY created_at DESC LIMIT 3) UNION ALL
+    (SELECT json_build_object('id', id, 'type', 'Subject', 'entityName', name, 'createdAt', created_at, 'href', '/admin?tab=content&level=lectures&subjectId=' || id), created_at FROM subjects ORDER BY created_at DESC LIMIT 3) UNION ALL
+    (SELECT json_build_object('id', id, 'type', 'Lecture', 'entityName', name, 'createdAt', created_at, 'href', '/admin?tab=questions&id=' || id || '&name=' || COALESCE(name, 'Lecture')), created_at FROM lectures ORDER BY created_at DESC LIMIT 3) UNION ALL
+    (SELECT json_build_object('id', id, 'type', 'Question', 'entityName', CASE WHEN text IS NOT NULL AND text != '' THEN LEFT(text, 40) || '...' ELSE 'Unnamed Question' END, 'createdAt', created_at, 'href', '/admin?tab=questions&id=' || lecture_id || '&name=Lecture'), created_at FROM questions ORDER BY created_at DESC LIMIT 3)
+  ) unified LIMIT 10;
+  RETURN COALESCE(result, '[]'::JSON);
+END;
+$$;
+
 
 -- =============================================
 -- 7. TRIGGERS & AUTOMATION
@@ -296,51 +319,6 @@ CREATE TRIGGER ensure_external_id_modules BEFORE INSERT OR UPDATE ON modules FOR
 CREATE TRIGGER ensure_external_id_subjects BEFORE INSERT OR UPDATE ON subjects FOR EACH ROW EXECUTE FUNCTION set_default_external_id();
 CREATE TRIGGER ensure_external_id_lectures BEFORE INSERT OR UPDATE ON lectures FOR EACH ROW EXECUTE FUNCTION set_default_external_id();
 
--- =============================================
--- 7. SECURITY: ROW LEVEL SECURITY (RLS)
--- =============================================
-
-ALTER TABLE public.years ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.modules ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.lectures ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.questions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.quiz_results ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.lecture_statistics ENABLE ROW LEVEL SECURITY;
-
--- 7.1 Admin Global Access (Bypass)
-CREATE POLICY "Admins have full access" ON public.years FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Admins have full access" ON public.modules FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Admins have full access" ON public.subjects FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Admins have full access" ON public.lectures FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Admins have full access" ON public.questions FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Admins have full access" ON public.profiles FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Admins have full access" ON public.quiz_results FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Admins have full access" ON public.feedback FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Admins have full access" ON public.purchases FOR ALL TO authenticated USING (is_admin());
-CREATE POLICY "Admins have full access" ON public.lecture_statistics FOR ALL TO authenticated USING (is_admin());
-
--- 7.2 Read Access (Structural & Profiles)
-CREATE POLICY "Public Read" ON public.years FOR SELECT USING (true);
-CREATE POLICY "Public Read" ON public.modules FOR SELECT USING (true);
-CREATE POLICY "Public Read" ON public.subjects FOR SELECT USING (true);
-CREATE POLICY "Public Read" ON public.lectures FOR SELECT USING (true);
-CREATE POLICY "Authenticated Read" ON public.profiles FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Authenticated Read" ON public.lecture_statistics FOR SELECT TO authenticated USING (true);
-
--- 7.3 Gated Access (Content)
-CREATE POLICY "Gated access to questions" ON public.questions FOR SELECT USING (check_content_access(lecture_id));
-
--- 7.4 Private Data (Self-Manage)
-CREATE POLICY "Self Manage" ON public.profiles FOR UPDATE TO authenticated USING ((SELECT auth.uid()) = id);
-CREATE POLICY "Self Read" ON public.quiz_results FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
-CREATE POLICY "Self Insert" ON public.quiz_results FOR INSERT TO authenticated WITH CHECK ((SELECT auth.uid()) = user_id);
-CREATE POLICY "Self Read" ON public.purchases FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
-CREATE POLICY "Self Read" ON public.feedback FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
-CREATE POLICY "Self Insert" ON public.feedback FOR INSERT TO authenticated, anon WITH CHECK (((SELECT auth.uid()) = user_id) OR (user_id IS NULL));
 
 -- =============================================
 -- 8. PERFORMANCE INDEXES
