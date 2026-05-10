@@ -14,12 +14,15 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ModuleCard } from "@/components/ModuleCard";
 import { useColors } from "@/hooks/useColors";
 import { useHierarchy } from "@/hooks/useHierarchy";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 
 export default function YearScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: years } = useHierarchy();
+  const { data: accessMap } = useModuleAccess();
+  
   const year = years?.find((y) => y.id === id);
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
@@ -64,16 +67,24 @@ export default function YearScreen() {
           MODULES
         </Text>
 
-        {year.modules.map((mod, i) => (
-          <ModuleCard
-            key={mod.id}
-            module={mod}
-            index={i}
-            onPress={() =>
-              router.push({ pathname: "/module/[id]", params: { id: mod.id } })
-            }
-          />
-        ))}
+        {year.modules.map((mod, i) => {
+          const access = accessMap?.get(mod.id);
+          const hasAccess = access?.has_access ?? false;
+          const isFree = access?.is_free ?? (access?.price_cents === 0);
+
+          return (
+            <ModuleCard
+              key={mod.id}
+              module={mod}
+              index={i}
+              hasAccess={hasAccess}
+              isFree={isFree}
+              onPress={() => {
+                router.push({ pathname: "/module/[id]", params: { id: mod.id } });
+              }}
+            />
+          );
+        })}
 
         {year.modules.length === 0 && (
           <View style={styles.empty}>

@@ -1,3 +1,4 @@
+import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -14,6 +15,8 @@ interface Props {
   subject: Subject;
   index: number;
   completedCount: number;
+  isLocked?: boolean;
+  isFreePreview?: boolean;
   onPress: () => void;
 }
 
@@ -23,6 +26,8 @@ export function SubjectCard({
   subject,
   index,
   completedCount,
+  isLocked,
+  isFreePreview,
   onPress,
 }: Props) {
   const scale = useSharedValue(1);
@@ -69,14 +74,17 @@ export function SubjectCard({
           <Text style={styles.title} numberOfLines={2}>
             {subject.name}
           </Text>
-          {/* Completion badge */}
-          <View style={[styles.badge, allDone && styles.badgeDone]}>
-            {allDone ? (
-              <Text style={styles.badgeText}>✓</Text>
+          {/* Completion/Lock/Open badge */}
+          <View style={[styles.badge, allDone && styles.badgeDone, isLocked && styles.badgeLocked]}>
+            {isLocked ? (
+              <Feather name="lock" size={12} color="#fff" />
             ) : (
-              <Text style={styles.badgeText}>
-                {completedCount}/{total}
-              </Text>
+              <View style={styles.flexRow}>
+                {/* If it's a free preview, show OPEN icon or text */}
+                <Text style={styles.badgeText}>
+                  {allDone ? "✓" : `${completedCount}/${total}`}
+                </Text>
+              </View>
             )}
           </View>
         </View>
@@ -90,6 +98,13 @@ export function SubjectCard({
                 { width: `${Math.round(progress * 100)}%` as `${number}%` },
               ]}
             />
+          </View>
+        )}
+
+        {/* Status indicator for free content */}
+        {isFreePreview && (
+          <View style={styles.statusLabel}>
+             <Text style={styles.statusText}>FREE PREVIEW</Text>
           </View>
         )}
 
@@ -153,10 +168,34 @@ const styles = StyleSheet.create({
   badgeDone: {
     backgroundColor: "rgba(255,255,255,0.4)",
   },
+  badgeLocked: {
+    backgroundColor: "rgba(0,0,0,0.3)",
+  },
   badgeText: {
     color: "#fff",
     fontSize: 12,
     fontFamily: "Inter_700Bold",
+  },
+  statusLabel: {
+    position: "absolute",
+    bottom: 20,
+    right: 24,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
+  },
+  statusText: {
+    color: "#fff",
+    fontSize: 10,
+    fontFamily: "Inter_800ExtraBold",
+    letterSpacing: 0.5,
+  },
+  flexRow: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   barTrack: {
     height: 6,

@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Platform,
   ScrollView,
@@ -15,24 +15,23 @@ import { SubjectCard } from "@/components/SubjectCard";
 import { useColors } from "@/hooks/useColors";
 import { useHierarchy } from "@/hooks/useHierarchy";
 import { useProgress } from "@/hooks/useProgress";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 
 export default function ModuleScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: years } = useHierarchy();
+  const { data: accessMap } = useModuleAccess();
   const completedIds = useProgress();
 
   const module = years?.flatMap((y) => y.modules).find((m) => m.id === id);
+  const moduleAccess = accessMap?.get(id);
+  const hasModuleAccess = moduleAccess?.has_access || moduleAccess?.is_free;
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
 
   if (!module) return null;
-
-  const totalLectures = module.subjects.reduce(
-    (sum, s) => sum + s.lectures.length,
-    0,
-  );
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -78,18 +77,36 @@ export default function ModuleScreen() {
               completedIds.has(lec.external_id) || completedIds.has(lec.id),
           ).length;
 
+          // Subject-level access check
+          const subAccess = accessMap?.get(sub.id);
+          const isLocked = !hasModuleAccess && !subAccess?.has_access && !subAccess?.is_free;
+          const isFreePreview = !hasModuleAccess && (subAccess?.is_free || sub.is_free);
+
           return (
             <SubjectCard
               key={sub.id}
               subject={sub}
               index={i}
               completedCount={completedCount}
-              onPress={() =>
-                router.push({
-                  pathname: "/subject/[id]",
-                  params: { id: sub.id },
-                })
-              }
+              isLocked={isLocked}
+              isFreePreview={isFreePreview}
+              onPress={() => {
+                if (isLocked) {
+                  router.push({
+                    pathname: "/purchase/[moduleId]",
+                    params: {
+                      moduleId: module.id,
+                      moduleName: module.name,
+                      priceDisplay: `$${((moduleAccess?.price_cents ?? 0) / 100).toFixed(2)}`
+                    }
+                  });
+                } else {
+                  router.push({
+                    pathname: "/subject/[id]",
+                    params: { id: sub.id },
+                  });
+                }
+              }}
             />
           );
         })}

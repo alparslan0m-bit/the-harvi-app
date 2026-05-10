@@ -1,3 +1,4 @@
+import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -14,11 +15,13 @@ interface Props {
   module: Module;
   index: number;
   onPress: () => void;
+  hasAccess?: boolean;
+  isFree?: boolean;
 }
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-export function ModuleCard({ module, index, onPress }: Props) {
+export function ModuleCard({ module, index, onPress, hasAccess, isFree }: Props) {
   const scale = useSharedValue(1);
   const gradient =
     (colors.yearGradients[index % colors.yearGradients.length] as [
@@ -57,6 +60,19 @@ export function ModuleCard({ module, index, onPress }: Props) {
         <View style={styles.content}>
           <Text style={styles.title}>{module.name}</Text>
         </View>
+
+        {!hasAccess && !isFree && (
+          <View style={[styles.lockBadge, { backgroundColor: 'rgba(0,0,0,0.35)' }]}>
+            <Feather name="lock" size={14} color="#fff" />
+          </View>
+        )}
+
+        {isFree && (
+          <View style={[styles.freeBadge, { backgroundColor: colors.light.success }]}>
+            <Text style={styles.freeBadgeText}>FREE</Text>
+          </View>
+        )}
+
         <View style={styles.decorCircle} />
         <View style={styles.decorCircle2} />
         <View style={styles.decorCircle3} />
@@ -96,6 +112,32 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontFamily: "Nunito_800ExtraBold",
     letterSpacing: -0.8,
+  },
+  lockBadge: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 3,
+  },
+  freeBadge: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+    zIndex: 3,
+  },
+  freeBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.5,
   },
   decorCircle: {
     position: "absolute",
