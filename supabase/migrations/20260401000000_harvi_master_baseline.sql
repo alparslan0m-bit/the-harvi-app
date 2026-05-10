@@ -111,13 +111,6 @@ CREATE TABLE IF NOT EXISTS public.feedback (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- PWA Installation Tracking
-CREATE TABLE IF NOT EXISTS public.pwa_installs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-    platform TEXT, -- 'android', 'ios', 'windows', 'macos'
-    created_at TIMESTAMPTZ DEFAULT now()
-);
 
 -- Real-time Aggregate Statistics Table
 CREATE TABLE IF NOT EXISTS public.lecture_statistics (
@@ -170,25 +163,34 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- The Master Access Gatekeeper
 CREATE OR REPLACE FUNCTION public.check_content_access(p_lecture_id UUID)
 RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
-    SELECT EXISTS (
-        SELECT 1 FROM public.lectures l JOIN public.subjects s ON s.id = l.subject_id JOIN public.modules m ON m.id = s.module_id
-        WHERE l.id = p_lecture_id AND (
-            is_admin() OR s.is_free = true OR m.is_free = true OR
-            EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = auth.uid() AND p.subject_id = s.id AND p.status = 'active') OR
-            EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = auth.uid() AND p.module_id = m.id AND p.status = 'active')
-        )
-    );
+    SELECT 
+        is_admin() OR 
+        EXISTS (
+            SELECT 1 
+            FROM public.lectures l 
+            JOIN public.subjects s ON s.id = l.subject_id 
+            JOIN public.modules m ON m.id = s.module_id
+            WHERE l.id = p_lecture_id AND (
+                s.is_free = true OR 
+                m.is_free = true OR
+                EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.subject_id = s.id AND p.status = 'active') OR
+                EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = m.id AND p.status = 'active')
+            )
+        );
 $$;
 
 -- UI Access Map
 CREATE OR REPLACE FUNCTION public.get_content_access_map()
 RETURNS TABLE (item_id UUID, item_type TEXT, has_access BOOLEAN, is_free BOOLEAN, price_cents INTEGER)
 LANGUAGE sql STABLE SECURITY DEFINER AS $$
+    -- Admin: Full Access
     SELECT id, 'module', true, is_free, price_cents FROM public.modules WHERE is_admin()
     UNION ALL
-    SELECT m.id, 'module', (m.is_free OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = auth.uid() AND p.module_id = m.id AND p.status = 'active')), m.is_free, m.price_cents FROM public.modules m WHERE NOT is_admin()
+    -- Non-Admin: Modules
+    SELECT m.id, 'module', (m.is_free OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = m.id AND p.status = 'active')), m.is_free, m.price_cents FROM public.modules m WHERE NOT is_admin()
     UNION ALL
-    SELECT s.id, 'subject', (s.is_free OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = auth.uid() AND p.module_id = s.module_id AND p.status = 'active') OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = auth.uid() AND p.subject_id = s.id AND p.status = 'active')), s.is_free, s.price_cents FROM public.subjects s WHERE NOT is_admin();
+    -- Non-Admin: Subjects
+    SELECT s.id, 'subject', (s.is_free OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = s.module_id AND p.status = 'active') OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.subject_id = s.id AND p.status = 'active')), s.is_free, s.price_cents FROM public.subjects s WHERE NOT is_admin();
 $$;
 
 -- Analytics: Streak Calculation
@@ -216,8 +218,7 @@ BEGIN
         'totalStudents', (SELECT COUNT(*)::INTEGER FROM public.profiles),
         'totalQuestions', (SELECT COUNT(*)::INTEGER FROM public.questions),
         'totalQuizzes', (SELECT COUNT(*)::INTEGER FROM public.quiz_results),
-        'activeToday', (SELECT COUNT(DISTINCT user_id)::INTEGER FROM public.quiz_results WHERE created_at >= CURRENT_DATE),
-        'totalInstalls', (SELECT COUNT(*)::INTEGER FROM public.pwa_installs)
+        'activeToday', (SELECT COUNT(DISTINCT user_id)::INTEGER FROM public.quiz_results WHERE created_at >= CURRENT_DATE)
     ) INTO result;
     RETURN result;
 END;
@@ -308,25 +309,38 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.quiz_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pwa_installs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.lecture_statistics ENABLE ROW LEVEL SECURITY;
 
--- Read Access
+-- 7.1 Admin Global Access (Bypass)
+CREATE POLICY "Admins have full access" ON public.years FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admins have full access" ON public.modules FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admins have full access" ON public.subjects FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admins have full access" ON public.lectures FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admins have full access" ON public.questions FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admins have full access" ON public.profiles FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admins have full access" ON public.quiz_results FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admins have full access" ON public.feedback FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admins have full access" ON public.purchases FOR ALL TO authenticated USING (is_admin());
+CREATE POLICY "Admins have full access" ON public.lecture_statistics FOR ALL TO authenticated USING (is_admin());
+
+-- 7.2 Read Access (Structural & Profiles)
 CREATE POLICY "Public Read" ON public.years FOR SELECT USING (true);
 CREATE POLICY "Public Read" ON public.modules FOR SELECT USING (true);
 CREATE POLICY "Public Read" ON public.subjects FOR SELECT USING (true);
 CREATE POLICY "Public Read" ON public.lectures FOR SELECT USING (true);
-CREATE POLICY "Public Read" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Authenticated Read" ON public.profiles FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Authenticated Read" ON public.lecture_statistics FOR SELECT TO authenticated USING (true);
 
--- THE GATEKEEPER: Gated access to questions
+-- 7.3 Gated Access (Content)
 CREATE POLICY "Gated access to questions" ON public.questions FOR SELECT USING (check_content_access(lecture_id));
 
--- Private Data
-CREATE POLICY "Self Manage" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
-CREATE POLICY "Self Read" ON public.quiz_results FOR SELECT TO authenticated USING (auth.uid() = user_id);
-CREATE POLICY "Self Insert" ON public.quiz_results FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can view own purchases" ON public.purchases FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Anyone can submit feedback" ON public.feedback FOR INSERT TO authenticated, anon WITH CHECK ((auth.uid() = user_id) OR (user_id IS NULL));
-CREATE POLICY "Authenticated users can log own installation" ON public.pwa_installs FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+-- 7.4 Private Data (Self-Manage)
+CREATE POLICY "Self Manage" ON public.profiles FOR UPDATE TO authenticated USING ((SELECT auth.uid()) = id);
+CREATE POLICY "Self Read" ON public.quiz_results FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
+CREATE POLICY "Self Insert" ON public.quiz_results FOR INSERT TO authenticated WITH CHECK ((SELECT auth.uid()) = user_id);
+CREATE POLICY "Self Read" ON public.purchases FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
+CREATE POLICY "Self Read" ON public.feedback FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
+CREATE POLICY "Self Insert" ON public.feedback FOR INSERT TO authenticated, anon WITH CHECK (((SELECT auth.uid()) = user_id) OR (user_id IS NULL));
 
 -- =============================================
 -- 8. PERFORMANCE INDEXES
@@ -337,8 +351,13 @@ CREATE INDEX IF NOT EXISTS idx_questions_lecture_order ON public.questions(lectu
 CREATE INDEX IF NOT EXISTS idx_purchases_user_id ON public.purchases(user_id);
 CREATE INDEX IF NOT EXISTS idx_lecture_stats_lecture ON public.lecture_statistics(lecture_id);
 CREATE INDEX IF NOT EXISTS idx_feedback_status ON public.feedback(status);
-CREATE INDEX IF NOT EXISTS idx_pwa_installs_user_unique ON public.pwa_installs(user_id) WHERE user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_feedback_user_id ON public.feedback(user_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_results_user_lecture ON public.quiz_results(user_id, lecture_id);
+
+-- Hierarchy Performance Indexes
+CREATE INDEX IF NOT EXISTS idx_modules_year_id ON public.modules(year_id);
+CREATE INDEX IF NOT EXISTS idx_subjects_module_id ON public.subjects(module_id);
+CREATE INDEX IF NOT EXISTS idx_lectures_subject_id ON public.lectures(subject_id);
 
 -- =============================================
 -- 9. MAINTENANCE: CRON JOBS
