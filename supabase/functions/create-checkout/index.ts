@@ -1,4 +1,7 @@
 // supabase/functions/create-checkout/index.ts
+// SECURITY HARDENING (2026-05-11):
+//   CRIT-02: Insert as 'pending', never 'active' — only webhook activates
+//   Added: Duplicate purchase check, environment-gated manual bypass, input validation
 import { serve } from "std/http/server.ts";
 import { createClient } from "supabase";
 
@@ -13,8 +16,14 @@ serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    // ── 1. Authenticate ─────────────────────────────────────────
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Unauthorized");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const supabaseAnon = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -23,11 +32,20 @@ serve(async (req: Request) => {
     );
 
     const { data: { user } } = await supabaseAnon.auth.getUser();
-    if (!user) throw new Error("Unauthorized");
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
+    // ── 2. Validate Input ───────────────────────────────────────
     const { module_id, subject_id, success_url, cancel_url } = await req.json();
     if ((!module_id && !subject_id) || !success_url || !cancel_url) {
-      throw new Error("Missing required fields");
+      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const supabaseAdmin = createClient(
@@ -35,38 +53,109 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // 1. Determine target table and ID
+    // ── 3. Determine target and validate it exists ──────────────
     const targetTable = subject_id ? "subjects" : "modules";
     const targetId = subject_id || module_id;
+    const targetColumn = subject_id ? "subject_id" : "module_id";
 
-    // 2. Fetch Price & Metadata directly from content table
     const { data: item, error: itemError } = await supabaseAdmin
       .from(targetTable)
       .select("price_cents, external_price_id, is_free, name")
       .eq("id", targetId)
       .single();
 
-    if (itemError || !item || item.is_free) {
-      throw new Error("Item is not available for purchase");
+    if (itemError || !item) {
+      return new Response(JSON.stringify({ error: "Item not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // 3. Create Session (Manual/Mock for now)
-    const paymentSessionId = `manual_${crypto.randomUUID()}`;
+    if (item.is_free) {
+      return new Response(JSON.stringify({ error: "Item is free — no purchase needed" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    // 4. Record the Purchase
-    // This now supports either module_id OR subject_id
-    await supabaseAdmin.from("purchases").insert({
+    if (!item.price_cents || item.price_cents <= 0) {
+      return new Response(JSON.stringify({ error: "Item has no valid price configured" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── 4. Check for existing active purchase (prevent duplicates) ─
+    const { data: existing } = await supabaseAdmin
+      .from("purchases")
+      .select("id, status")
+      .eq("user_id", user.id)
+      .eq(targetColumn, targetId)
+      .in("status", ["active", "pending"])
+      .maybeSingle();
+
+    if (existing?.status === "active") {
+      return new Response(JSON.stringify({ error: "You already have access to this content" }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // If there's a stale pending purchase, clean it up before creating a new one
+    if (existing?.status === "pending") {
+      await supabaseAdmin
+        .from("purchases")
+        .update({ status: "failed", updated_at: new Date().toISOString() })
+        .eq("id", existing.id);
+    }
+
+    // ── 5. Create Payment Session ───────────────────────────────
+    const isDev = Deno.env.get("ENVIRONMENT") === "development";
+    const paymentSessionId = isDev
+      ? `dev_${crypto.randomUUID()}`
+      : `stripe_${crypto.randomUUID()}`; // Replace with real Stripe session creation
+
+    // ── 6. Record the Purchase as PENDING ───────────────────────
+    // CRIT-02 FIX: Status is ALWAYS 'pending'. Only the payment webhook
+    // (after HMAC verification) may set it to 'active'.
+    const { error: insertError } = await supabaseAdmin.from("purchases").insert({
       user_id: user.id,
       module_id: module_id || null,
       subject_id: subject_id || null,
       payment_session_id: paymentSessionId,
       amount_cents: item.price_cents,
       currency: "usd",
-      status: "active", // Auto-activate for manual mode
-      provider: "manual",
+      status: "pending",
+      provider: isDev ? "manual" : "stripe",
     });
 
-    const checkoutUrl = `${success_url}?session_id=${paymentSessionId}`;
+    if (insertError) {
+      console.error("[CreateCheckout DB Error]:", insertError.message);
+      return new Response(JSON.stringify({ error: "Failed to create purchase record" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── 7. Build checkout URL ───────────────────────────────────
+    // In dev mode: redirect to success immediately (for testing only)
+    // In production: this would be a real Stripe checkout URL
+    let checkoutUrl: string;
+    if (isDev) {
+      checkoutUrl = `${success_url}?session_id=${paymentSessionId}`;
+
+      // DEV ONLY: auto-activate for testing convenience
+      await supabaseAdmin
+        .from("purchases")
+        .update({ status: "active", updated_at: new Date().toISOString() })
+        .eq("payment_session_id", paymentSessionId)
+        .eq("user_id", user.id);
+    } else {
+      // TODO: Create real Stripe Checkout session here
+      // const stripeSession = await stripe.checkout.sessions.create({...});
+      // checkoutUrl = stripeSession.url;
+      checkoutUrl = `${success_url}?session_id=${paymentSessionId}`;
+    }
 
     return new Response(JSON.stringify({ url: checkoutUrl, session_id: paymentSessionId }), {
       status: 200,
@@ -75,8 +164,8 @@ serve(async (req: Request) => {
 
   } catch (error: any) {
     console.error("[CreateCheckout Error]:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 400,
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

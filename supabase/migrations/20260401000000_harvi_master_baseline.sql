@@ -154,10 +154,15 @@ CREATE TABLE IF NOT EXISTS public.purchases (
 -- Admin Role Detection
 
 -- Analytics: Streak Calculation
+-- NEW-CRIT-02 FIX: Enforces auth.uid() match — users can only query their own streak.
 CREATE OR REPLACE FUNCTION get_user_streak(user_uuid UUID)
-RETURNS INTEGER LANGUAGE plpgsql STABLE SECURITY DEFINER AS $$
+RETURNS INTEGER LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
 DECLARE streak INTEGER := 0; prev_date DATE := NULL; rec RECORD;
 BEGIN
+    -- Security: only allow querying own data (or admin)
+    IF user_uuid != (SELECT auth.uid()) AND NOT public.is_admin() THEN
+        RETURN 0;
+    END IF;
     PERFORM 1 FROM public.quiz_results WHERE user_id = user_uuid AND DATE(created_at) >= CURRENT_DATE - INTERVAL '1 day' LIMIT 1;
     IF NOT FOUND THEN RETURN 0; END IF;
     FOR rec IN SELECT DISTINCT DATE(created_at) as quiz_date FROM public.quiz_results WHERE user_id = user_uuid ORDER BY quiz_date DESC LOOP
@@ -170,10 +175,12 @@ END;
 $$;
 
 -- Dashboard: Admin KPIs
+-- NEW-CRIT-01 FIX: Admin guard added — was callable by any authenticated user.
 CREATE OR REPLACE FUNCTION get_admin_dashboard_stats()
-RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE result JSONB;
 BEGIN
+    IF NOT public.is_admin() THEN RAISE EXCEPTION 'Unauthorized'; END IF;
     SELECT json_build_object(
         'totalStudents', (SELECT COUNT(*)::INTEGER FROM public.profiles),
         'totalQuestions', (SELECT COUNT(*)::INTEGER FROM public.questions),
@@ -215,31 +222,39 @@ $$ LANGUAGE plpgsql;
 -- =============================================
 
 -- KPI: Aggregate Stats
+-- NEW-CRIT-02 FIX: Added auth.uid() guard — users can only query their own stats.
 CREATE OR REPLACE FUNCTION get_user_aggregate_stats(user_uuid UUID)
 RETURNS TABLE(total_quizzes BIGINT, total_questions BIGINT, total_correct BIGINT, best_score INTEGER) 
-LANGUAGE SQL STABLE SECURITY DEFINER AS $$
+LANGUAGE SQL STABLE SECURITY DEFINER SET search_path = public AS $$
     SELECT 
         COUNT(*)::BIGINT, 
         COALESCE(SUM(total_questions), 0)::BIGINT, 
         COALESCE(SUM(correct_answers), 0)::BIGINT, 
         COALESCE(MAX(score), 0)::INTEGER
     FROM public.quiz_results 
-    WHERE user_id = user_uuid;
+    WHERE user_id = user_uuid
+      AND user_uuid = (SELECT auth.uid());
 $$;
 
 -- KPI: Active Users
+-- NEW-CRIT-01 FIX: Admin guard added — was callable by any authenticated user.
 CREATE OR REPLACE FUNCTION get_active_users_today()
-RETURNS INTEGER LANGUAGE sql SECURITY DEFINER AS $$
-  SELECT COUNT(DISTINCT user_id)::INTEGER FROM public.quiz_results WHERE created_at >= CURRENT_DATE;
+RETURNS INTEGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF NOT public.is_admin() THEN RAISE EXCEPTION 'Unauthorized'; END IF;
+  RETURN (SELECT COUNT(DISTINCT user_id)::INTEGER FROM public.quiz_results WHERE created_at >= CURRENT_DATE);
+END;
 $$;
 
 -- Analytics: Comprehensive Summary (for charts)
+-- NEW-CRIT-01 FIX: Admin guard added — was callable by any authenticated user.
 CREATE OR REPLACE FUNCTION get_analytics_summary(p_days INTEGER DEFAULT 30)
-RETURNS JSON LANGUAGE plpgsql STABLE SECURITY DEFINER AS $$
+RETURNS JSON LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   result JSON;
   start_date TIMESTAMPTZ := NOW() - (p_days || ' days')::INTERVAL;
 BEGIN
+  IF NOT public.is_admin() THEN RAISE EXCEPTION 'Unauthorized'; END IF;
   WITH
     kpis AS (
       SELECT COUNT(*)::INTEGER AS total_quizzes_taken, COALESCE(ROUND(AVG(score))::INTEGER, 0) AS average_score,
@@ -271,10 +286,12 @@ END;
 $$;
 
 -- Activity: Unified Feed
+-- NEW-CRIT-01 FIX: Admin guard added — was callable by any authenticated user.
 CREATE OR REPLACE FUNCTION get_recent_activity()
-RETURNS JSON LANGUAGE plpgsql STABLE SECURITY DEFINER AS $$
+RETURNS JSON LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
 DECLARE result JSON;
 BEGIN
+  IF NOT public.is_admin() THEN RAISE EXCEPTION 'Unauthorized'; END IF;
   SELECT json_agg(row_data ORDER BY created_at DESC) INTO result FROM (
     (SELECT json_build_object('id', id, 'type', 'Year', 'entityName', name, 'createdAt', created_at, 'href', '/admin?tab=content&level=modules&yearId=' || id) AS row_data, created_at FROM years ORDER BY created_at DESC LIMIT 3) UNION ALL
     (SELECT json_build_object('id', id, 'type', 'Module', 'entityName', name, 'createdAt', created_at, 'href', '/admin?tab=content&level=subjects&moduleId=' || id), created_at FROM modules ORDER BY created_at DESC LIMIT 3) UNION ALL
@@ -375,6 +392,17 @@ CREATE INDEX IF NOT EXISTS idx_lecture_stats_lecture ON public.lecture_statistic
 CREATE INDEX IF NOT EXISTS idx_feedback_status ON public.feedback(status);
 CREATE INDEX IF NOT EXISTS idx_feedback_user_id ON public.feedback(user_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_results_user_lecture ON public.quiz_results(user_id, lecture_id);
+
+-- NEW-HIGH-02 FIX: Subject-level purchase lookups had no supporting index.
+-- check_content_access() does WHERE p.subject_id = s.id AND p.status = 'active'
+CREATE INDEX IF NOT EXISTS idx_purchases_user_subject_status
+    ON public.purchases(user_id, subject_id, status)
+    WHERE status = 'active';
+
+-- Partial index for module-level purchase lookups (matching the existing pattern)
+CREATE INDEX IF NOT EXISTS idx_purchases_user_module_status
+    ON public.purchases(user_id, module_id, status)
+    WHERE status = 'active';
 
 -- Hierarchy Performance Indexes
 CREATE INDEX IF NOT EXISTS idx_modules_year_id ON public.modules(year_id);
