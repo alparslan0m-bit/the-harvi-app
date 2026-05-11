@@ -6,7 +6,6 @@
 -- SECURITY AUDIT HARDENING (2026-05-11):
 --   CRIT-01: is_admin() now reads raw_app_meta_data only (no JWT claim spoofing)
 --   HIGH-02: Replaced DROP-ALL loop with explicit per-policy DROP/CREATE
---   MEDIUM-01: pwa_installs policies included
 --   LOW-01: Feedback restricted to authenticated only
 --   NEW-MEDIUM-01: Profiles self-insert policy added
 

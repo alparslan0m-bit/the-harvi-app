@@ -23,7 +23,6 @@ All files are prefixed with `YYYYMMDDHHMMSS` to maintain a perfect dependency ch
 | **11** | `GROWTH` | `20260420000000_pwa_analytics.sql` | **Insights:** PWA installation tracking and Admin Dashboard KPIs. |
 | **12** | `ELITE` | `20260420000001_analytics_rpcs.sql` | **Aggregation:** Moving expensive JS math to SQL for **99% egress reduction**. |
 | **13** | `INSTANT` | `20260420000002_realtime_lecture_stats.sql`| **Automation:** The "Pay-on-Write" Trigger for real-time global analytics. |
-| **14** | `SECURITY` | `20260420000003_security_hardening.sql` | **Hardening:** RLS lockdown for `pwa_installs`, blocking anonymous REST API abuse. |
 
 ---
 

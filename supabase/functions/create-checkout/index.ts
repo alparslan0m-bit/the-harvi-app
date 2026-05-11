@@ -13,7 +13,8 @@ const corsHeaders = {
 };
 
 serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method === "OPTIONS")
+    return new Response("ok", { headers: corsHeaders });
 
   try {
     // ── 1. Authenticate ─────────────────────────────────────────
@@ -31,7 +32,9 @@ serve(async (req: Request) => {
       { global: { headers: { Authorization: authHeader } } },
     );
 
-    const { data: { user } } = await supabaseAnon.auth.getUser();
+    const {
+      data: { user },
+    } = await supabaseAnon.auth.getUser();
     if (!user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -42,16 +45,39 @@ serve(async (req: Request) => {
     // ── 2. Validate Input ───────────────────────────────────────
     const { module_id, subject_id, success_url, cancel_url } = await req.json();
     if ((!module_id && !subject_id) || !success_url || !cancel_url) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Missing required fields" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    // ── 2.5 Rate Limit Check (Denial of Wallet Prevention) ───────
+    // Allow up to 20 checkouts per minute (supports buying all 12 modules of a year rapidly)
+    const oneMinuteAgo = new Date(Date.now() - 1 * 60 * 1000).toISOString();
+    const { count: recentPendingCount } = await supabaseAdmin
+      .from("purchases")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("status", "pending")
+      .gte("created_at", oneMinuteAgo);
+
+    if (recentPendingCount !== null && recentPendingCount >= 20) {
+      return new Response(
+        JSON.stringify({ error: "Too many checkout requests. Please wait a few minutes." }),
+        {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
 
     // ── 3. Determine target and validate it exists ──────────────
     const targetTable = subject_id ? "subjects" : "modules";
@@ -72,17 +98,23 @@ serve(async (req: Request) => {
     }
 
     if (item.is_free) {
-      return new Response(JSON.stringify({ error: "Item is free — no purchase needed" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Item is free — no purchase needed" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     if (!item.price_cents || item.price_cents <= 0) {
-      return new Response(JSON.stringify({ error: "Item has no valid price configured" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Item has no valid price configured" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     // ── 4. Check for existing active purchase (prevent duplicates) ─
@@ -95,10 +127,13 @@ serve(async (req: Request) => {
       .maybeSingle();
 
     if (existing?.status === "active") {
-      return new Response(JSON.stringify({ error: "You already have access to this content" }), {
-        status: 409,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "You already have access to this content" }),
+        {
+          status: 409,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     // If there's a stale pending purchase, clean it up before creating a new one
@@ -118,23 +153,28 @@ serve(async (req: Request) => {
     // ── 6. Record the Purchase as PENDING ───────────────────────
     // CRIT-02 FIX: Status is ALWAYS 'pending'. Only the payment webhook
     // (after HMAC verification) may set it to 'active'.
-    const { error: insertError } = await supabaseAdmin.from("purchases").insert({
-      user_id: user.id,
-      module_id: module_id || null,
-      subject_id: subject_id || null,
-      payment_session_id: paymentSessionId,
-      amount_cents: item.price_cents,
-      currency: "usd",
-      status: "pending",
-      provider: isDev ? "manual" : "stripe",
-    });
+    const { error: insertError } = await supabaseAdmin
+      .from("purchases")
+      .insert({
+        user_id: user.id,
+        module_id: module_id || null,
+        subject_id: subject_id || null,
+        payment_session_id: paymentSessionId,
+        amount_cents: item.price_cents,
+        currency: "usd",
+        status: "pending",
+        provider: isDev ? "manual" : "stripe",
+      });
 
     if (insertError) {
       console.error("[CreateCheckout DB Error]:", insertError.message);
-      return new Response(JSON.stringify({ error: "Failed to create purchase record" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Failed to create purchase record" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     // ── 7. Build checkout URL ───────────────────────────────────
@@ -157,11 +197,13 @@ serve(async (req: Request) => {
       checkoutUrl = `${success_url}?session_id=${paymentSessionId}`;
     }
 
-    return new Response(JSON.stringify({ url: checkoutUrl, session_id: paymentSessionId }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-
+    return new Response(
+      JSON.stringify({ url: checkoutUrl, session_id: paymentSessionId }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (error: any) {
     console.error("[CreateCheckout Error]:", error.message);
     return new Response(JSON.stringify({ error: "Internal server error" }), {

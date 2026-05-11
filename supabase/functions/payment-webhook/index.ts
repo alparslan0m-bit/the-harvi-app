@@ -9,11 +9,26 @@ import { createClient } from "supabase";
 // Paymob concatenates specific transaction fields in alphabetical order
 // and signs with HMAC-SHA512. Adjust field list for your provider.
 const PAYMOB_HMAC_FIELDS = [
-  "amount_cents", "created_at", "currency", "error_occured",
-  "has_parent_transaction", "id", "integration_id", "is_3d_secure",
-  "is_auth", "is_capture", "is_refunded", "is_standalone_payment",
-  "is_voided", "order", "owner", "pending", "source_data.pan",
-  "source_data.sub_type", "source_data.type", "success",
+  "amount_cents",
+  "created_at",
+  "currency",
+  "error_occured",
+  "has_parent_transaction",
+  "id",
+  "integration_id",
+  "is_3d_secure",
+  "is_auth",
+  "is_capture",
+  "is_refunded",
+  "is_standalone_payment",
+  "is_voided",
+  "order",
+  "owner",
+  "pending",
+  "source_data.pan",
+  "source_data.sub_type",
+  "source_data.type",
+  "success",
 ];
 
 function getNestedValue(obj: Record<string, unknown>, path: string): string {
@@ -36,9 +51,9 @@ async function verifyPaymobHmac(
     return false;
   }
 
-  const concatenated = PAYMOB_HMAC_FIELDS
-    .map((field) => getNestedValue(transactionObj, field))
-    .join("");
+  const concatenated = PAYMOB_HMAC_FIELDS.map((field) =>
+    getNestedValue(transactionObj, field),
+  ).join("");
 
   const key = await crypto.subtle.importKey(
     "raw",
@@ -102,12 +117,25 @@ serve(async (req: Request) => {
     // Map provider-specific fields to generic variables.
     // Adjust this mapping for your specific payment provider.
     const transactionData = body.obj ?? body;
-    const paymentSessionId = transactionData.session_id ?? transactionData.order?.id?.toString() ?? body.session_id;
+    const paymentSessionId =
+      transactionData.session_id ??
+      transactionData.order?.id?.toString() ??
+      body.session_id;
     const paymentId = transactionData.id?.toString() ?? body.payment_id;
-    const userId = transactionData.order?.shipping_data?.extra_description ?? body.user_id; // Paymob stores user_id in metadata
-    const isSuccess = transactionData.success === true || body.status === "success" || body.status === "paid";
-    const isRefund = transactionData.is_refunded === true || body.status === "refunded";
-    const isVoided = transactionData.is_voided === true || body.status === "voided";
+    const userId =
+      transactionData.order?.shipping_data?.extra_description ?? body.user_id; // Paymob stores user_id in metadata
+    const amountCents = parseInt(
+      transactionData.amount_cents?.toString() ?? body.amount_cents?.toString() ?? "0",
+      10,
+    );
+    const isSuccess =
+      transactionData.success === true ||
+      body.status === "success" ||
+      body.status === "paid";
+    const isRefund =
+      transactionData.is_refunded === true || body.status === "refunded";
+    const isVoided =
+      transactionData.is_voided === true || body.status === "voided";
 
     if (!paymentSessionId) {
       console.error("[Webhook] No session_id found in webhook payload");
@@ -117,16 +145,29 @@ serve(async (req: Request) => {
       });
     }
 
-    console.log(`[Webhook] Processing: session=${paymentSessionId} success=${isSuccess} refund=${isRefund}`);
+    console.log(
+      `[Webhook] Processing: session=${paymentSessionId} success=${isSuccess} refund=${isRefund}`,
+    );
 
     // ── 5. Handle event types ─────────────────────────────────
 
     if (isRefund || isVoided) {
       // Refund/void: revoke access immediately
-      await revokePurchase(supabaseAdmin, paymentSessionId, userId, isRefund ? "refunded" : "failed");
+      await revokePurchase(
+        supabaseAdmin,
+        paymentSessionId,
+        userId,
+        isRefund ? "refunded" : "failed",
+      );
     } else if (isSuccess) {
       // Successful payment: activate
-      await activatePurchase(supabaseAdmin, paymentSessionId, paymentId, userId);
+      await activatePurchase(
+        supabaseAdmin,
+        paymentSessionId,
+        paymentId,
+        userId,
+        amountCents,
+      );
     } else {
       // Failed payment
       await revokePurchase(supabaseAdmin, paymentSessionId, userId, "failed");
@@ -136,7 +177,6 @@ serve(async (req: Request) => {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Webhook error";
     // Log error type only — never log the full webhook body (contains PII)
@@ -152,39 +192,62 @@ serve(async (req: Request) => {
 
 /**
  * Activates a purchase. Idempotent — safe to call multiple times.
- * Only updates if current status is 'pending' (prevents re-activation of refunded purchases).
- * Includes user_id guard to prevent cross-user activation.
+ * Verifies amount_cents before activating to prevent coupon bugs.
  */
 async function activatePurchase(
   supabase: ReturnType<typeof createClient>,
   sessionId: string,
   paymentId: string,
-  userId: string,
+  userId: string | undefined,
+  paidAmountCents: number,
 ) {
-  // Build the query with user_id guard if available
-  let query = supabase
+  // 1. Fetch pending purchase to verify amount
+  const { data: pendingPurchase, error: fetchError } = await supabase
+    .from("purchases")
+    .select("id, amount_cents, status, user_id")
+    .eq("payment_session_id", sessionId)
+    .maybeSingle();
+
+  if (fetchError || !pendingPurchase) {
+    console.error(`[Webhook] Purchase not found for session ${sessionId}`);
+    return;
+  }
+
+  if (pendingPurchase.status !== "pending") {
+    console.log(`[Webhook] Purchase ${pendingPurchase.id} is already ${pendingPurchase.status}`);
+    return;
+  }
+
+  // Cross check userId if provided by provider
+  if (userId && pendingPurchase.user_id !== userId) {
+    console.error(`[Webhook] User ID mismatch for session ${sessionId}`);
+    return;
+  }
+
+  if (paidAmountCents < pendingPurchase.amount_cents) {
+    console.error(`[Webhook] Amount mismatch for session ${sessionId}: Paid ${paidAmountCents}, Expected ${pendingPurchase.amount_cents}`);
+    return;
+  }
+
+  // 2. Activate
+  const { error } = await supabase
     .from("purchases")
     .update({
       status: "active",
       payment_id: paymentId,
       updated_at: new Date().toISOString(),
     })
-    .eq("payment_session_id", sessionId)
-    .eq("status", "pending"); // Idempotency: only pending → active
-
-  // User ID guard: prevents cross-user activation
-  if (userId) {
-    query = query.eq("user_id", userId);
-  }
-
-  const { error, count } = await query.select("id").maybeSingle();
+    .eq("id", pendingPurchase.id)
+    .eq("status", "pending"); // Idempotency: prevents race conditions
 
   if (error) {
     console.error(`[Webhook DB Error]: ${error.message}`);
     throw error;
   }
 
-  console.log(`[Webhook] Activate result: session=${sessionId} user=${userId ?? "unknown"}`);
+  console.log(
+    `[Webhook] Activated session=${sessionId} user=${pendingPurchase.user_id}`,
+  );
 }
 
 /**
@@ -194,10 +257,10 @@ async function activatePurchase(
 async function revokePurchase(
   supabase: ReturnType<typeof createClient>,
   sessionId: string,
-  userId: string,
+  userId: string | undefined,
   newStatus: "refunded" | "disputed" | "failed",
 ) {
-  let query = supabase
+  const { error } = await supabase
     .from("purchases")
     .update({
       status: newStatus,
@@ -205,12 +268,6 @@ async function revokePurchase(
     })
     .eq("payment_session_id", sessionId)
     .neq("status", newStatus); // Idempotency
-
-  if (userId) {
-    query = query.eq("user_id", userId);
-  }
-
-  const { error } = await query;
 
   if (error) {
     console.error(`[Webhook Revoke Error]: ${error.message}`);
