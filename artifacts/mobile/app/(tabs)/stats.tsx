@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   header: {
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     alignItems: "flex-end",
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
-  content: { paddingTop: 20 },
+  content: { paddingTop: 12 },
   section: {
     marginHorizontal: 20,
     marginBottom: 16,

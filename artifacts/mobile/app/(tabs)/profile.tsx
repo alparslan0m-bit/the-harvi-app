@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   header: {
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   title: {
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", marginTop: -2 },
-  content: { paddingTop: 20, paddingHorizontal: 20 },
+  content: { paddingTop: 12, paddingHorizontal: 20 },
   versionText: {
     textAlign: "center",
     fontSize: 12,

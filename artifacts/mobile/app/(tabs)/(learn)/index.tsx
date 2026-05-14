@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
 
   header: {
     paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   title: {
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   },
   subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", marginTop: -2 },
 
-  content: { paddingTop: 20 },
+  content: { paddingTop: 12 },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
   loadingText: { fontSize: 14, fontFamily: "Inter_400Regular" },
 
