@@ -4,6 +4,7 @@ import { Tabs } from "expo-router";
 import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
 import { TabIcon } from "@/components";
@@ -40,6 +41,7 @@ function ClassicTabLayout() {
   const isDark = colorScheme === "dark";
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -56,7 +58,8 @@ function ClassicTabLayout() {
           shadowOffset: { width: 0, height: -6 },
           shadowOpacity: 0.12,
           shadowRadius: 18,
-          ...(isWeb ? { height: 90 } : { height: 70 + (isIOS ? 0 : 4) }),
+          paddingBottom: isWeb ? 0 : Math.max(insets.bottom - 6, 4),
+          ...(isWeb ? { height: 90 } : { height: 55 + Math.max(insets.bottom - 6, 4) }),
         },
         tabBarBackground: () => (
           <View style={StyleSheet.absoluteFill}>
@@ -81,9 +84,9 @@ function ClassicTabLayout() {
         ),
         tabBarLabelStyle: {
           fontFamily: "Inter_700Bold",
-          fontSize: 12,
-          marginTop: -1,
-          marginBottom: isIOS ? 0 : 4,
+          fontSize: 11,
+          marginTop: 0,
+          marginBottom: 4,
         },
         tabBarIconStyle: {
           marginTop: 4,
@@ -95,7 +98,7 @@ function ClassicTabLayout() {
         options={{
           title: "Learn",
           tabBarIcon: ({ color }) => (
-            <TabIcon name="book-open" sfName="books.vertical" color={color} />
+            <TabIcon name="book-open" sfName="books.vertical" color={color} size={30} />
           ),
         }}
       />
@@ -105,7 +108,7 @@ function ClassicTabLayout() {
         options={{
           title: "Stats",
           tabBarIcon: ({ color }) => (
-            <TabIcon name="bar-chart-2" sfName="chart.bar" color={color} />
+            <TabIcon name="bar-chart-2" sfName="chart.bar" color={color} size={30} />
           ),
         }}
       />
@@ -115,7 +118,7 @@ function ClassicTabLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ color }) => (
-            <TabIcon name="user" sfName="person.circle" color={color} />
+            <TabIcon name="user" sfName="person.circle" color={color} size={30} />
           ),
         }}
       />
