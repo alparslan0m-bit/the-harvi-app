@@ -96,6 +96,20 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- User Aggregate Statistics
+CREATE TABLE IF NOT EXISTS public.user_stats (
+    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    total_quizzes INTEGER NOT NULL DEFAULT 0,
+    total_questions_answered INTEGER NOT NULL DEFAULT 0,
+    correct_answers INTEGER NOT NULL DEFAULT 0,
+    average_score NUMERIC(5,2) NOT NULL DEFAULT 0.00,
+    best_score INTEGER NOT NULL DEFAULT 0,
+    current_streak INTEGER NOT NULL DEFAULT 0,
+    longest_streak INTEGER NOT NULL DEFAULT 0,
+    last_quiz_date DATE,
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- Quiz Results
 CREATE TABLE IF NOT EXISTS public.quiz_results (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -324,7 +338,7 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- Real-time Stats Sync
-CREATE OR REPLACE FUNCTION sync_lecture_stats() RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION sync_lecture_stats() RETURNS TRIGGER SECURITY DEFINER AS $$
 DECLARE is_new_student BOOLEAN;
 BEGIN
     SELECT NOT EXISTS (SELECT 1 FROM quiz_results WHERE lecture_id = NEW.lecture_id AND user_id = NEW.user_id AND id != NEW.id) INTO is_new_student;
@@ -339,7 +353,54 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS tr_sync_lecture_stats ON public.quiz_results;
+DROP TRIGGER IF EXISTS on_quiz_completed ON public.quiz_results;
+DROP FUNCTION IF EXISTS sync_user_on_quiz_completion();
 CREATE TRIGGER tr_sync_lecture_stats AFTER INSERT ON public.quiz_results FOR EACH ROW EXECUTE FUNCTION sync_lecture_stats();
+
+-- Real-time User Stats Sync
+CREATE OR REPLACE FUNCTION public.sync_user_stats() RETURNS TRIGGER SECURITY DEFINER AS $$
+DECLARE
+    current_date_val DATE := DATE(NEW.created_at);
+BEGIN
+    INSERT INTO public.user_stats (
+        user_id, total_quizzes, total_questions_answered, correct_answers, 
+        average_score, best_score, current_streak, longest_streak, last_quiz_date
+    )
+    VALUES (NEW.user_id, 0, 0, 0, 0, 0, 0, 0, NULL)
+    ON CONFLICT (user_id) DO NOTHING;
+
+    UPDATE public.user_stats
+    SET 
+        total_quizzes = total_quizzes + 1,
+        total_questions_answered = total_questions_answered + NEW.total_questions,
+        correct_answers = correct_answers + NEW.correct_answers,
+        average_score = ROUND(((average_score * total_quizzes) + NEW.score) / (total_quizzes + 1), 2),
+        best_score = GREATEST(best_score, NEW.score),
+        current_streak = CASE 
+            WHEN last_quiz_date IS NULL THEN 1
+            WHEN last_quiz_date = current_date_val THEN current_streak
+            WHEN last_quiz_date = current_date_val - INTERVAL '1 day' THEN current_streak + 1
+            ELSE 1
+        END,
+        longest_streak = GREATEST(
+            longest_streak,
+            CASE 
+                WHEN last_quiz_date IS NULL THEN 1
+                WHEN last_quiz_date = current_date_val THEN current_streak
+                WHEN last_quiz_date = current_date_val - INTERVAL '1 day' THEN current_streak + 1
+                ELSE 1
+            END
+        ),
+        last_quiz_date = current_date_val,
+        updated_at = now()
+    WHERE user_id = NEW.user_id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS tr_sync_user_stats ON public.quiz_results;
+CREATE TRIGGER tr_sync_user_stats AFTER INSERT ON public.quiz_results FOR EACH ROW EXECUTE FUNCTION public.sync_user_stats();
 
 -- Trigger: Auto-Update Timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column() RETURNS TRIGGER AS $$
@@ -367,6 +428,9 @@ CREATE TRIGGER tr_update_questions_updated_at BEFORE UPDATE ON questions FOR EAC
 DROP TRIGGER IF EXISTS tr_update_profiles_updated_at ON profiles;
 CREATE TRIGGER tr_update_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS tr_update_user_stats_updated_at ON user_stats;
+CREATE TRIGGER tr_update_user_stats_updated_at BEFORE UPDATE ON user_stats FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- External ID Enforcement
 DROP TRIGGER IF EXISTS ensure_external_id_years ON years;
 CREATE TRIGGER ensure_external_id_years BEFORE INSERT OR UPDATE ON years FOR EACH ROW EXECUTE FUNCTION set_default_external_id();
@@ -392,6 +456,8 @@ CREATE INDEX IF NOT EXISTS idx_lecture_stats_lecture ON public.lecture_statistic
 CREATE INDEX IF NOT EXISTS idx_feedback_status ON public.feedback(status);
 CREATE INDEX IF NOT EXISTS idx_feedback_user_id ON public.feedback(user_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_results_user_lecture ON public.quiz_results(user_id, lecture_id);
+CREATE INDEX IF NOT EXISTS idx_user_stats_user_id ON public.user_stats(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_stats_average_score ON public.user_stats(average_score DESC);
 
 -- NEW-HIGH-02 FIX: Subject-level purchase lookups had no supporting index.
 -- check_content_access() does WHERE p.subject_id = s.id AND p.status = 'active'

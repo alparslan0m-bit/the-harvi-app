@@ -32,6 +32,7 @@ interface SyncCtx {
   isSyncing: boolean;
   pendingCount: number;
   flush: () => Promise<void>;
+  refreshCount: () => Promise<void>;
 }
 
 const Ctx = createContext<SyncCtx>({
@@ -39,6 +40,7 @@ const Ctx = createContext<SyncCtx>({
   isSyncing: false,
   pendingCount: 0,
   flush: async () => {},
+  refreshCount: async () => {},
 });
 
 export function useSyncStatus() {
@@ -85,9 +87,13 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!error) {
-        // Remove immediately so a crash mid-loop doesn't cause duplicates on next open
         await removeSynced([item.localId]);
         anySynced = true;
+      } else {
+        console.error(
+          `[SyncContext] flush insert FAILED for item ${item.localId}:`,
+          JSON.stringify(error),
+        );
       }
     }
 
@@ -117,11 +123,11 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     if (isOnline && user) {
       flush();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   return (
-    <Ctx.Provider value={{ isOnline, isSyncing, pendingCount, flush }}>
+    <Ctx.Provider value={{ isOnline, isSyncing, pendingCount, flush, refreshCount }}>
       {children}
     </Ctx.Provider>
   );

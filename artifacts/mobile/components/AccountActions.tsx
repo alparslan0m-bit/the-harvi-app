@@ -41,16 +41,12 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
 
             const uid = userId ?? "";
 
-            // 1. Clear everything locally immediately
-            await Promise.all([
-              clearStatsCache(uid),
-              clearProgressCache(uid),
-              clearQueueForUser(uid),
-            ]);
-
-            // 2. Clear remote (will try but might fail if offline)
+            // 1. Delete remote data FIRST (so re-fetch cannot bring it back)
             try {
-              await supabase.from("quiz_results").delete().eq("user_id", uid);
+              await Promise.all([
+                supabase.from("quiz_results").delete().eq("user_id", uid),
+                supabase.from("user_stats").delete().eq("user_id", uid),
+              ]);
             } catch (error) {
               console.warn(
                 "[handleClearHistory] Remote delete failed (possibly offline):",
@@ -58,7 +54,16 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
               );
             }
 
-            // 3. Force refresh UI
+            // 2. Clear all local caches
+            await Promise.all([
+              clearStatsCache(uid),
+              clearProgressCache(uid),
+              clearQueueForUser(uid),
+            ]);
+
+            // 3. Zero out UI immediately, then re-fetch clean state
+            queryClient.setQueryData(["stats", uid], undefined);
+            queryClient.setQueryData(["progress", uid], undefined);
             queryClient.invalidateQueries({ queryKey: ["stats", uid] });
             queryClient.invalidateQueries({ queryKey: ["progress", uid] });
 

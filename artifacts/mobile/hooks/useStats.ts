@@ -95,55 +95,23 @@ type RawRow = {
   created_at: string;
 };
 
-function computeStats(rows: RawRow[], lectureMap: Map<string, string>): UserStats {
-  if (rows.length === 0) return ZERO_STATS;
+function computeStats(rows: RawRow[], lectureMap: Map<string, string>, dbStats?: any): UserStats {
+  if (!dbStats && rows.length === 0) return ZERO_STATS;
 
   const lectureName = (id: string) =>
     lectureMap.get(id) ?? `Lecture ${id.slice(0, 6)}…`;
 
-  const total_quizzes = rows.length;
-  const total_questions = rows.reduce((s, r) => s + (r.total_questions ?? 0), 0);
-  const average_score = rows.reduce((s, r) => s + (r.score ?? 0), 0) / rows.length;
-  const best_score = Math.max(...rows.map((r) => r.score ?? 0));
-
-  // ── Streak (DST-safe calendar arithmetic) ────────────────────────────────
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  // Normalize each quiz date to a "YYYY-MM-DD" string to avoid ms-level DST issues
-  const dayStrings = [
-    ...new Set(
-      rows.map((r) => {
-        const d = new Date(r.created_at);
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      })
-    ),
-  ].sort((a, b) => (a > b ? -1 : a < b ? 1 : 0)); // descending
-
-  let streak = 0;
-  if (dayStrings.length > 0) {
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-    const mostRecent = dayStrings[0];
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
-
-    const startFromToday = mostRecent === todayStr;
-    const startFromYesterday = mostRecent === yesterdayStr;
-
-    if (startFromToday || startFromYesterday) {
-      const offsetStart = startFromToday ? 0 : 1;
-      for (let i = 0; i < dayStrings.length; i++) {
-        const expected = new Date(today);
-        expected.setDate(today.getDate() - (offsetStart + i));
-        const expectedStr = `${expected.getFullYear()}-${String(expected.getMonth() + 1).padStart(2, "0")}-${String(expected.getDate()).padStart(2, "0")}`;
-        if (dayStrings[i] === expectedStr) streak++;
-        else break;
-      }
-    }
-  }
+  // Use DB stats if provided, otherwise fallback to computing from rows (useful for empty states)
+  const total_quizzes = dbStats?.total_quizzes ?? 0;
+  const total_questions = dbStats?.total_questions_answered ?? 0;
+  const average_score = dbStats?.average_score ?? 0;
+  const best_score = dbStats?.best_score ?? 0;
+  const streak = dbStats?.current_streak ?? 0;
 
   // ── Weekly activity ───────────────────────────────────────────────────────
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
   const weekStart = new Date(today);
   weekStart.setDate(weekStart.getDate() - weekStart.getDay());
   const weekStartMs = weekStart.getTime();
@@ -193,8 +161,8 @@ function computeStats(rows: RawRow[], lectureMap: Map<string, string>): UserStat
   return {
     total_quizzes,
     total_questions,
-    average_score: Math.round(average_score),
-    best_score: Math.round(best_score),
+    average_score: Math.round(Number(average_score) || 0),
+    best_score: Math.round(Number(best_score) || 0),
     streak,
     weekly_activity,
     subject_mastery,
@@ -243,12 +211,21 @@ async function serveFromCache(userId: string): Promise<UserStats> {
 
   const mergedRows = [...syntheticRows, ...cachedRows].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  );
+  ).slice(0, 50);
 
   const localMap = new Map<string, string>();
   base.recent_results?.forEach((r) => localMap.set(r.lecture_id, r.lecture_name));
 
-  return computeStats(mergedRows, localMap);
+  const newTotalQuizzes = base.total_quizzes + pending.length;
+  const syntheticDbStats = {
+    total_quizzes: newTotalQuizzes,
+    total_questions_answered: base.total_questions + pending.reduce((s, p) => s + (p.totalQuestions ?? 0), 0),
+    average_score: newTotalQuizzes === 0 ? 0 : ((base.average_score * base.total_quizzes) + pending.reduce((s, p) => s + (p.score ?? 0), 0)) / newTotalQuizzes,
+    best_score: Math.max(base.best_score, ...pending.map((p) => p.score ?? 0)),
+    current_streak: base.streak, // Simplified offline fallback
+  };
+
+  return computeStats(mergedRows, localMap, syntheticDbStats);
 }
 
 // ── Fetch ────────────────────────────────────────────────────────────────────
@@ -267,20 +244,28 @@ async function fetchStats(userId: string): Promise<UserStats> {
   // ── Online path ────────────────────────────────────────────────────────
   let rows: RawRow[] = [];
   let lectureMap = new Map<string, string>();
+  let dbStats: any = null;
 
   try {
-    const [quizRes, map] = await Promise.all([
+    const [statsRes, quizRes, map] = await Promise.all([
+      supabase
+        .from("user_stats")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle(),
       supabase
         .from("quiz_results")
         .select("id, user_id, lecture_id, score, total_questions, correct_answers, created_at")
         .eq("user_id", userId)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(50),
       buildLectureNameMap(),
     ]);
 
     if (quizRes.error) throw quizRes.error;
     rows = (quizRes.data ?? []) as RawRow[];
     lectureMap = map;
+    dbStats = statsRes.data;
   } catch {
     // Network error mid-request — fall back to cache
     return serveFromCache(userId);
@@ -302,10 +287,19 @@ async function fetchStats(userId: string): Promise<UserStats> {
     }));
     rows = [...syntheticRows, ...rows].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+    ).slice(0, 50);
+
+    const newTotalQuizzes = (dbStats?.total_quizzes ?? 0) + pending.length;
+    dbStats = {
+      total_quizzes: newTotalQuizzes,
+      total_questions_answered: (dbStats?.total_questions_answered ?? 0) + pending.reduce((s, p) => s + (p.totalQuestions ?? 0), 0),
+      average_score: newTotalQuizzes === 0 ? 0 : (((dbStats?.average_score ?? 0) * (dbStats?.total_quizzes ?? 0)) + pending.reduce((s, p) => s + (p.score ?? 0), 0)) / newTotalQuizzes,
+      best_score: Math.max(dbStats?.best_score ?? 0, ...pending.map((p) => p.score ?? 0)),
+      current_streak: dbStats?.current_streak ?? 0,
+    };
   }
 
-  const result = computeStats(rows, lectureMap);
+  const result = computeStats(rows, lectureMap, dbStats);
 
   // Persist for offline use (also updates memCache)
   writeCache(userId, result);

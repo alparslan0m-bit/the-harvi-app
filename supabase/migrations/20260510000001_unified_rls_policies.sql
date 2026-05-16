@@ -111,6 +111,7 @@ ALTER TABLE public.quiz_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.purchases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lecture_statistics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_stats ENABLE ROW LEVEL SECURITY;
 
 
 -- =============================================
@@ -132,6 +133,7 @@ DROP POLICY IF EXISTS "admins_quiz_results_all" ON public.quiz_results;
 DROP POLICY IF EXISTS "admins_feedback_all" ON public.feedback;
 DROP POLICY IF EXISTS "admins_purchases_all" ON public.purchases;
 DROP POLICY IF EXISTS "admins_lecture_statistics_all" ON public.lecture_statistics;
+DROP POLICY IF EXISTS "admins_user_stats_all" ON public.user_stats;
 
 
 -- Public/structural read policies
@@ -150,9 +152,12 @@ DROP POLICY IF EXISTS "profiles_self_manage" ON public.profiles;
 DROP POLICY IF EXISTS "profiles_self_insert" ON public.profiles;
 DROP POLICY IF EXISTS "quiz_results_self_read" ON public.quiz_results;
 DROP POLICY IF EXISTS "quiz_results_self_insert" ON public.quiz_results;
+DROP POLICY IF EXISTS "quiz_results_self_delete" ON public.quiz_results;
 DROP POLICY IF EXISTS "purchases_self_read" ON public.purchases;
 DROP POLICY IF EXISTS "feedback_self_read" ON public.feedback;
 DROP POLICY IF EXISTS "feedback_self_insert" ON public.feedback;
+DROP POLICY IF EXISTS "user_stats_self_read" ON public.user_stats;
+DROP POLICY IF EXISTS "user_stats_self_delete" ON public.user_stats;
 
 
 -- Also drop any legacy-named policies that may still exist from previous migrations
@@ -196,6 +201,7 @@ CREATE POLICY "admins_quiz_results_all" ON public.quiz_results FOR ALL TO authen
 CREATE POLICY "admins_feedback_all" ON public.feedback FOR ALL TO authenticated USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "admins_purchases_all" ON public.purchases FOR ALL TO authenticated USING (is_admin()) WITH CHECK (is_admin());
 CREATE POLICY "admins_lecture_statistics_all" ON public.lecture_statistics FOR ALL TO authenticated USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "admins_user_stats_all" ON public.user_stats FOR ALL TO authenticated USING (is_admin()) WITH CHECK (is_admin());
 
 
 -- =============================================
@@ -226,9 +232,10 @@ CREATE POLICY "questions_gated_access" ON public.questions FOR SELECT TO authent
 CREATE POLICY "profiles_self_manage" ON public.profiles FOR UPDATE TO authenticated USING ((SELECT auth.uid()) = id) WITH CHECK ((SELECT auth.uid()) = id);
 CREATE POLICY "profiles_self_insert" ON public.profiles FOR INSERT TO authenticated WITH CHECK ((SELECT auth.uid()) = id);
 
--- Quiz Results: Self-Read + Self-Insert (immutable — no UPDATE policy by design)
+-- Quiz Results: Self-Read + Self-Insert + Self-Delete (no UPDATE by design)
 CREATE POLICY "quiz_results_self_read" ON public.quiz_results FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
 CREATE POLICY "quiz_results_self_insert" ON public.quiz_results FOR INSERT TO authenticated WITH CHECK ((SELECT auth.uid()) = user_id);
+CREATE POLICY "quiz_results_self_delete" ON public.quiz_results FOR DELETE TO authenticated USING ((SELECT auth.uid()) = user_id);
 
 -- Purchases: Self-Read ONLY (inserts/updates are service_role via Edge Functions)
 CREATE POLICY "purchases_self_read" ON public.purchases FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
@@ -236,6 +243,12 @@ CREATE POLICY "purchases_self_read" ON public.purchases FOR SELECT TO authentica
 -- Feedback: Self-Read + Self-Insert (authenticated only — LOW-01 fix: removed anon)
 CREATE POLICY "feedback_self_read" ON public.feedback FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
 CREATE POLICY "feedback_self_insert" ON public.feedback FOR INSERT TO authenticated WITH CHECK ((SELECT auth.uid()) = user_id);
+
+-- User Stats: Self-Read ONLY (strictly mutated by backend triggers)
+CREATE POLICY "user_stats_self_read" ON public.user_stats FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
+
+-- User Stats: Self-Delete (needed for "Clear History" feature)
+CREATE POLICY "user_stats_self_delete" ON public.user_stats FOR DELETE TO authenticated USING ((SELECT auth.uid()) = user_id);
 
 
 

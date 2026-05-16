@@ -47,7 +47,7 @@ export default function QuizScreen() {
     lectureName: string;
   }>();
   const { user } = useAuth();
-  const { isOnline } = useSyncStatus();
+  const { isOnline, refreshCount } = useSyncStatus();
 
   // ── Fast path: pre-load from AsyncStorage before RQ resolves ─────────────
   const [cachedQuestions, setCachedQuestions] = useState<
@@ -154,6 +154,7 @@ export default function QuizScreen() {
         if (user?.id && lectureId)
           await optimisticallyMarkComplete(user.id, lectureId);
         setSavedOffline(true);
+        refreshCount();
       } else {
         const { error: insertErr } = await supabase
           .from("quiz_results")
@@ -167,6 +168,10 @@ export default function QuizScreen() {
           });
 
         if (insertErr) {
+          console.error(
+            "[QuizScreen] Online insert FAILED, falling back to queue:",
+            JSON.stringify(insertErr),
+          );
           await enqueueQuizResult({
             userId: user?.id ?? "",
             lectureId: lectureId ?? "",
@@ -178,6 +183,7 @@ export default function QuizScreen() {
           if (user?.id && lectureId)
             await optimisticallyMarkComplete(user.id, lectureId);
           setSavedOffline(true);
+          refreshCount();
         }
       }
 
