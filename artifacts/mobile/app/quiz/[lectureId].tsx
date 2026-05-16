@@ -1,7 +1,6 @@
 import { Feather } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React from "react";
 import {
   Platform,
   ScrollView,
@@ -14,221 +13,48 @@ import Animated, {
   FadeIn,
   FadeInDown,
   FadeInUp,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { useQueryClient } from "@tanstack/react-query";
 
 import { OptionButton } from "@/components/OptionButton";
 import { QuizImage } from "@/components/QuizImage";
 import { QuizLoadingScreen } from "@/components/QuizLoadingScreen";
 import { QuizReviewScreen } from "@/components/QuizReviewScreen";
 import { ResultsView } from "@/components/QuizResultsView";
-import { useAuth } from "@/context/AuthContext";
-import { useSyncStatus } from "@/context/SyncContext";
+import { QuizErrorScreen } from "@/components/QuizErrorScreen";
 import { useColors } from "@/hooks/useColors";
-import { useQuizQuestions } from "@/hooks/useQuiz";
-import { optimisticallyMarkComplete } from "@/hooks/useProgress";
-import { decryptAnswer } from "@/lib/crypto";
-import { loadQuestionsFromCache } from "@/lib/questionCache";
-import { enqueueQuizResult } from "@/lib/offlineQueue";
-import { supabase } from "@/lib/supabase";
-import { AnsweredState, HistoryItem, Question } from "@/types";
+import { useQuizSession } from "@/hooks/useQuizSession";
 
 export default function QuizScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const queryClient = useQueryClient();
   const { lectureId, lectureName } = useLocalSearchParams<{
     lectureId: string;
     lectureName: string;
   }>();
-  const { user } = useAuth();
-  const { isOnline, refreshCount } = useSyncStatus();
-
-  // ── Fast path: pre-load from AsyncStorage before RQ resolves ─────────────
-  const [cachedQuestions, setCachedQuestions] = useState<
-    Question[] | undefined
-  >();
-  const [cacheChecked, setCacheChecked] = useState(false);
-  const mountedRef = useRef(true);
-  useEffect(() => {
-    mountedRef.current = true;
-    loadQuestionsFromCache(lectureId).then((hit) => {
-      if (!mountedRef.current) return;
-      if (hit?.questions.length) setCachedQuestions(hit.questions);
-      setCacheChecked(true);
-    });
-    return () => {
-      mountedRef.current = false;
-    };
-  }, [lectureId]);
 
   const {
-    data: remoteQuestions,
-    isLoading,
-    error,
-  } = useQuizQuestions(lectureId, cachedQuestions);
-
-  // ── Quiz session state ────────────────────────────────────────────────────
-  const [questions, setQuestions] = useState<Question[] | null>(null);
-
-  // Lock in the questions once they arrive (either from cache or remote)
-  // This prevents the "switcheroo" bug where background refreshes shuffle
-  // the questions while the user is mid-quiz.
-  useEffect(() => {
-    if (!questions && remoteQuestions && remoteQuestions.length > 0) {
-      setQuestions(remoteQuestions);
-    }
-  }, [remoteQuestions, questions]);
-
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answered, setAnswered] = useState<AnsweredState | null>(null);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [finished, setFinished] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [savedOffline, setSavedOffline] = useState(false);
-  const [reviewing, setReviewing] = useState(false);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-
-  const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
-
-  // Animated progress bar width
-  const progressAnim = useSharedValue(0);
-  const progressStyle = useAnimatedStyle(() => ({
-    width: `${progressAnim.value * 100}%` as `${number}%`,
-  }));
-
-  // ── Handlers ─────────────────────────────────────────────────────────────
-
-  const handleSelect = useCallback(
-    (selectedIndex: number) => {
-      if (!questions) return;
-      const q: Question = questions[currentIndex];
-      const { answer, explanation } = decryptAnswer(q.secure);
-      // answer === -1 means decryption failed — no option should be marked correct
-      const isCorrect = answer >= 0 && selectedIndex === answer;
-
-      Haptics.notificationAsync(
-        isCorrect
-          ? Haptics.NotificationFeedbackType.Success
-          : Haptics.NotificationFeedbackType.Error,
-      );
-
-      setAnswered({ selected: selectedIndex, correct: answer, explanation });
-      if (isCorrect) setCorrectCount((c) => c + 1);
-      setHistory((h) => [
-        ...h,
-        { question: q, selected: selectedIndex, correct: answer, explanation },
-      ]);
-    },
-    [questions, currentIndex],
-  );
-
-  const handleNext = useCallback(async () => {
-    if (!questions) return;
-    const isLast = currentIndex === questions.length - 1;
-
-    if (isLast) {
-      setFinished(true);
-      setSubmitting(true);
-      setSaveError(null);
-      setSavedOffline(false);
-
-      const score = Math.round((correctCount / questions.length) * 100);
-      const now = new Date().toISOString();
-
-      if (!isOnline) {
-        await enqueueQuizResult({
-          userId: user?.id ?? "",
-          lectureId: lectureId ?? "",
-          score,
-          totalQuestions: questions.length,
-          correctAnswers: correctCount,
-          createdAt: now,
-        });
-        if (user?.id && lectureId)
-          await optimisticallyMarkComplete(user.id, lectureId);
-        setSavedOffline(true);
-        refreshCount();
-      } else {
-        const { error: insertErr } = await supabase
-          .from("quiz_results")
-          .insert({
-            user_id: user?.id,
-            lecture_id: lectureId,
-            score,
-            total_questions: questions.length,
-            correct_answers: correctCount,
-            created_at: now,
-          });
-
-        if (insertErr) {
-          console.error(
-            "[QuizScreen] Online insert FAILED, falling back to queue:",
-            JSON.stringify(insertErr),
-          );
-          await enqueueQuizResult({
-            userId: user?.id ?? "",
-            lectureId: lectureId ?? "",
-            score,
-            totalQuestions: questions.length,
-            correctAnswers: correctCount,
-            createdAt: now,
-          });
-          if (user?.id && lectureId)
-            await optimisticallyMarkComplete(user.id, lectureId);
-          setSavedOffline(true);
-          refreshCount();
-        }
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["progress"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
-      setSubmitting(false);
-    } else {
-      setCurrentIndex((i) => i + 1);
-      setAnswered(null);
-    }
-  }, [
     questions,
     currentIndex,
+    answered,
     correctCount,
-    user,
-    lectureId,
-    queryClient,
-    isOnline,
-  ]);
+    finished,
+    submitting,
+    saveError,
+    savedOffline,
+    reviewing,
+    setReviewing,
+    history,
+    isLoading,
+    error,
+    cacheChecked,
+    progressStyle,
+    handleSelect,
+    handleNext,
+    handleRetry,
+  } = useQuizSession(lectureId);
 
-  const handleRetry = useCallback(() => {
-    setQuestions(null); // Unlock questions to allow fresh data/shuffle
-    setCurrentIndex(0);
-    setAnswered(null);
-    setCorrectCount(0);
-    setFinished(false);
-    setSubmitting(false);
-    setSaveError(null);
-    setSavedOffline(false);
-    setReviewing(false);
-    setHistory([]);
-    progressAnim.value = 0;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Keep progress bar in sync
-  useEffect(() => {
-    if (!questions) return;
-    progressAnim.value = withSpring((currentIndex + 1) / questions.length, {
-      damping: 22,
-      stiffness: 140,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex, questions]);
+  const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
 
   // ── Loading ───────────────────────────────────────────────────────────────
 
@@ -239,53 +65,7 @@ export default function QuizScreen() {
   // ── Error / empty ─────────────────────────────────────────────────────────
 
   if (error || !questions || questions.length === 0) {
-    const isOfflineError = !!(error as Error)?.message?.includes("offline");
-
-    return (
-      <View
-        style={[
-          styles.centerScreen,
-          { backgroundColor: colors.background, paddingHorizontal: 28 },
-        ]}
-      >
-        <View
-          style={[
-            styles.errorIcon,
-            {
-              backgroundColor: isOfflineError
-                ? colors.warning + "1A"
-                : colors.destructive + "1A",
-            },
-          ]}
-        >
-          <Feather
-            name={isOfflineError ? "wifi-off" : "alert-circle"}
-            size={32}
-            color={isOfflineError ? colors.warning : colors.destructive}
-          />
-        </View>
-        <Text style={[styles.errorTitle, { color: colors.foreground }]}>
-          {isOfflineError
-            ? "Not downloaded"
-            : error
-              ? "Failed to load"
-              : "No questions"}
-        </Text>
-        <Text style={[styles.errorBody, { color: colors.mutedForeground }]}>
-          {isOfflineError
-            ? `Go back to the subject and tap "Download offline" while connected to the internet.`
-            : error
-              ? (error as Error).message
-              : `No questions are linked to this lecture.\n\nLecture ID: ${lectureId}`}
-        </Text>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={[styles.errorBtn, { backgroundColor: colors.primary }]}
-        >
-          <Text style={styles.errorBtnText}>Go back</Text>
-        </TouchableOpacity>
-      </View>
-    );
+    return <QuizErrorScreen error={error as Error | null} lectureId={lectureId} />;
   }
 
   // ── Review screen ─────────────────────────────────────────────────────────
@@ -519,45 +299,6 @@ export default function QuizScreen() {
 }
 
 const styles = StyleSheet.create({
-  // ── Error states ────────────────────────────────────────────────────────
-  centerScreen: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 14,
-  },
-  errorIcon: {
-    width: 76,
-    height: 76,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-  },
-  errorTitle: {
-    fontSize: 22,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: -0.5,
-  },
-  errorBody: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-    lineHeight: 22,
-    maxWidth: 300,
-  },
-  errorBtn: {
-    marginTop: 8,
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 16,
-  },
-  errorBtnText: {
-    color: "#fff",
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-  },
-
   // ── Header ──────────────────────────────────────────────────────────────
   header: {
     flexDirection: "row",

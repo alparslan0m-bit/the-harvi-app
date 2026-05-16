@@ -8,3 +8,4 @@ export * from "./RecentResultCard";
 export * from "./StreakCard";
 export * from "./WeeklyChart";
 export * from "./StatsMetricsGrid";
+export * from "./QuizErrorScreen";
