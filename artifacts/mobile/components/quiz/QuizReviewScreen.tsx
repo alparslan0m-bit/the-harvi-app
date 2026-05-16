@@ -10,7 +10,7 @@ import {
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { QuizImage } from "@/components/QuizImage";
+import { QuizImage } from "@/components";
 import { useColors } from "@/hooks/useColors";
 import { HistoryItem } from "@/types";
 
@@ -308,3 +308,4 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
 });
+

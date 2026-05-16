@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { YearCard } from "@/components/YearCard";
+import { YearCard } from "@/components";
 import { useAuth } from "@/context/AuthContext";
 import { useColors } from "@/hooks/useColors";
 import { useHierarchy } from "@/hooks/useHierarchy";
@@ -374,3 +374,4 @@ const styles = StyleSheet.create({
   },
   retryText: { color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" },
 });
+

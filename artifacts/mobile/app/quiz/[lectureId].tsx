@@ -16,12 +16,12 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { OptionButton } from "@/components/OptionButton";
-import { QuizImage } from "@/components/QuizImage";
-import { QuizLoadingScreen } from "@/components/QuizLoadingScreen";
-import { QuizReviewScreen } from "@/components/QuizReviewScreen";
-import { ResultsView } from "@/components/QuizResultsView";
-import { QuizErrorScreen } from "@/components/QuizErrorScreen";
+import { OptionButton } from "@/components";
+import { QuizImage } from "@/components";
+import { QuizLoadingScreen } from "@/components";
+import { QuizReviewScreen } from "@/components";
+import { ResultsView } from "@/components";
+import { QuizErrorScreen } from "@/components";
 import { useColors } from "@/hooks/useColors";
 import { useQuizSession } from "@/hooks/useQuizSession";
 
@@ -420,3 +420,4 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
   },
 });
+

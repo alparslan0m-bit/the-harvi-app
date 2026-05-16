@@ -1,11 +1,9 @@
 import { Feather } from "@expo/vector-icons";
 import { useScrollToTop } from "@react-navigation/native";
-import { router } from "expo-router";
 import React, { useRef } from "react";
 import {
   ActivityIndicator,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,12 +12,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { StreakCard, StatsMetricsGrid } from "@/components";
 import {
-  MasteryBar,
-  RecentResultCard,
-  StreakCard,
-  WeeklyChart,
-  StatsMetricsGrid,
+  WeeklyActivitySection,
+  MasterySection,
+  EmptyNudge,
+  RecentResultsSection,
+  StatsErrorView,
 } from "@/components";
 
 import { useAuth } from "@/context/AuthContext";
@@ -116,7 +115,7 @@ export default function StatsScreen() {
         )}
 
         {!isLoading && error && (
-          <ErrorMessage message={(error as Error).message} />
+          <StatsErrorView message={(error as Error).message} />
         )}
 
         {!isLoading && !error && (
@@ -160,158 +159,6 @@ export default function StatsScreen() {
   );
 }
 
-/**
- * Sub-components for cleaner JSX
- */
-
-function ErrorMessage({ message }: { message: string }) {
-  const colors = useColors();
-  return (
-    <View style={styles.center}>
-      <Feather name="alert-circle" size={40} color={colors.mutedForeground} />
-      <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-        Couldn't load stats
-      </Text>
-      <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-        {message}
-      </Text>
-    </View>
-  );
-}
-
-function WeeklyActivitySection({ weekData }: { weekData: any[] }) {
-  const colors = useColors();
-  const total = weekData.reduce((s, d) => s + d.count, 0);
-  return (
-    <View
-      style={[
-        styles.section,
-        { backgroundColor: colors.card, borderColor: colors.border },
-      ]}
-    >
-      <View style={styles.sectionHeader}>
-        <View style={styles.sectionTitleRow}>
-          <View
-            style={[
-              styles.sectionIcon,
-              { backgroundColor: colors.primary + "1A" },
-            ]}
-          >
-            <Feather name="calendar" size={14} color={colors.primary} />
-          </View>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-            Weekly Activity
-          </Text>
-        </View>
-        <Text style={[styles.weekTotal, { color: colors.mutedForeground }]}>
-          {total} quiz{total !== 1 ? "zes" : ""}
-        </Text>
-      </View>
-      <View style={{ marginTop: 24 }}>
-        <WeeklyChart data={weekData} />
-      </View>
-    </View>
-  );
-}
-
-function MasterySection({ masteryData }: { masteryData: any[] }) {
-  const colors = useColors();
-  return (
-    <View
-      style={[
-        styles.section,
-        { backgroundColor: colors.card, borderColor: colors.border },
-      ]}
-    >
-      <Pressable
-        style={styles.sectionHeader}
-        onPress={() => router.push("/stats/mastery")}
-      >
-        <View style={styles.sectionTitleRow}>
-          <View
-            style={[
-              styles.sectionIcon,
-              { backgroundColor: colors.success + "1A" },
-            ]}
-          >
-            <Feather name="award" size={14} color={colors.success} />
-          </View>
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-            Subject Mastery
-          </Text>
-        </View>
-        <View style={styles.seeAll}>
-          <Text style={[styles.seeAllText, { color: colors.primary }]}>
-            View All
-          </Text>
-          <Feather name="chevron-right" size={15} color={colors.primary} />
-        </View>
-      </Pressable>
-      <View style={{ marginTop: 20 }}>
-        {masteryData.slice(0, 3).map((item, i) => (
-          <MasteryBar key={i} subject={item.subject} mastery={item.mastery} />
-        ))}
-      </View>
-      {masteryData.length > 3 && (
-        <Pressable
-          style={[
-            styles.moreBtn,
-            { borderColor: colors.border, backgroundColor: colors.background },
-          ]}
-          onPress={() => router.push("/stats/mastery")}
-        >
-          <Text style={[styles.moreBtnText, { color: colors.foreground }]}>
-            +{masteryData.length - 3} more subjects
-          </Text>
-          <Feather name="arrow-right" size={14} color={colors.primary} />
-        </Pressable>
-      )}
-    </View>
-  );
-}
-
-function EmptyNudge() {
-  const colors = useColors();
-  return (
-    <View
-      style={[
-        styles.nudgeCard,
-        {
-          backgroundColor: colors.primary + "12",
-          borderColor: colors.primary + "33",
-        },
-      ]}
-    >
-      <View
-        style={[styles.nudgeIcon, { backgroundColor: colors.primary + "20" }]}
-      >
-        <Feather name="bar-chart-2" size={24} color={colors.primary} />
-      </View>
-      <Text style={[styles.nudgeTitle, { color: colors.foreground }]}>
-        No stats yet
-      </Text>
-      <Text style={[styles.nudgeText, { color: colors.mutedForeground }]}>
-        Complete your first quiz to start tracking your performance and
-        progress.
-      </Text>
-    </View>
-  );
-}
-
-function RecentResultsSection({ results }: { results: any[] }) {
-  const colors = useColors();
-  return (
-    <View style={styles.recentSection}>
-      <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-        Recent Results
-      </Text>
-      {results.slice(0, 10).map((result, i) => (
-        <RecentResultCard key={i} result={result} />
-      ))}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   root: { flex: 1 },
   header: {
@@ -344,85 +191,6 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 40,
   },
-  emptyTitle: { fontSize: 18, fontFamily: "Inter_600SemiBold" },
-  emptyText: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-    lineHeight: 20,
-  },
   content: { paddingTop: 12 },
-  section: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-    padding: 20,
-    borderRadius: 24,
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 1,
-  },
-  sectionTitleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  sectionIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontFamily: "Nunito_800ExtraBold",
-    letterSpacing: -0.4,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 0,
-  },
-  seeAll: { flexDirection: "row", alignItems: "center", gap: 2 },
-  seeAllText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  moreBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    marginTop: 12,
-    paddingVertical: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  moreBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  weekTotal: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
-  recentSection: { paddingHorizontal: 20, marginBottom: 16 },
-  nudgeCard: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-    padding: 24,
-    borderRadius: 24,
-    borderWidth: 1,
-    alignItems: "center",
-    gap: 10,
-  },
-  nudgeIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  nudgeTitle: {
-    fontSize: 17,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: -0.4,
-  },
-  nudgeText: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-    lineHeight: 20,
-  },
 });
+

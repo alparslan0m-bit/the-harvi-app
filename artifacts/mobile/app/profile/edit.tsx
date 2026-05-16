@@ -14,8 +14,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AvatarPicker } from "@/components/AvatarPicker";
-import { AvatarById, AvatarId } from "@/components/DoctorAvatars";
+import { AvatarPicker } from "@/components";
+import { AvatarById, AvatarId } from "@/components";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useColors } from "@/hooks/useColors";
@@ -376,3 +376,4 @@ const editStyles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
   },
 });
+

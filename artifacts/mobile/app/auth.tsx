@@ -1,11 +1,7 @@
 import { Feather } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
-import * as Linking from "expo-linking";
-import { router } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -17,8 +13,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useAuth } from "@/context/AuthContext";
+import { SupabaseSetupHelper } from "@/components";
 import { useColors } from "@/hooks/useColors";
+import { useAuthForm } from "@/hooks/useAuthForm";
 
 function GoogleIcon() {
   return (
@@ -36,59 +33,25 @@ const googleIconStyles = StyleSheet.create({
 export default function AuthScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { signIn, signUp, signInWithGoogle } = useAuth();
-  const [mode, setMode] = useState<"login" | "signup">("login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showSetup, setShowSetup] = useState(false);
-  const [focusedField, setFocusedField] = useState<"email" | "password" | null>(null);
-
-  // Compute the exact redirect URL for this device/environment
-  const redirectUrl = Linking.createURL("/auth/callback");
-
-  const handleSubmit = async () => {
-    if (!email || !password) {
-      setError("Please fill in all fields");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-    const fn = mode === "login" ? signIn : signUp;
-    const { error: err } = await fn(email.trim(), password);
-
-    if (err) {
-      setError(err);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      setLoading(false);
-    } else {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace("/(tabs)" as any);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setGoogleLoading(true);
-    setError(null);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-    const { error: err, cancelled } = await signInWithGoogle();
-
-    setGoogleLoading(false);
-    if (cancelled) {
-      return; // User aborted the flow — do nothing
-    } else if (err) {
-      setError(err);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    } else {
-      router.replace("/(tabs)" as any);
-    }
-  };
+  const {
+    mode,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    loading,
+    googleLoading,
+    error,
+    showPassword,
+    setShowPassword,
+    showSetup,
+    setShowSetup,
+    focusedField,
+    setFocusedField,
+    handleSubmit,
+    handleGoogleSignIn,
+    toggleMode,
+  } = useAuthForm();
 
   return (
     <KeyboardAvoidingView
@@ -139,71 +102,11 @@ export default function AuthScreen() {
             )}
           </TouchableOpacity>
 
-          {/* Setup helper — tap to reveal the redirect URL to copy */}
-          <TouchableOpacity
-            style={[
-              styles.setupToggle,
-              {
-                backgroundColor: showSetup ? colors.primary + "1A" : colors.muted,
-                borderColor: showSetup ? colors.primary + "33" : colors.border,
-              },
-            ]}
-            onPress={() => setShowSetup((v) => !v)}
-          >
-            <Feather
-              name={showSetup ? "chevron-up" : "info"}
-              size={14}
-              color={showSetup ? colors.primary : colors.mutedForeground}
-            />
-            <Text
-              style={[
-                styles.setupToggleText,
-                { color: showSetup ? colors.primary : colors.mutedForeground },
-              ]}
-            >
-              {showSetup ? "Hide Supabase setup" : "Google not working? Tap to see setup"}
-            </Text>
-          </TouchableOpacity>
-
-          {showSetup && (
-            <View style={[styles.setupBox, { backgroundColor: colors.primary + "1A", borderColor: colors.primary + "33" }]}>
-              <Text style={styles.setupTitle}>
-                Add this URL to Supabase → Authentication → URL Configuration → Redirect URLs:
-              </Text>
-
-              {/* Selectable URL box */}
-              <TouchableOpacity
-                style={styles.urlBox}
-                onLongPress={() => {
-                  Alert.alert(
-                    "Redirect URL",
-                    redirectUrl,
-                    [{ text: "OK" }]
-                  );
-                }}
-                onPress={() => {
-                  Alert.alert(
-                    "Copy this URL",
-                    redirectUrl,
-                    [{ text: "OK" }]
-                  );
-                }}
-              >
-                <Text style={styles.urlText} selectable>
-                  {redirectUrl}
-                </Text>
-                <Feather name="copy" size={14} color="#1d4ed8" />
-              </TouchableOpacity>
-
-              <Text style={styles.setupNote}>
-                Also add:{"\n"}
-                • <Text style={styles.monoSmall}>mobile://auth/callback</Text>
-                {"\n"}
-                • <Text style={styles.monoSmall}>exp://**</Text> (wildcard for Expo Go){"\n\n"}
-                Then in Supabase → Auth → Providers → Google, make sure Google is enabled and your OAuth credentials are set.
-              </Text>
-            </View>
-          )}
+          {/* Setup helper */}
+          <SupabaseSetupHelper
+            showSetup={showSetup}
+            onToggle={() => setShowSetup((v) => !v)}
+          />
 
           {/* Divider */}
           <View style={styles.divider}>
@@ -297,10 +200,7 @@ export default function AuthScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => {
-              setMode(mode === "login" ? "signup" : "login");
-              setError(null);
-            }}
+            onPress={toggleMode}
             style={styles.switchRow}
           >
             <Text style={[styles.switchText, { color: colors.mutedForeground }]}>
@@ -351,53 +251,6 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   googleBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold", letterSpacing: -0.2 },
-  setupToggle: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-  },
-  setupToggleText: { fontSize: 13, fontFamily: "Inter_500Medium", flex: 1 },
-  setupBox: {
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 10,
-  },
-  setupTitle: {
-    fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
-    color: "#475569",
-    lineHeight: 16,
-  },
-  urlBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "rgba(0,0,0,0.05)",
-    borderRadius: 8,
-    padding: 10,
-  },
-  urlText: {
-    flex: 1,
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
-    color: "#64748b",
-    lineHeight: 16,
-  },
-  setupNote: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-    color: "#64748b",
-    lineHeight: 17,
-  },
-  monoSmall: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 11,
-  },
   divider: {
     flexDirection: "row",
     alignItems: "center",
@@ -441,3 +294,4 @@ const styles = StyleSheet.create({
   switchText: { fontSize: 14, fontFamily: "Inter_400Regular" },
   switchLink: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
 });
+

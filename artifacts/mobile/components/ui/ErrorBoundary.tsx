@@ -1,6 +1,6 @@
 import React, { Component, ComponentType, PropsWithChildren } from "react";
 
-import { ErrorFallback, ErrorFallbackProps } from "@/components/ErrorFallback";
+import { ErrorFallback, ErrorFallbackProps } from "@/components";
 
 export type ErrorBoundaryProps = PropsWithChildren<{
   FallbackComponent?: ComponentType<ErrorFallbackProps>;
@@ -52,3 +52,4 @@ export class ErrorBoundary extends Component<
     );
   }
 }
+

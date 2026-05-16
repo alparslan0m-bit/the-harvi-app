@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ModuleCard } from "@/components/ModuleCard";
+import { ModuleCard } from "@/components";
 import { useColors } from "@/hooks/useColors";
 import { useHierarchy } from "@/hooks/useHierarchy";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
@@ -133,3 +133,4 @@ const styles = StyleSheet.create({
   empty: { alignItems: "center", paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular" },
 });
+

@@ -15,7 +15,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
 
-import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorBoundary } from "@/components";
 import { AuthProvider } from "@/context/AuthContext";
 import { SyncProvider } from "@/context/SyncContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -90,3 +90,4 @@ export default function RootLayout() {
     </>
   );
 }
+

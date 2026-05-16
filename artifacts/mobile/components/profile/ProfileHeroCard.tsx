@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import { AvatarById, AvatarId } from "@/components/DoctorAvatars";
+import { AvatarById, AvatarId } from "@/components";
 import { useColors } from "@/hooks/useColors";
 
 interface Props {
@@ -180,3 +180,4 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
 });
+
