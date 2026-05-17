@@ -29,9 +29,10 @@ const memCache = new Map<string, Set<string>>();
 // ── AsyncStorage helpers ─────────────────────────────────────────────────────
 
 async function readCache(userId: string): Promise<Set<string> | null> {
+  const raw = await AsyncStorage.getItem(PROGRESS_CACHE_KEY(userId));
+  if (!raw) return null;
   try {
-    const raw = await AsyncStorage.getItem(PROGRESS_CACHE_KEY(userId));
-    return raw ? new Set(JSON.parse(raw) as string[]) : null;
+    return new Set(JSON.parse(raw) as string[]);
   } catch {
     return null;
   }

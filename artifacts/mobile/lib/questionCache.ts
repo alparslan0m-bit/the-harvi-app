@@ -11,6 +11,8 @@ import { Question } from "@/types";
 
 const KEY = (id: string) => `harvi:qcache:${id}`;
 
+let memoryCacheBypassed = false;
+
 export interface CachedLecture {
   questions: Question[];
   /** Number of questions at download time — used for staleness detection */
@@ -22,6 +24,7 @@ export async function saveQuestionsToCache(
   lectureId: string,
   questions: Question[]
 ): Promise<void> {
+  memoryCacheBypassed = false;
   const entry: CachedLecture = {
     questions,
     questionCount: questions.length,
@@ -37,6 +40,7 @@ export async function saveQuestionsToCache(
 export async function loadQuestionsFromCache(
   lectureId: string
 ): Promise<CachedLecture | null> {
+  if (memoryCacheBypassed) return null;
   try {
     const raw = await AsyncStorage.getItem(KEY(lectureId));
     return raw ? (JSON.parse(raw) as CachedLecture) : null;
@@ -54,6 +58,7 @@ export async function clearLectureCache(lectureId: string): Promise<void> {
 }
 
 export async function clearAllLectureCache(): Promise<void> {
+  memoryCacheBypassed = true;
   try {
     const allKeys = await AsyncStorage.getAllKeys();
     const cacheKeys = allKeys.filter((k) => k.startsWith("harvi:qcache:"));

@@ -21,7 +21,7 @@ import { AnsweredState, HistoryItem, Question } from "@/types";
 export function useQuizSession(lectureId: string) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { isOnline, refreshCount } = useSyncStatus();
+  const { isOnline, refreshCount, flush } = useSyncStatus();
 
   // ── Fast path: pre-load from AsyncStorage before RQ resolves ─────────────
   const [cachedQuestions, setCachedQuestions] = useState<
@@ -163,6 +163,7 @@ export function useQuizSession(lectureId: string) {
               await optimisticallyMarkComplete(user.id, lectureId);
             setSavedOffline(true);
             refreshCount();
+            flush().catch((e) => console.error("[QuizSession] Background flush failed:", e));
           }
         }
       } catch (err) {
@@ -187,6 +188,7 @@ export function useQuizSession(lectureId: string) {
     queryClient,
     isOnline,
     refreshCount,
+    flush,
   ]);
 
   const handleRetry = useCallback(() => {

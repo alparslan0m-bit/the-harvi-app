@@ -1,35 +1,11 @@
 import { BlurView } from "expo-blur";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
-import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
 import { TabIcon } from "@/components";
-
-/**
- * Native tab layout for devices supporting liquid glass effects.
- */
-function NativeTabLayout() {
-  return (
-    <NativeTabs>
-      <NativeTabs.Trigger name="(learn)">
-        <Icon sf={{ default: "books.vertical", selected: "books.vertical.fill" }} />
-        <Label>Learn</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="stats">
-        <Icon sf={{ default: "chart.bar", selected: "chart.bar.fill" }} />
-        <Label>Stats</Label>
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="profile">
-        <Icon sf={{ default: "person.circle", selected: "person.circle.fill" }} />
-        <Label>Profile</Label>
-      </NativeTabs.Trigger>
-    </NativeTabs>
-  );
-}
 
 /**
  * Standard tab layout for Web, Android, and older iOS versions.
@@ -129,7 +105,7 @@ function ClassicTabLayout() {
 export default function TabLayout() {
   return (
     <View style={{ flex: 1 }}>
-      {isLiquidGlassAvailable() ? <NativeTabLayout /> : <ClassicTabLayout />}
+      <ClassicTabLayout />
     </View>
   );
 }

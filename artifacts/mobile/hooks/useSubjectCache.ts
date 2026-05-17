@@ -16,6 +16,10 @@
  *   higher, new questions have been added — the user should re-download.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Alert } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+
+import NetInfo from "@react-native-community/netinfo";
 
 import {
   getLectureCacheMeta,
@@ -96,12 +100,20 @@ export function useSubjectCache(subject: Subject | undefined): SubjectCacheState
     else setStatus("downloaded");
   }, [subject]);
 
-  useEffect(() => {
-    loadState();
-  }, [loadState]);
+  useFocusEffect(
+    useCallback(() => {
+      loadState();
+    }, [loadState])
+  );
 
   const downloadSubject = useCallback(async () => {
     if (!subject || downloading.current) return;
+
+    const net = await NetInfo.fetch();
+    if (!net.isConnected) {
+      Alert.alert("Offline", "You must be online to download subjects.");
+      return;
+    }
 
     downloading.current = true;
     setStatus("downloading");
@@ -113,9 +125,7 @@ export function useSubjectCache(subject: Subject | undefined): SubjectCacheState
       const lec = subject.lectures[i];
       try {
         const questions = await fetchQuestions(lec.id);
-        if (questions.length > 0) {
-          await saveQuestionsToCache(lec.id, questions);
-        }
+        await saveQuestionsToCache(lec.id, questions);
       } catch {
         // Continue — one failed lecture shouldn't abort the whole download
       }

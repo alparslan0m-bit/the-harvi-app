@@ -88,7 +88,13 @@ export default function QuizScreen() {
         lectureName={lectureName}
         onRetry={handleRetry}
         onReview={() => setReviewing(true)}
-        onHome={() => router.replace("/(tabs)" as any)}
+        onHome={() => {
+          if (router.canGoBack()) {
+            router.back();
+          } else {
+            router.replace("/(tabs)" as any);
+          }
+        }}
       />
     );
   }

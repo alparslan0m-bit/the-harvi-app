@@ -39,6 +39,7 @@ export function useSyncSession() {
     setIsSyncing(true);
 
     let anySynced = false;
+    const syncedIds: string[] = [];
 
     try {
       for (const item of queue) {
@@ -52,7 +53,7 @@ export function useSyncSession() {
         });
 
         if (!error) {
-          await removeSynced([item.localId]);
+          syncedIds.push(item.localId);
           anySynced = true;
         } else {
           // In dev, log the error but don't stop the loop for other items
@@ -65,9 +66,13 @@ export function useSyncSession() {
           // Drop items that fail with a permanent Postgres constraint error
           // to prevent poison pills from permanently blocking the queue.
           if (error.code && (error.code.startsWith("23") || error.code.startsWith("42") || error.code.startsWith("22"))) {
-            await removeSynced([item.localId]);
+            syncedIds.push(item.localId);
           }
         }
+      }
+
+      if (syncedIds.length > 0) {
+        await removeSynced(syncedIds);
       }
 
       if (anySynced) {

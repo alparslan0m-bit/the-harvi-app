@@ -62,10 +62,10 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
             ]);
 
             // 3. Zero out UI immediately, then re-fetch clean state
-            queryClient.setQueryData(["stats", uid], undefined);
-            queryClient.setQueryData(["progress", uid], undefined);
-            queryClient.invalidateQueries({ queryKey: ["stats", uid] });
-            queryClient.invalidateQueries({ queryKey: ["progress", uid] });
+            queryClient.setQueriesData({ queryKey: ["stats"] }, undefined);
+            queryClient.setQueriesData({ queryKey: ["progress"] }, undefined);
+            queryClient.removeQueries({ queryKey: ["stats"] });
+            queryClient.removeQueries({ queryKey: ["progress"] });
 
             Alert.alert("History Cleared", "Your quiz history has been reset.");
           },
@@ -86,6 +86,9 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
           onPress: async () => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
             await clearAllLectureCache();
+            queryClient.setQueriesData({ queryKey: ["quiz"] }, undefined);
+            queryClient.removeQueries({ queryKey: ["quiz"] });
+            Alert.alert("Downloads Cleared", "All offline lectures have been removed.");
           },
         },
       ],

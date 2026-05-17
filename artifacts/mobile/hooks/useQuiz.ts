@@ -324,14 +324,12 @@ export function useQuizQuestions(lectureId: string, initialData?: Question[]) {
         const questions = await fetchQuestions(lectureId);
         // Auto-update the cache on every successful online fetch — keeps the
         // snapshot fresh so users who study online are always ready for offline.
-        if (questions.length > 0) {
-          saveQuestionsToCache(lectureId, questions); // fire-and-forget
-        }
+        saveQuestionsToCache(lectureId, questions); // fire-and-forget
         return questions;
       } catch {
         // Network unavailable — serve from the pre-downloaded cache
         const cached = await loadQuestionsFromCache(lectureId);
-        if (cached && cached.questions.length > 0) {
+        if (cached) {
           return cached.questions;
         }
         throw new Error(
