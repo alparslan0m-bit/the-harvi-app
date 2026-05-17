@@ -32,9 +32,16 @@ const queryClient = new QueryClient({
   },
 });
 
-function RootLayoutNav() {
+function RootLayoutNav({ fontsLoaded, fontError }: { fontsLoaded: boolean; fontError: Error | null }) {
   const { loading } = useAuth();
 
+  useEffect(() => {
+    if ((fontsLoaded || fontError) && !loading) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError, loading]);
+
+  if (!fontsLoaded && !fontError) return null;
   if (loading) return null;
 
   return (
@@ -63,14 +70,6 @@ export default function RootLayout() {
     Nunito_800ExtraBold,
   });
 
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError]);
-
-  if (!fontsLoaded && !fontError) return null;
-
   return (
     <>
       <ReducedMotionConfig mode={ReduceMotion.Never} />
@@ -82,7 +81,7 @@ export default function RootLayout() {
                 <ThemeProvider>
                   <AuthProvider>
                     <SyncProvider>
-                      <RootLayoutNav />
+                      <RootLayoutNav fontsLoaded={fontsLoaded} fontError={fontError} />
                     </SyncProvider>
                   </AuthProvider>
                 </ThemeProvider>

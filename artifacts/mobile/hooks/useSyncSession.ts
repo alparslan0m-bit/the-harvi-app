@@ -20,9 +20,9 @@ export function useSyncSession() {
   const flushing = useRef(false);
 
   const refreshCount = useCallback(async () => {
-    const n = await getPendingCount();
+    const n = await getPendingCount(user?.id);
     setPendingCount(n);
-  }, []);
+  }, [user]);
 
   const flush = useCallback(async () => {
     if (flushing.current || !user) return;
@@ -61,6 +61,11 @@ export function useSyncSession() {
               `[useSyncSession] flush insert FAILED for item ${item.localId}:`,
               error
             );
+          }
+          // Drop items that fail with a permanent Postgres constraint error
+          // to prevent poison pills from permanently blocking the queue.
+          if (error.code && (error.code.startsWith("23") || error.code.startsWith("42"))) {
+            await removeSynced([item.localId]);
           }
         }
       }

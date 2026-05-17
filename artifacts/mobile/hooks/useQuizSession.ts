@@ -65,6 +65,7 @@ export function useQuizSession(lectureId: string) {
   const [correctCount, setCorrectCount] = useState(0);
   const [finished, setFinished] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedOffline, setSavedOffline] = useState(false);
   const [reviewing, setReviewing] = useState(false);
@@ -80,7 +81,7 @@ export function useQuizSession(lectureId: string) {
 
   const handleSelect = useCallback(
     (selectedIndex: number) => {
-      if (!questions) return;
+      if (!questions || answered) return;
       const q: Question = questions[currentIndex];
       const { answer, explanation } = decryptAnswer(q.secure);
       // answer === -1 means decryption failed — no option should be marked correct
@@ -103,10 +104,11 @@ export function useQuizSession(lectureId: string) {
   );
 
   const handleNext = useCallback(async () => {
-    if (!questions || submitting || finished) return;
+    if (!questions || isSubmittingRef.current || finished) return;
     const isLast = currentIndex === questions.length - 1;
 
     if (isLast) {
+      isSubmittingRef.current = true;
       setFinished(true);
       setSubmitting(true);
       setSaveError(null);
@@ -115,38 +117,8 @@ export function useQuizSession(lectureId: string) {
       const score = Math.round((correctCount / questions.length) * 100);
       const now = new Date().toISOString();
 
-      if (!isOnline) {
-        await enqueueQuizResult({
-          userId: user?.id ?? "",
-          lectureId: lectureId ?? "",
-          score,
-          totalQuestions: questions.length,
-          correctAnswers: correctCount,
-          createdAt: now,
-        });
-        if (user?.id && lectureId)
-          await optimisticallyMarkComplete(user.id, lectureId);
-        setSavedOffline(true);
-        refreshCount();
-      } else {
-        const { error: insertErr } = await supabase
-          .from("quiz_results")
-          .insert({
-            user_id: user?.id,
-            lecture_id: lectureId,
-            score,
-            total_questions: questions.length,
-            correct_answers: correctCount,
-            created_at: now,
-          });
-
-        if (insertErr) {
-          if (__DEV__) {
-            console.error(
-              "[QuizScreen] Online insert FAILED, falling back to queue:",
-              JSON.stringify(insertErr),
-            );
-          }
+      try {
+        if (!isOnline) {
           await enqueueQuizResult({
             userId: user?.id ?? "",
             lectureId: lectureId ?? "",
@@ -159,12 +131,44 @@ export function useQuizSession(lectureId: string) {
             await optimisticallyMarkComplete(user.id, lectureId);
           setSavedOffline(true);
           refreshCount();
-        }
-      }
+        } else {
+          const { error: insertErr } = await supabase
+            .from("quiz_results")
+            .insert({
+              user_id: user?.id,
+              lecture_id: lectureId,
+              score,
+              total_questions: questions.length,
+              correct_answers: correctCount,
+              created_at: now,
+            });
 
-      queryClient.invalidateQueries({ queryKey: ["progress"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
-      setSubmitting(false);
+          if (insertErr) {
+            if (__DEV__) {
+              console.error(
+                "[QuizScreen] Online insert FAILED, falling back to queue:",
+                JSON.stringify(insertErr),
+              );
+            }
+            await enqueueQuizResult({
+              userId: user?.id ?? "",
+              lectureId: lectureId ?? "",
+              score,
+              totalQuestions: questions.length,
+              correctAnswers: correctCount,
+              createdAt: now,
+            });
+            if (user?.id && lectureId)
+              await optimisticallyMarkComplete(user.id, lectureId);
+            setSavedOffline(true);
+            refreshCount();
+          }
+        }
+      } finally {
+        queryClient.invalidateQueries({ queryKey: ["progress"] });
+        queryClient.invalidateQueries({ queryKey: ["stats"] });
+        setSubmitting(false);
+      }
     } else {
       setCurrentIndex((i) => i + 1);
       setAnswered(null);
@@ -187,6 +191,7 @@ export function useQuizSession(lectureId: string) {
     setCorrectCount(0);
     setFinished(false);
     setSubmitting(false);
+    isSubmittingRef.current = false;
     setSaveError(null);
     setSavedOffline(false);
     setReviewing(false);

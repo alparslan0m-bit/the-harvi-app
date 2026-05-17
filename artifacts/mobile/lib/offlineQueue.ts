@@ -19,9 +19,10 @@ export interface PendingQuizResult {
 }
 
 async function readQueue(): Promise<PendingQuizResult[]> {
+  const raw = await AsyncStorage.getItem(QUEUE_KEY);
+  if (!raw) return [];
   try {
-    const raw = await AsyncStorage.getItem(QUEUE_KEY);
-    return raw ? (JSON.parse(raw) as PendingQuizResult[]) : [];
+    return JSON.parse(raw) as PendingQuizResult[];
   } catch {
     return [];
   }
@@ -67,6 +68,10 @@ export async function clearQueueForUser(userId: string): Promise<void> {
 }
 
 /** How many items are pending */
-export async function pendingCount(): Promise<number> {
-  return (await readQueue()).length;
+export async function pendingCount(userId?: string): Promise<number> {
+  const queue = await readQueue();
+  if (userId) {
+    return queue.filter((i) => i.userId === userId).length;
+  }
+  return queue.length;
 }

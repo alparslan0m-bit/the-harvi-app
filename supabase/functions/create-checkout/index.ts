@@ -123,13 +123,11 @@ serve(async (req: Request) => {
       .select("id, status")
       .eq("user_id", user.id)
       .eq(targetColumn, targetId)
-      .in("status", ["active", "pending"])
-      .order("status", { ascending: true })
-      .limit(1);
+      .in("status", ["active", "pending"]);
 
-    const existing = existingPurchases?.[0];
+    const hasActive = existingPurchases?.some(p => p.status === "active");
 
-    if (existing?.status === "active") {
+    if (hasActive) {
       return new Response(
         JSON.stringify({ error: "You already have access to this content" }),
         {
@@ -139,12 +137,13 @@ serve(async (req: Request) => {
       );
     }
 
-    // If there's a stale pending purchase, clean it up before creating a new one
-    if (existing?.status === "pending") {
+    // If there are stale pending purchases, clean all of them up before creating a new one
+    const pendingIds = existingPurchases?.filter(p => p.status === "pending").map(p => p.id) || [];
+    if (pendingIds.length > 0) {
       await supabaseAdmin
         .from("purchases")
         .update({ status: "failed", updated_at: new Date().toISOString() })
-        .eq("id", existing.id);
+        .in("id", pendingIds);
     }
 
     // ── 5. Create Payment Session ───────────────────────────────
