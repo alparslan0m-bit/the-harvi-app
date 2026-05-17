@@ -55,8 +55,9 @@ export function useQuizSession(lectureId: string) {
   // This prevents the "switcheroo" bug where background refreshes shuffle
   // the questions while the user is mid-quiz.
   useEffect(() => {
-    if (!questions && remoteQuestions && remoteQuestions.length > 0) {
-      setQuestions(remoteQuestions);
+    if (!questions && remoteQuestions) {
+      // Shuffle the order of questions locally on mount or retry
+      setQuestions([...remoteQuestions].sort(() => Math.random() - 0.5));
     }
   }, [remoteQuestions, questions]);
 
@@ -164,6 +165,10 @@ export function useQuizSession(lectureId: string) {
             refreshCount();
           }
         }
+      } catch (err) {
+        setSaveError(err instanceof Error ? err.message : "Failed to save quiz result");
+        setFinished(false);
+        isSubmittingRef.current = false;
       } finally {
         queryClient.invalidateQueries({ queryKey: ["progress"] });
         queryClient.invalidateQueries({ queryKey: ["stats"] });

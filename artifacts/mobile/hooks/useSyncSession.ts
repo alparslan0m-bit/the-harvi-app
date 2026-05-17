@@ -64,7 +64,7 @@ export function useSyncSession() {
           }
           // Drop items that fail with a permanent Postgres constraint error
           // to prevent poison pills from permanently blocking the queue.
-          if (error.code && (error.code.startsWith("23") || error.code.startsWith("42"))) {
+          if (error.code && (error.code.startsWith("23") || error.code.startsWith("42") || error.code.startsWith("22"))) {
             await removeSynced([item.localId]);
           }
         }
