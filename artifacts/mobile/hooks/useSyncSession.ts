@@ -28,7 +28,8 @@ export function useSyncSession() {
     if (flushing.current || !user) return;
     
     // Check queue first to avoid unnecessary state changes
-    const queue = await getQueue();
+    const fullQueue = await getQueue();
+    const queue = fullQueue.filter((item) => item.userId === user.id);
     if (queue.length === 0) {
       await refreshCount(); // Ensure count is 0
       return;

@@ -16,7 +16,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
 
 import { ErrorBoundary } from "@/components";
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { SyncProvider } from "@/context/SyncContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 
@@ -33,6 +33,10 @@ const queryClient = new QueryClient({
 });
 
 function RootLayoutNav() {
+  const { loading } = useAuth();
+
+  if (loading) return null;
+
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

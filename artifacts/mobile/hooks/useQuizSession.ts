@@ -103,7 +103,7 @@ export function useQuizSession(lectureId: string) {
   );
 
   const handleNext = useCallback(async () => {
-    if (!questions) return;
+    if (!questions || submitting || finished) return;
     const isLast = currentIndex === questions.length - 1;
 
     if (isLast) {

@@ -118,13 +118,16 @@ serve(async (req: Request) => {
     }
 
     // ── 4. Check for existing active purchase (prevent duplicates) ─
-    const { data: existing } = await supabaseAdmin
+    const { data: existingPurchases } = await supabaseAdmin
       .from("purchases")
       .select("id, status")
       .eq("user_id", user.id)
       .eq(targetColumn, targetId)
       .in("status", ["active", "pending"])
-      .maybeSingle();
+      .order("status", { ascending: true })
+      .limit(1);
+
+    const existing = existingPurchases?.[0];
 
     if (existing?.status === "active") {
       return new Response(
