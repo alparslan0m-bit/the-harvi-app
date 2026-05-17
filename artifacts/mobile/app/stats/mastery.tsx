@@ -79,6 +79,7 @@ export default function MasteryScreen() {
                 key={i}
                 subject={item.subject}
                 mastery={item.mastery}
+                attempts={item.attempts}
                 rank={i + 1}
               />
             ))

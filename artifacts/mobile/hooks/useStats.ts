@@ -143,6 +143,7 @@ function computeStats(rows: RawRow[], lectureMap: Map<string, string>, dbStats?:
     .map(([id, scores]) => ({
       subject: lectureName(id),
       mastery: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
+      attempts: scores.length,
     }))
     .sort((a, b) => b.mastery - a.mastery);
 

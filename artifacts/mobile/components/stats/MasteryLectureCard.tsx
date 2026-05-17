@@ -46,8 +46,8 @@ const barStyles = StyleSheet.create({
 });
 
 export function MasteryLectureCard({
-  subject, mastery, rank,
-}: { subject: string; mastery: number; rank: number }) {
+  subject, mastery, rank, attempts = 0,
+}: { subject: string; mastery: number; rank: number; attempts?: number }) {
   const colors = useColors();
   const color = masteryColor(mastery, colors);
   const bg    = masteryBg(mastery, colors);
@@ -66,9 +66,14 @@ export function MasteryLectureCard({
           <View style={[cardStyles.rankBadge, { backgroundColor: colors.muted }]}>
             <Text style={[cardStyles.rankText, { color: colors.mutedForeground }]}>{rank}</Text>
           </View>
-          <Text style={[cardStyles.name, { color: colors.foreground }]} numberOfLines={2}>
-            {subject}
-          </Text>
+          <View style={cardStyles.textContainer}>
+            <Text style={[cardStyles.name, { color: colors.foreground }]} numberOfLines={2}>
+              {subject}
+            </Text>
+            <Text style={[cardStyles.attemptsText, { color: colors.mutedForeground }]}>
+              {attempts} {attempts === 1 ? "attempt" : "attempts"}
+            </Text>
+          </View>
           <View style={[cardStyles.badge, { backgroundColor: bg }]}>
             <Text style={[cardStyles.badgeText, { color }]}>{mastery}%</Text>
           </View>
@@ -103,7 +108,9 @@ const cardStyles = StyleSheet.create({
     justifyContent: "center",
   },
   rankText: { fontSize: 11, fontFamily: "Inter_700Bold" },
-  name: { flex: 1, fontSize: 15, fontFamily: "Inter_600SemiBold", lineHeight: 21 },
+  textContainer: { flex: 1, gap: 2 },
+  name: { fontSize: 15, fontFamily: "Inter_600SemiBold", lineHeight: 21 },
+  attemptsText: { fontSize: 11, fontFamily: "Inter_500Medium" },
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,

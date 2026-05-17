@@ -57,7 +57,7 @@ export interface UserStats {
   best_score: number;
   streak: number;
   weekly_activity: { day: string; count: number; isToday?: boolean }[];
-  subject_mastery: { subject: string; mastery: number }[];
+  subject_mastery: { subject: string; mastery: number; attempts: number }[];
   recent_results: QuizResult[];
 }
 
