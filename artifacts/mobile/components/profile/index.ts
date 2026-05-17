@@ -1,5 +1,6 @@
 export * from './AvatarPicker';
-export * from './AvatarById';
+export * from './DoctorAvatars';
+export * from './AccountActions';
 export * from './ProfileHeroCard';
 export * from './ProfileEditHeader';
 export * from './ProfileAvatarSection';

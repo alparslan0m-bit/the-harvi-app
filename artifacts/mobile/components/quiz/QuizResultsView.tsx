@@ -12,7 +12,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/hooks/useColors";
 import { useQuizResultsAnimation } from "@/hooks/useQuizResultsAnimation";
-import { ScoreRing, StatPill } from "./quiz";
+import { ScoreRing } from "./ScoreRing";
+import { StatPill } from "./StatPill";
 import { getGrade, getRingColor, getTitle } from "@/utils/quizHelpers";
 
 export interface ResultsViewProps {

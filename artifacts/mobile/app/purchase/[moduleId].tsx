@@ -76,7 +76,7 @@ export default function PurchaseScreen() {
               <>
                 <Feather name="credit-card" size={18} color="#fff" />
                 <Text style={styles.btnText}>
-                  {status === "verifying" ? "Verifying payment..." : "Purchase Now"}
+                  Purchase Now
                 </Text>
               </>
             )}

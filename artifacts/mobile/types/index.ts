@@ -18,6 +18,7 @@ export interface Subject {
   name: string;
   module_id: string;
   order: number;
+  is_free?: boolean;
   lectures: Lecture[];
 }
 

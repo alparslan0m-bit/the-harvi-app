@@ -11,7 +11,7 @@ export default function AuthCallbackScreen() {
 
   useEffect(() => {
     if (session) {
-      router.replace("/(tabs)");
+      router.replace("/(tabs)" as any);
     }
   }, [session]);
 

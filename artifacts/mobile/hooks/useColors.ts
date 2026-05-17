@@ -7,7 +7,7 @@ export function useColors() {
   const { theme } = useTheme();
   const systemScheme = useColorScheme();
 
-  const activeTheme = theme === "system" ? (systemScheme || "light") : theme;
+  const activeTheme = theme === "harvi" ? "light" : theme;
   
   const palette = (colors as any)[activeTheme] || colors.light;
 

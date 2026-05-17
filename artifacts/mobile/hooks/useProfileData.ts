@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { STORAGE_KEYS } from "../constants/storage";
-import { AvatarId } from "../components/DoctorAvatars";
+import { AvatarId } from "../components/profile/DoctorAvatars";
 
 /**
  * Hook to manage user profile data from AsyncStorage.

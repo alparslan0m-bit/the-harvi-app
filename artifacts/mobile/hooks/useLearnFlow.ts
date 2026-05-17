@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from "react";
 import { Animated, ScrollView } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 
-export function useLearnFlow(scrollRef: React.RefObject<ScrollView>) {
+export function useLearnFlow(scrollRef: React.RefObject<ScrollView | null>) {
   const { session, loading: authLoading } = useAuth();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
