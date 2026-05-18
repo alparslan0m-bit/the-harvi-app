@@ -1,7 +1,18 @@
 {
-  "deno.enable": true,
-  "deno.lint": true,
-  "deno.unstable": true,
-  "deno.importMap": "./supabase/functions/import_map.json",
-  "deno.config": "./supabase/functions/deno.json"
+    "deno.enable": true,
+    "deno.lint": true,
+    "deno.unstable": true,
+    "deno.importMap": "./supabase/functions/import_map.json",
+    "deno.config": "./supabase/functions/deno.json",
+    "chat.promptFilesRecommendations": {
+        "speckit.constitution": true,
+        "speckit.specify": true,
+        "speckit.plan": true,
+        "speckit.tasks": true,
+        "speckit.implement": true
+    },
+    "chat.tools.terminal.autoApprove": {
+        ".specify/scripts/bash/": true,
+        ".specify/scripts/powershell/": true
+    }
 }
