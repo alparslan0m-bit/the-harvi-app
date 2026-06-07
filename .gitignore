@@ -41,6 +41,13 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# env files / secrets
+.env
+.env.*
+
+# local logs / temp artifacts
+artifacts/mobile/output.txt
+
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
 

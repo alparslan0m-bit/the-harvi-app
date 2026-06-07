@@ -91,8 +91,9 @@ serve(async (req: Request) => {
     // CRIT-03 FIX: This MUST run first. Without it, anyone on the
     // internet can POST to this URL and activate arbitrary purchases.
     const isDev = Deno.env.get("ENVIRONMENT") === "development";
+    const allowDevBypass = Deno.env.get("ALLOW_DEV_HMAC_BYPASS") === "true";
 
-    if (!isDev) {
+    if (!isDev || !allowDevBypass) {
       const hmac = req.headers.get("x-paymob-hmac") ?? "";
       const transactionObj = body.obj ?? body;
 
@@ -104,7 +105,7 @@ serve(async (req: Request) => {
         });
       }
     } else {
-      console.warn("[Webhook] DEV MODE: Skipping HMAC verification");
+      console.warn("[Webhook] DEV MODE: Skipping HMAC verification (ALLOW_DEV_HMAC_BYPASS=true)");
     }
 
     // ── 3. Initialize Supabase Admin ──────────────────────────

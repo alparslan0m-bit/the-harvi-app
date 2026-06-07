@@ -5,8 +5,11 @@
 import { serve } from "std/http/server.ts";
 import { createClient } from "supabase";
 
+/** Row shape for `purchases` selects used below (strict TS + stubbed client). */
+type PurchaseRow = { id: string; status: string };
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": Deno.env.get("APP_URL") ?? "*",
+  "Access-Control-Allow-Origin": Deno.env.get("APP_URL") ?? "",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -17,6 +20,13 @@ serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
 
   try {
+    if (!corsHeaders["Access-Control-Allow-Origin"]) {
+      return new Response(JSON.stringify({ error: "Server misconfigured (APP_URL missing)" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     // ── 1. Authenticate ─────────────────────────────────────────
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -118,14 +128,16 @@ serve(async (req: Request) => {
     }
 
     // ── 4. Check for existing active purchase (prevent duplicates) ─
-    const { data: existingPurchases } = await supabaseAdmin
+    const { data: existingPurchasesRaw } = await supabaseAdmin
       .from("purchases")
       .select("id, status")
       .eq("user_id", user.id)
       .eq(targetColumn, targetId)
       .in("status", ["active", "pending"]);
 
-    const hasActive = existingPurchases?.some(p => p.status === "active");
+    const existingPurchases = (existingPurchasesRaw ?? []) as PurchaseRow[];
+
+    const hasActive = existingPurchases.some((p) => p.status === "active");
 
     if (hasActive) {
       return new Response(
@@ -138,7 +150,9 @@ serve(async (req: Request) => {
     }
 
     // If there are stale pending purchases, clean all of them up before creating a new one
-    const pendingIds = existingPurchases?.filter(p => p.status === "pending").map(p => p.id) || [];
+    const pendingIds = existingPurchases
+      .filter((p) => p.status === "pending")
+      .map((p) => p.id);
     if (pendingIds.length > 0) {
       await supabaseAdmin
         .from("purchases")
@@ -148,9 +162,18 @@ serve(async (req: Request) => {
 
     // ── 5. Create Payment Session ───────────────────────────────
     const isDev = Deno.env.get("ENVIRONMENT") === "development";
-    const paymentSessionId = isDev
-      ? `dev_${crypto.randomUUID()}`
-      : `stripe_${crypto.randomUUID()}`; // Replace with real Stripe session creation
+    const allowDevBypass = Deno.env.get("ALLOW_DEV_BYPASS") === "true";
+
+    if (!isDev) {
+      // Hard fail until a real provider session is created.
+      // Prevents a "fake success" path accidentally granting access in production.
+      return new Response(JSON.stringify({ error: "Payments not configured on server" }), {
+        status: 501,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const paymentSessionId = `dev_${crypto.randomUUID()}`;
 
     // ── 6. Record the Purchase as PENDING ───────────────────────
     // CRIT-02 FIX: Status is ALWAYS 'pending'. Only the payment webhook
@@ -186,12 +209,14 @@ serve(async (req: Request) => {
     if (isDev) {
       checkoutUrl = `${success_url}?session_id=${paymentSessionId}`;
 
-      // DEV ONLY: auto-activate for testing convenience
-      await supabaseAdmin
-        .from("purchases")
-        .update({ status: "active", updated_at: new Date().toISOString() })
-        .eq("payment_session_id", paymentSessionId)
-        .eq("user_id", user.id);
+      // DEV ONLY: optional auto-activate for testing convenience (explicitly gated)
+      if (allowDevBypass) {
+        await supabaseAdmin
+          .from("purchases")
+          .update({ status: "active", updated_at: new Date().toISOString() })
+          .eq("payment_session_id", paymentSessionId)
+          .eq("user_id", user.id);
+      }
     } else {
       // TODO: Create real Stripe Checkout session here
       // const stripeSession = await stripe.checkout.sessions.create({...});

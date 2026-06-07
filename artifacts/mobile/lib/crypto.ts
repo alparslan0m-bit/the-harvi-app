@@ -20,7 +20,7 @@ export function safeAtob(b64: string): string {
 }
 
 export function decryptAnswer(encrypted: string): { answer: number; explanation: string } {
-  if (!encrypted) return { answer: 0, explanation: "" };
+  if (!encrypted) return { answer: -1, explanation: "" };
 
   // Try 1: XOR decryption (original Harvi encrypted format)
   try {
