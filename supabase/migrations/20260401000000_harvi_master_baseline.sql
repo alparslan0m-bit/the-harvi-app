@@ -115,10 +115,11 @@ CREATE TABLE IF NOT EXISTS public.quiz_results (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     lecture_id UUID NOT NULL REFERENCES public.lectures(id) ON DELETE CASCADE,
-    score INTEGER NOT NULL, -- Percentage (0-100)
-    total_questions INTEGER NOT NULL,
-    correct_answers INTEGER NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now()
+    score INTEGER NOT NULL CONSTRAINT check_score CHECK (score >= 0 AND score <= 100),
+    total_questions INTEGER NOT NULL CONSTRAINT check_total_questions CHECK (total_questions > 0),
+    correct_answers INTEGER NOT NULL CONSTRAINT check_correct_answers CHECK (correct_answers >= 0 AND correct_answers <= total_questions),
+    created_at TIMESTAMPTZ DEFAULT now(),
+    CONSTRAINT check_score_formula CHECK (score = ROUND(correct_answers::numeric * 100 / total_questions))
 );
 
 -- Feedback
@@ -152,13 +153,17 @@ CREATE TABLE IF NOT EXISTS public.purchases (
     module_id UUID REFERENCES public.modules(id) ON DELETE CASCADE,
     subject_id UUID REFERENCES public.subjects(id) ON DELETE CASCADE,
     status TEXT NOT NULL CHECK (status IN ('pending', 'active', 'failed', 'refunded', 'disputed')),
-    amount_cents INTEGER NOT NULL,
+    amount_cents INTEGER NOT NULL CONSTRAINT check_purchase_amount CHECK (amount_cents >= 0),
     currency TEXT NOT NULL DEFAULT 'usd',
     payment_id TEXT, -- provider-specific reference
     payment_session_id TEXT, -- checkout session reference
     provider TEXT NOT NULL DEFAULT 'manual',
     created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    CONSTRAINT check_purchase_target CHECK (
+        (module_id IS NOT NULL AND subject_id IS NULL) OR
+        (module_id IS NULL AND subject_id IS NOT NULL)
+    )
 );
 
 -- =============================================
@@ -174,7 +179,7 @@ RETURNS INTEGER LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = publi
 DECLARE streak INTEGER := 0; prev_date DATE := NULL; rec RECORD;
 BEGIN
     -- Security: only allow querying own data (or admin)
-    IF user_uuid != (SELECT auth.uid()) AND NOT public.is_admin() THEN
+    IF (user_uuid IS DISTINCT FROM (SELECT auth.uid())) AND NOT public.is_admin() THEN
         RETURN 0;
     END IF;
     PERFORM 1 FROM public.quiz_results WHERE user_id = user_uuid AND DATE(created_at) >= CURRENT_DATE - INTERVAL '1 day' LIMIT 1;
@@ -327,7 +332,10 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.profiles (id, full_name, avatar_url)
-  VALUES (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
+  VALUES (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url')
+  ON CONFLICT (id) DO UPDATE SET
+    full_name = COALESCE(EXCLUDED.full_name, profiles.full_name),
+    avatar_url = COALESCE(EXCLUDED.avatar_url, profiles.avatar_url);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -378,6 +386,7 @@ BEGIN
         best_score = GREATEST(best_score, NEW.score),
         current_streak = CASE 
             WHEN last_quiz_date IS NULL THEN 1
+            WHEN current_date_val < last_quiz_date THEN current_streak -- Historical/Offline insert: protect current streak
             WHEN last_quiz_date = current_date_val THEN current_streak
             WHEN last_quiz_date = current_date_val - INTERVAL '1 day' THEN current_streak + 1
             ELSE 1
@@ -386,12 +395,13 @@ BEGIN
             longest_streak,
             CASE 
                 WHEN last_quiz_date IS NULL THEN 1
+                WHEN current_date_val < last_quiz_date THEN current_streak
                 WHEN last_quiz_date = current_date_val THEN current_streak
                 WHEN last_quiz_date = current_date_val - INTERVAL '1 day' THEN current_streak + 1
                 ELSE 1
             END
         ),
-        last_quiz_date = current_date_val,
+        last_quiz_date = GREATEST(last_quiz_date, current_date_val),
         updated_at = now()
     WHERE user_id = NEW.user_id;
 
@@ -401,6 +411,46 @@ $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS tr_sync_user_stats ON public.quiz_results;
 CREATE TRIGGER tr_sync_user_stats AFTER INSERT ON public.quiz_results FOR EACH ROW EXECUTE FUNCTION public.sync_user_stats();
+
+-- Real-time user stats sync on deletion
+CREATE OR REPLACE FUNCTION public.sync_user_stats_on_delete() RETURNS TRIGGER SECURITY DEFINER AS $$
+BEGIN
+    UPDATE public.user_stats
+    SET 
+        total_quizzes = (SELECT COUNT(*) FROM public.quiz_results WHERE user_id = OLD.user_id),
+        total_questions_answered = (SELECT COALESCE(SUM(total_questions), 0) FROM public.quiz_results WHERE user_id = OLD.user_id),
+        correct_answers = (SELECT COALESCE(SUM(correct_answers), 0) FROM public.quiz_results WHERE user_id = OLD.user_id),
+        average_score = (SELECT COALESCE(ROUND(AVG(score), 2), 0) FROM public.quiz_results WHERE user_id = OLD.user_id),
+        best_score = (SELECT COALESCE(MAX(score), 0) FROM public.quiz_results WHERE user_id = OLD.user_id),
+        current_streak = public.get_user_streak(OLD.user_id),
+        longest_streak = GREATEST(longest_streak, public.get_user_streak(OLD.user_id)),
+        last_quiz_date = (SELECT MAX(DATE(created_at)) FROM public.quiz_results WHERE user_id = OLD.user_id),
+        updated_at = now()
+    WHERE user_id = OLD.user_id;
+
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS tr_sync_user_stats_on_delete ON public.quiz_results;
+CREATE TRIGGER tr_sync_user_stats_on_delete AFTER DELETE ON public.quiz_results FOR EACH ROW EXECUTE FUNCTION public.sync_user_stats_on_delete();
+
+-- Real-time global stats sync on deletion
+CREATE OR REPLACE FUNCTION public.sync_lecture_stats_on_delete() RETURNS TRIGGER SECURITY DEFINER AS $$
+BEGIN
+    UPDATE public.lecture_statistics
+    SET
+        unique_students = (SELECT COUNT(DISTINCT user_id) FROM public.quiz_results WHERE lecture_id = OLD.lecture_id),
+        total_attempts = (SELECT COUNT(*) FROM public.quiz_results WHERE lecture_id = OLD.lecture_id),
+        average_score = (SELECT COALESCE(ROUND(AVG(score), 2), 0) FROM public.quiz_results WHERE lecture_id = OLD.lecture_id),
+        last_updated = now()
+    WHERE lecture_id = OLD.lecture_id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS tr_sync_lecture_stats_on_delete ON public.quiz_results;
+CREATE TRIGGER tr_sync_lecture_stats_on_delete AFTER DELETE ON public.quiz_results FOR EACH ROW EXECUTE FUNCTION public.sync_lecture_stats_on_delete();
 
 -- Trigger: Auto-Update Timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column() RETURNS TRIGGER AS $$
@@ -481,8 +531,65 @@ CREATE INDEX IF NOT EXISTS idx_lectures_subject_id ON public.lectures(subject_id
 
 SELECT cron.schedule('harvi-weekly-cleanup', '0 3 * * 0', $$
     BEGIN;
+        -- Capture affected users and lectures before deleting
+        CREATE TEMP TABLE _affected_users AS SELECT DISTINCT user_id FROM public.quiz_results WHERE created_at < NOW() - INTERVAL '1 year';
+        CREATE TEMP TABLE _affected_lectures AS SELECT DISTINCT lecture_id FROM public.quiz_results WHERE created_at < NOW() - INTERVAL '1 year';
+
+        -- Disable per-row sync triggers during bulk delete
+        ALTER TABLE public.quiz_results DISABLE TRIGGER tr_sync_user_stats_on_delete;
+        ALTER TABLE public.quiz_results DISABLE TRIGGER tr_sync_lecture_stats_on_delete;
+
         DELETE FROM public.quiz_results WHERE created_at < NOW() - INTERVAL '1 year';
         DELETE FROM public.feedback WHERE created_at < NOW() - INTERVAL '1 year';
+
+        -- Re-enable triggers
+        ALTER TABLE public.quiz_results ENABLE TRIGGER tr_sync_user_stats_on_delete;
+        ALTER TABLE public.quiz_results ENABLE TRIGGER tr_sync_lecture_stats_on_delete;
+
+        -- Batch recalculate user stats for affected users
+        UPDATE public.user_stats us SET
+            total_quizzes = sub.total_quizzes,
+            total_questions_answered = sub.total_questions_answered,
+            correct_answers = sub.correct_answers,
+            average_score = sub.average_score,
+            best_score = sub.best_score,
+            last_quiz_date = sub.last_quiz_date,
+            updated_at = now()
+        FROM (
+            SELECT
+                qr.user_id,
+                COUNT(*)::INTEGER AS total_quizzes,
+                COALESCE(SUM(qr.total_questions), 0)::INTEGER AS total_questions_answered,
+                COALESCE(SUM(qr.correct_answers), 0)::INTEGER AS correct_answers,
+                COALESCE(ROUND(AVG(qr.score), 2), 0) AS average_score,
+                COALESCE(MAX(qr.score), 0)::INTEGER AS best_score,
+                MAX(DATE(qr.created_at)) AS last_quiz_date
+            FROM public.quiz_results qr
+            WHERE qr.user_id IN (SELECT user_id FROM _affected_users)
+            GROUP BY qr.user_id
+        ) sub
+        WHERE us.user_id = sub.user_id;
+
+        -- Batch recalculate lecture stats for affected lectures
+        UPDATE public.lecture_statistics ls SET
+            unique_students = sub.unique_students,
+            total_attempts = sub.total_attempts,
+            average_score = sub.average_score,
+            last_updated = now()
+        FROM (
+            SELECT
+                qr.lecture_id,
+                COUNT(DISTINCT qr.user_id)::INTEGER AS unique_students,
+                COUNT(*)::INTEGER AS total_attempts,
+                COALESCE(ROUND(AVG(qr.score), 2), 0) AS average_score
+            FROM public.quiz_results qr
+            WHERE qr.lecture_id IN (SELECT lecture_id FROM _affected_lectures)
+            GROUP BY qr.lecture_id
+        ) sub
+        WHERE ls.lecture_id = sub.lecture_id;
+
+        DROP TABLE _affected_users;
+        DROP TABLE _affected_lectures;
     COMMIT;
 $$);
 

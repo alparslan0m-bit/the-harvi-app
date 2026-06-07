@@ -4,7 +4,7 @@
 -- Design Principle: Scalable, Admin-aware, and Performance-Hardened.
 --
 -- SECURITY AUDIT HARDENING (2026-05-11):
---   CRIT-01: is_admin() now reads raw_app_meta_data only (no JWT claim spoofing)
+--   CRIT-01: is_admin() reads app_metadata from the verified JWT (no table scan)
 --   HIGH-02: Replaced DROP-ALL loop with explicit per-policy DROP/CREATE
 --   LOW-01: Feedback restricted to authenticated only
 --   NEW-MEDIUM-01: Profiles self-insert policy added
@@ -16,8 +16,8 @@ BEGIN;
 -- =============================================
 
 -- 1.1 Admin Role Detection
--- HARDENED: Only reads raw_app_meta_data which is writable exclusively by service_role.
--- A client JWT cannot forge this value. Language changed to sql for immutable inlining.
+-- HARDENED: Reads app_metadata from the verified session JWT (set by service_role only).
+-- No table scan on auth.users. Sub-millisecond, inlinable by the planner.
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN
 LANGUAGE sql
@@ -26,9 +26,7 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
   SELECT COALESCE(
-    (SELECT (raw_app_meta_data ->> 'role') = 'admin'
-     FROM auth.users
-     WHERE id = (SELECT auth.uid())),
+    (SELECT (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'),
     false
   );
 $$;
@@ -67,14 +65,23 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-    -- Admin: Full Access
-    SELECT id, 'module', true, is_free, price_cents FROM public.modules WHERE is_admin()
+    -- Modules
+    SELECT 
+        m.id, 
+        'module', 
+        (public.is_admin() OR m.is_free OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = m.id AND p.status = 'active')), 
+        m.is_free, 
+        m.price_cents 
+    FROM public.modules m
     UNION ALL
-    -- Non-Admin: Modules
-    SELECT m.id, 'module', (m.is_free OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = m.id AND p.status = 'active')), m.is_free, m.price_cents FROM public.modules m WHERE NOT is_admin()
-    UNION ALL
-    -- Non-Admin: Subjects
-    SELECT s.id, 'subject', (s.is_free OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = s.module_id AND p.status = 'active') OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.subject_id = s.id AND p.status = 'active')), s.is_free, s.price_cents FROM public.subjects s WHERE NOT is_admin();
+    -- Subjects
+    SELECT 
+        s.id, 
+        'subject', 
+        (public.is_admin() OR s.is_free OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = s.module_id AND p.status = 'active') OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.subject_id = s.id AND p.status = 'active')), 
+        s.is_free, 
+        s.price_cents 
+    FROM public.subjects s;
 $$;
 
 -- =============================================
@@ -242,7 +249,7 @@ CREATE POLICY "purchases_self_read" ON public.purchases FOR SELECT TO authentica
 
 -- Feedback: Self-Read + Self-Insert (authenticated only — LOW-01 fix: removed anon)
 CREATE POLICY "feedback_self_read" ON public.feedback FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
-CREATE POLICY "feedback_self_insert" ON public.feedback FOR INSERT TO authenticated WITH CHECK ((SELECT auth.uid()) = user_id);
+CREATE POLICY "feedback_self_insert" ON public.feedback FOR INSERT TO authenticated WITH CHECK ((SELECT auth.uid()) = user_id AND status = 'new');
 
 -- User Stats: Self-Read ONLY (strictly mutated by backend triggers)
 CREATE POLICY "user_stats_self_read" ON public.user_stats FOR SELECT TO authenticated USING ((SELECT auth.uid()) = user_id);
