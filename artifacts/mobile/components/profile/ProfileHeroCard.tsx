@@ -11,7 +11,7 @@ interface Props {
   displayName: string;
   email: string | undefined;
   memberSince: string | null;
-  initial: string;
+  initial: string;z
 }
 
 export function ProfileHeroCard({

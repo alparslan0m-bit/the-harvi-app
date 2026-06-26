@@ -24,7 +24,8 @@
     "android": {
       "allowBackup": false,
       "enableProguardInReleaseBuilds": true,
-      "enableShrinkResourcesInReleaseBuilds": true
+      "enableShrinkResourcesInReleaseBuilds": true,
+      "package": "com.anonymous.mobile"
     },
     "web": {
       "favicon": "./assets/images/icon.png"
