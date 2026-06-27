@@ -11,6 +11,7 @@ export interface Module {
   year_id: string;
   order: number;
   subjects: Subject[];
+  external_price_id?: string | null;
 }
 
 export interface Subject {
@@ -19,6 +20,7 @@ export interface Subject {
   module_id: string;
   order: number;
   is_free?: boolean;
+  external_price_id?: string | null;
   lectures: Lecture[];
 }
 

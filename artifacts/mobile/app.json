@@ -15,6 +15,7 @@
     },
     "ios": {
       "supportsTablet": false,
+      "bundleIdentifier": "com.harvi.app",
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": false
@@ -25,7 +26,7 @@
       "allowBackup": false,
       "enableProguardInReleaseBuilds": true,
       "enableShrinkResourcesInReleaseBuilds": true,
-      "package": "com.anonymous.mobile"
+      "package": "com.harvi.app"
     },
     "web": {
       "favicon": "./assets/images/icon.png"

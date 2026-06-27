@@ -1,89 +1,108 @@
 // artifacts/mobile/hooks/usePurchase.ts
+// Thin hook wrapping PurchaseContext for the purchase screen.
+// Provides a unified status state machine for both IAP and code redemption flows.
 import { useState, useCallback } from "react";
-import * as Linking from "expo-linking";
-import { useQueryClient } from "@tanstack/react-query";
-import * as WebBrowser from "expo-web-browser";
-import { supabase } from "@/lib/supabase";
+import type { PurchasesPackage } from "react-native-purchases";
+import { usePurchaseContext } from "@/context/PurchaseContext";
 
-export type PurchaseStatus = "idle" | "loading" | "redirecting" | "verifying" | "success" | "error";
+export type PurchaseStatus = "idle" | "loading" | "success" | "error";
 
 export function usePurchase() {
+  const { purchaseModule, purchaseSubject, redeemCode, restoreModule } = usePurchaseContext();
   const [status, setStatus] = useState<PurchaseStatus>("idle");
   const [error, setError] = useState<string | null>(null);
-  const queryClient = useQueryClient();
 
-  const purchaseModule = useCallback(async (moduleId: string) => {
-    setStatus("loading");
-    setError(null);
+  const buyModule = useCallback(
+    async (moduleId: string, rcPackage: PurchasesPackage) => {
+      setStatus("loading");
+      setError(null);
 
-    try {
-      // 1. Create Checkout Session via Edge Function
-      const successUrl = Linking.createURL("/purchase/success");
-      const cancelUrl = Linking.createURL("/purchase/cancel");
+      const result = await purchaseModule(moduleId, rcPackage);
 
-      const { data, error: invokeError } = await supabase.functions.invoke("create-checkout", {
-        body: {
-          module_id: moduleId,
-          success_url: successUrl,
-          cancel_url: cancelUrl,
-        },
-      });
-
-      if (invokeError || !data?.url) {
-        throw new Error(invokeError?.message ?? "Failed to create checkout");
+      if (result.success) {
+        setStatus("success");
+        return { success: true };
       }
 
-      // 2. Open Stripe Checkout
-      setStatus("redirecting");
-      const result = await WebBrowser.openAuthSessionAsync(data.url, successUrl);
-
-      if (result.type !== "success") {
+      // User cancelled — return to idle silently
+      if (!result.error) {
         setStatus("idle");
         return { success: false, cancelled: true };
       }
 
-      // 3. Extract session_id from redirect URL
-      const url = new URL(result.url);
-      const sessionId = url.searchParams.get("session_id");
-
-      if (!sessionId) {
-        throw new Error("No session_id in redirect URL");
-      }
-
-      // 4. Verify purchase with Edge Function
-      setStatus("verifying");
-      const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
-        "verify-purchase",
-        { body: { session_id: sessionId } }
-      );
-
-      if (verifyError) throw new Error(verifyError.message);
-
-      if (verifyData?.status === "active") {
-        // 5. Invalidate access caches so UI updates immediately
-        await queryClient.invalidateQueries({ queryKey: ["module_access"] });
-        await queryClient.invalidateQueries({ queryKey: ["hierarchy"] });
-        await queryClient.invalidateQueries({ queryKey: ["quiz"] });
-        setStatus("success");
-        return { success: true, moduleId: verifyData.module_id };
-      } else {
-        // Payment pending (e.g. bank transfer)
-        setStatus("idle");
-        return { success: false, pending: true };
-      }
-
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Purchase failed";
-      setError(message);
+      setError(result.error);
       setStatus("error");
-      return { success: false, error: message };
-    }
-  }, [queryClient]);
+      return { success: false, error: result.error };
+    },
+    [purchaseModule],
+  );
+
+  const buySubject = useCallback(
+    async (subjectId: string, rcPackage: PurchasesPackage) => {
+      setStatus("loading");
+      setError(null);
+
+      const result = await purchaseSubject(subjectId, rcPackage);
+
+      if (result.success) {
+        setStatus("success");
+        return { success: true };
+      }
+
+      if (!result.error) {
+        setStatus("idle");
+        return { success: false, cancelled: true };
+      }
+
+      setError(result.error);
+      setStatus("error");
+      return { success: false, error: result.error };
+    },
+    [purchaseSubject],
+  );
+
+  const submitCode = useCallback(
+    async (code: string) => {
+      setStatus("loading");
+      setError(null);
+
+      const result = await redeemCode(code);
+
+      if (result.success) {
+        setStatus("success");
+        return { success: true, itemName: result.itemName };
+      }
+
+      setError(result.error ?? "Invalid code");
+      setStatus("error");
+      return { success: false, error: result.error };
+    },
+    [redeemCode],
+  );
+
+  const restorePurchase = useCallback(
+    async (moduleId: string, productId: string) => {
+      setStatus("loading");
+      setError(null);
+
+      const result = await restoreModule(moduleId, productId);
+
+      if (result.success) {
+        setStatus("success");
+        return { success: true };
+      }
+
+      setError(result.error ?? "No purchases found to restore.");
+      setStatus("error");
+      return { success: false, error: result.error };
+    },
+    [restoreModule],
+  );
 
   const reset = useCallback(() => {
     setStatus("idle");
     setError(null);
   }, []);
 
-  return { purchaseModule, status, error, reset };
+  return { buyModule, buySubject, submitCode, restorePurchase, status, error, reset };
 }

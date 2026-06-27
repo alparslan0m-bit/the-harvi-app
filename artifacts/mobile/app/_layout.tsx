@@ -17,6 +17,7 @@ import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
 
 import { ErrorBoundary } from "@/components";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { PurchaseProvider } from "@/context/PurchaseContext";
 import { SyncProvider } from "@/context/SyncContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 
@@ -80,9 +81,11 @@ export default function RootLayout() {
               <KeyboardProvider>
                 <ThemeProvider>
                   <AuthProvider>
-                    <SyncProvider>
-                      <RootLayoutNav fontsLoaded={fontsLoaded} fontError={fontError} />
-                    </SyncProvider>
+                    <PurchaseProvider>
+                      <SyncProvider>
+                        <RootLayoutNav fontsLoaded={fontsLoaded} fontError={fontError} />
+                      </SyncProvider>
+                    </PurchaseProvider>
                   </AuthProvider>
                 </ThemeProvider>
               </KeyboardProvider>

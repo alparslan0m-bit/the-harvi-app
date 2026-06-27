@@ -7,7 +7,8 @@ import { supabase } from "@/lib/supabase";
 
 export interface Purchase {
   id: string;
-  module_id: string;
+  module_id: string | null;
+  subject_id: string | null;
   amount_cents: number;
   currency: string;
   status: string;
@@ -46,7 +47,7 @@ async function fetchMyPurchases(userId: string): Promise<Purchase[]> {
   try {
     const { data, error } = await supabase
       .from("purchases")
-      .select("id, module_id, amount_cents, currency, status, created_at")
+      .select("id, module_id, subject_id, amount_cents, currency, status, created_at")
       .eq("status", "active")
       .order("created_at", { ascending: false });
 

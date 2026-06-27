@@ -97,7 +97,8 @@ export default function ModuleScreen() {
                     params: {
                       moduleId: module.id,
                       moduleName: module.name,
-                      priceDisplay: `$${((moduleAccess?.price_cents ?? 0) / 100).toFixed(2)}`
+                      priceDisplay: `$${((moduleAccess?.price_cents ?? 0) / 100).toFixed(2)}`,
+                      productId: module.external_price_id || "",
                     }
                   });
                 } else {

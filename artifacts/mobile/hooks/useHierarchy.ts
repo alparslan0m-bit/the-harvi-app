@@ -88,6 +88,7 @@ async function buildHierarchyFromRemote(): Promise<Year[]> {
       name: str(r.name ?? r.title),
       module_id: key,
       order: num(r.order ?? r.sort_order),
+      external_price_id: r.external_price_id ? str(r.external_price_id) : null,
       lectures: lecturesBySubject[str(r.id)] ?? [],
     });
   }
@@ -102,6 +103,7 @@ async function buildHierarchyFromRemote(): Promise<Year[]> {
       name: str(r.name ?? r.title),
       year_id: key,
       order: num(r.order ?? r.sort_order),
+      external_price_id: r.external_price_id ? str(r.external_price_id) : null,
       subjects: (subjectsByModule[str(r.id)] ?? []).sort((a, b) => a.order - b.order),
     });
   }
