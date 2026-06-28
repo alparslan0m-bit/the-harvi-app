@@ -13,7 +13,7 @@ export function ProfileThemeSelector() {
     <View style={styles.fieldGroup}>
       <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>APPEARANCE</Text>
       <View style={styles.themeRow}>
-        ([
+        {([
           { id: "harvi", label: "Harvi", icon: "activity" },
           { id: "dark", label: "Dark", icon: "moon" },
           { id: "pink", label: "Pink", icon: "heart" },

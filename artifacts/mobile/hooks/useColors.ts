@@ -5,7 +5,6 @@ export type ThemeColors = typeof colors.light & { radius: typeof colors.radius }
 
 export function useColors(): ThemeColors {
   const { theme } = useTheme();
-  const systemScheme = useColorScheme();
 
   const activeTheme = (theme === "harvi" ? "light" : theme) as "light" | "dark" | "pink";
   
