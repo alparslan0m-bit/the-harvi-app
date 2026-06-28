@@ -4,15 +4,18 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import { OptionButton } from "../ui/OptionButton";
 import { QuizImage } from "./QuizImage";
+import { Question, AnsweredState } from "@/types";
+import { ThemeColors } from "@/hooks/useColors";
+import { EdgeInsets } from "react-native-safe-area-context";
 
 interface QuizQuestionContentProps {
-  question: any;
+  question: Question;
   currentIndex: number;
-  answered: any;
+  answered: AnsweredState | null;
   isCorrectAnswer: boolean;
-  colors: any;
+  colors: ThemeColors;
   onSelect: (index: number) => void;
-  insets: any;
+  insets: EdgeInsets;
 }
 
 export function QuizQuestionContent({

@@ -1,13 +1,14 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { ThemeColors } from "@/hooks/useColors";
 
 interface QuizActiveHeaderProps {
   lectureName: string;
   currentIndex: number;
   totalQuestions: number;
   topPad: number;
-  colors: any;
+  colors: ThemeColors;
   onClose: () => void;
 }
 

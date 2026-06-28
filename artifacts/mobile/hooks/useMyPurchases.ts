@@ -20,7 +20,12 @@ const PURCHASES_CACHE_KEY = (uid: string) => `harvi:purchases:${uid}`;
 async function readCachedPurchases(userId: string): Promise<Purchase[] | null> {
   try {
     const raw = await AsyncStorage.getItem(PURCHASES_CACHE_KEY(userId));
-    return raw ? (JSON.parse(raw) as Purchase[]) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed as Purchase[];
+    }
+    return null;
   } catch {
     return null;
   }

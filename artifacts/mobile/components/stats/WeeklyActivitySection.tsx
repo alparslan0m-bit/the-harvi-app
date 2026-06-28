@@ -4,8 +4,9 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { WeeklyChart } from "@/components";
 import { useColors } from "@/hooks/useColors";
+import { UserStats } from "@/types";
 
-export function WeeklyActivitySection({ weekData }: { weekData: any[] }) {
+export function WeeklyActivitySection({ weekData }: { weekData: UserStats["weekly_activity"] }) {
   const colors = useColors();
   const total = weekData.reduce((s, d) => s + d.count, 0);
   return (

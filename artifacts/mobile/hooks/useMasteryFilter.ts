@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { UserStats } from "@/types";
 
 export type FilterKey = "all" | "strong" | "improving" | "weak";
 
@@ -8,7 +9,7 @@ export function masteryTier(m: number): FilterKey {
   return "weak";
 }
 
-export function useMasteryFilter(allData: any[]) {
+export function useMasteryFilter(allData: UserStats["subject_mastery"]) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
 

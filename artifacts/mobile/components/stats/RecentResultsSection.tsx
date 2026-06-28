@@ -3,8 +3,9 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { RecentResultCard } from "@/components";
 import { useColors } from "@/hooks/useColors";
+import { UserStats } from "@/types";
 
-export function RecentResultsSection({ results }: { results: any[] }) {
+export function RecentResultsSection({ results }: { results: UserStats["recent_results"] }) {
   const colors = useColors();
   return (
     <View style={styles.recentSection}>

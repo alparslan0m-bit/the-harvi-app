@@ -5,8 +5,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { MasteryBar } from "@/components";
 import { useColors } from "@/hooks/useColors";
+import { UserStats } from "@/types";
 
-export function MasterySection({ masteryData }: { masteryData: any[] }) {
+export function MasterySection({ masteryData }: { masteryData: UserStats["subject_mastery"] }) {
   const colors = useColors();
   return (
     <View

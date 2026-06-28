@@ -31,33 +31,34 @@ export function decryptAnswer(encrypted: string): { answer: number; explanation:
         decoded.charCodeAt(i) ^ XOR_KEY.charCodeAt(i % XOR_KEY.length)
       );
     }
-    const parsed = JSON.parse(decrypted);
-    if (typeof parsed.answer === "number") {
+    const parsed = JSON.parse(decrypted) as Record<string, unknown> | null;
+    if (parsed && typeof parsed === "object" && typeof parsed.answer === "number") {
       if (__DEV__) console.log("[decrypt] XOR path success");
-      return { answer: parsed.answer, explanation: parsed.explanation ?? "" };
+      return { answer: parsed.answer, explanation: typeof parsed.explanation === "string" ? parsed.explanation : "" };
     }
   } catch { /* fall through */ }
 
   // Try 2: Unicode-safe base64-encoded plain JSON (built by buildSecure)
   try {
     const decoded = safeAtob(encrypted);
-    const parsed = JSON.parse(decoded);
-    if (typeof parsed.answer === "number") {
+    const parsed = JSON.parse(decoded) as Record<string, unknown> | null;
+    if (parsed && typeof parsed === "object" && typeof parsed.answer === "number") {
       if (__DEV__) console.log("[decrypt] safeBtoa path success");
-      return { answer: parsed.answer, explanation: parsed.explanation ?? "" };
+      return { answer: parsed.answer, explanation: typeof parsed.explanation === "string" ? parsed.explanation : "" };
     }
   } catch { /* fall through */ }
 
   // Try 3: plain base64 JSON (ASCII only, older format)
   try {
     const decoded = atob(encrypted);
-    const parsed = JSON.parse(decoded);
-    if (typeof parsed.answer === "number") {
+    const parsed = JSON.parse(decoded) as Record<string, unknown> | null;
+    if (parsed && typeof parsed === "object" && typeof parsed.answer === "number") {
       if (__DEV__) console.log("[decrypt] plain btoa path success");
-      return { answer: parsed.answer, explanation: parsed.explanation ?? "" };
+      return { answer: parsed.answer, explanation: typeof parsed.explanation === "string" ? parsed.explanation : "" };
     }
   } catch { /* fall through */ }
 
   if (__DEV__) console.error("[decrypt] ALL PATHS FAILED — no valid answer for:", encrypted.slice(0, 20) + "...");
   return { answer: -1, explanation: "" };
 }
+

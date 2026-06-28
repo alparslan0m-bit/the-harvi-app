@@ -22,7 +22,11 @@ async function readQueue(): Promise<PendingQuizResult[]> {
   const raw = await AsyncStorage.getItem(QUEUE_KEY);
   if (!raw) return [];
   try {
-    return JSON.parse(raw) as PendingQuizResult[];
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed as PendingQuizResult[];
+    }
+    return [];
   } catch {
     return [];
   }

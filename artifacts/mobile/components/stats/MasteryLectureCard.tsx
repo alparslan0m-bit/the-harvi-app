@@ -7,15 +7,15 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { useColors } from "@/hooks/useColors";
+import { useColors, ThemeColors } from "@/hooks/useColors";
 
-function masteryColor(m: number, colors: any) {
+function masteryColor(m: number, colors: ThemeColors) {
   if (m >= 80) return colors.success;
   if (m >= 50) return colors.warning;
   return colors.destructive;
 }
 
-function masteryBg(m: number, colors: any) {
+function masteryBg(m: number, colors: ThemeColors) {
   if (m >= 80) return colors.success + "1A";
   if (m >= 50) return colors.warning + "1A";
   return colors.destructive + "1A";

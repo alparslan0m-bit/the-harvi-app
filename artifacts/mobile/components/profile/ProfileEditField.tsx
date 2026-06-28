@@ -8,7 +8,7 @@ interface Props {
   value: string;
   onChangeText?: (t: string) => void;
   placeholder?: string;
-  icon: string;
+  icon: keyof typeof Feather.glyphMap;
   readOnly?: boolean;
   note?: string;
   onClear?: () => void;
@@ -30,7 +30,7 @@ export function ProfileEditField({
         }
       ]}>
         {!readOnly && <View style={[styles.innerBorder, { borderColor: "rgba(255,255,255,0.1)" }]} />}
-        <Feather name={icon as any} size={16} color={colors.mutedForeground} style={styles.fieldIcon} />
+        <Feather name={icon} size={16} color={colors.mutedForeground} style={styles.fieldIcon} />
         
         {readOnly ? (
           <Text style={[styles.fieldReadOnly, { color: colors.mutedForeground }]} numberOfLines={1}>

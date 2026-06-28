@@ -43,7 +43,12 @@ export async function loadQuestionsFromCache(
   if (memoryCacheBypassed) return null;
   try {
     const raw = await AsyncStorage.getItem(KEY(lectureId));
-    return raw ? (JSON.parse(raw) as CachedLecture) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      return parsed as CachedLecture;
+    }
+    return null;
   } catch {
     return null;
   }

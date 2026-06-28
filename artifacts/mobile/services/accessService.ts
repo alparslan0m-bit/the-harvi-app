@@ -19,8 +19,11 @@ async function readCachedAccess(userId: string): Promise<Map<string, ContentAcce
   try {
     const raw = await AsyncStorage.getItem(ACCESS_CACHE_KEY(userId));
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Record<string, ContentAccessEntry>;
-    return new Map(Object.entries(parsed));
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      return new Map(Object.entries(parsed as Record<string, ContentAccessEntry>));
+    }
+    return null;
   } catch {
     return null;
   }

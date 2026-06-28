@@ -2,13 +2,16 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
+import { AnsweredState } from "@/types";
+import { ThemeColors } from "@/hooks/useColors";
+import { EdgeInsets } from "react-native-safe-area-context";
 
 interface QuizNextButtonProps {
-  answered: any;
+  answered: AnsweredState | null;
   isLast: boolean;
-  colors: any;
+  colors: ThemeColors;
   onNext: () => void;
-  insets: any;
+  insets: EdgeInsets;
 }
 
 export function QuizNextButton({

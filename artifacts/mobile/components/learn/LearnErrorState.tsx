@@ -3,7 +3,7 @@ import React from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useColors } from "@/hooks/useColors";
 
-export function LearnErrorState({ error, onRetry }: { error: any; onRetry: () => void }) {
+export function LearnErrorState({ error, onRetry }: { error: Error | null | undefined; onRetry: () => void }) {
   const colors = useColors();
   const msg = error?.message || "";
   const isRLS = msg.includes("row-level security") || msg.includes("42501");

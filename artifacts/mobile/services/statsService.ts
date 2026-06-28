@@ -46,7 +46,11 @@ async function readCache(userId: string): Promise<UserStats | null> {
   try {
     const raw = await AsyncStorage.getItem(CACHE_KEY(userId));
     if (!raw) return null;
-    return JSON.parse(raw) as UserStats;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      return parsed as UserStats;
+    }
+    return null;
   } catch {
     return null;
   }
@@ -87,9 +91,19 @@ async function buildLectureNameMap(): Promise<Map<string, string>> {
   return map;
 }
 
-// ── Core computation ─────────────────────────────────────────────────────────
+export interface DbStats {
+  total_quizzes?: number | null;
+  total_questions_answered?: number | null;
+  average_score?: number | null;
+  best_score?: number | null;
+  current_streak?: number | null;
+}
 
-function computeStats(rows: RawRow[], lectureMap: Map<string, string>, dbStats?: any): UserStats {
+function computeStats(
+  rows: RawRow[],
+  lectureMap: Map<string, string>,
+  dbStats?: DbStats | null
+): UserStats {
   if (!dbStats && rows.length === 0) return ZERO_STATS;
 
   const lectureName = (id: string) =>
@@ -101,6 +115,7 @@ function computeStats(rows: RawRow[], lectureMap: Map<string, string>, dbStats?:
   const average_score = dbStats?.average_score ?? 0;
   const best_score = dbStats?.best_score ?? 0;
   const streak = dbStats?.current_streak ?? 0;
+
 
   // ── Weekly activity ───────────────────────────────────────────────────────
   const today = new Date();
@@ -239,7 +254,7 @@ export async function fetchStats(userId: string): Promise<UserStats> {
   // ── Online path ────────────────────────────────────────────────────────
   let rows: RawRow[] = [];
   let lectureMap = new Map<string, string>();
-  let dbStats: any = null;
+  let dbStats: DbStats | null = null;
 
   try {
     const [statsRes, quizRes, map] = await Promise.all([

@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useColors } from "@/hooks/useColors";
 import { FilterKey } from "@/hooks/useMasteryFilter";
 
-const FILTERS: { key: FilterKey; label: string; icon: string }[] = [
+const FILTERS: { key: FilterKey; label: string; icon: keyof typeof Feather.glyphMap }[] = [
   { key: "all",       label: "All",        icon: "layers" },
   { key: "strong",    label: "Strong",     icon: "trending-up" },
   { key: "improving", label: "Improving",  icon: "activity" },
@@ -49,7 +49,7 @@ export function MasteryFilterChips({
             ]}
           >
             <Feather
-              name={f.icon as any}
+              name={f.icon}
               size={12}
               color={active ? "#fff" : colors.mutedForeground}
             />

@@ -23,7 +23,11 @@ async function readCache(userId: string): Promise<Set<string> | null> {
   const raw = await AsyncStorage.getItem(PROGRESS_CACHE_KEY(userId));
   if (!raw) return null;
   try {
-    return new Set(JSON.parse(raw) as string[]);
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return new Set(parsed as string[]);
+    }
+    return null;
   } catch {
     return null;
   }

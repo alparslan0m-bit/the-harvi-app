@@ -2,9 +2,11 @@ import React from "react";
 import { StyleSheet, View, StyleProp, ViewStyle } from "react-native";
 import Animated from "react-native-reanimated";
 
+import { ThemeColors } from "@/hooks/useColors";
+
 interface QuizProgressBarProps {
   progressStyle: StyleProp<ViewStyle>;
-  colors: any;
+  colors: ThemeColors;
 }
 
 export function QuizProgressBar({ progressStyle, colors }: QuizProgressBarProps) {

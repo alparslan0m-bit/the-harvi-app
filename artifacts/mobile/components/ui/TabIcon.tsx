@@ -16,8 +16,8 @@ interface TabIconProps {
  */
 export function TabIcon({ name, sfName, color, size = 22 }: TabIconProps) {
   if (Platform.OS === 'ios') {
-    // SymbolView names are typed in expo-symbols, using any to allow dynamic names
-    return <SymbolView name={sfName as any} tintColor={color} size={size + 2} />;
+    // Type safe component prop typecast instead of as any
+    return <SymbolView name={sfName as React.ComponentProps<typeof SymbolView>["name"]} tintColor={color} size={size + 2} />;
   }
   return <Feather name={name} size={size} color={color} />;
 }

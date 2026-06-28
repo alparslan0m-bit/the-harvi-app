@@ -70,7 +70,12 @@ export function parseOptions(raw: unknown): string[] {
     arr = raw;
   } else if (typeof raw === "string") {
     try {
-      arr = JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        arr = parsed;
+      } else {
+        return [raw];
+      }
     } catch {
       return [raw];
     }
@@ -162,15 +167,15 @@ export function buildSecure(row: Record<string, unknown>, options: string[]): st
           decoded.charCodeAt(i) ^ XOR_KEY.charCodeAt(i % XOR_KEY.length),
         );
       }
-      const parsed = JSON.parse(decrypted);
-      if (typeof parsed.answer === "number") {
+      const parsed = JSON.parse(decrypted) as Record<string, unknown> | null;
+      if (parsed && typeof parsed === "object" && typeof parsed.answer === "number") {
         // Secure field stores a resolved 0-based index — trust directly, just bounds-check
         const idx = Math.max(0, Math.min(parsed.answer, options.length - 1));
         if (__DEV__) console.log(`[db] Secure path success (XOR): direct index ${idx}`);
         return safeBtoa(
           JSON.stringify({
             answer: idx,
-            explanation: parsed.explanation ?? "",
+            explanation: typeof parsed.explanation === "string" ? parsed.explanation : "",
           }),
         );
       }
@@ -179,18 +184,19 @@ export function buildSecure(row: Record<string, unknown>, options: string[]): st
     }
 
     try {
-      const parsed = JSON.parse(rawSecure);
-      if (typeof parsed.answer === "number") {
+      const parsed = JSON.parse(rawSecure) as Record<string, unknown> | null;
+      if (parsed && typeof parsed === "object" && typeof parsed.answer === "number") {
         // JSON secure field stores a resolved 0-based index — trust directly, just bounds-check
         const idx = Math.max(0, Math.min(parsed.answer, options.length - 1));
         if (__DEV__) console.log(`[db] JSON path success: direct index ${idx}`);
         return safeBtoa(
           JSON.stringify({
             answer: idx,
-            explanation: parsed.explanation ?? "",
+            explanation: typeof parsed.explanation === "string" ? parsed.explanation : "",
           }),
         );
       }
+
     } catch {
       /* fall through */
     }

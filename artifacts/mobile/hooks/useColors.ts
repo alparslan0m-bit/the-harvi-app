@@ -1,15 +1,16 @@
-import { useColorScheme } from "react-native";
-
 import colors from "@/constants/colors";
 import { useTheme } from "@/context/ThemeContext";
 
-export function useColors() {
+export type ThemeColors = typeof colors.light & { radius: typeof colors.radius };
+
+export function useColors(): ThemeColors {
   const { theme } = useTheme();
   const systemScheme = useColorScheme();
 
-  const activeTheme = theme === "harvi" ? "light" : theme;
+  const activeTheme = (theme === "harvi" ? "light" : theme) as "light" | "dark" | "pink";
   
-  const palette = (colors as any)[activeTheme] || colors.light;
+  const palette = colors[activeTheme] || colors.light;
 
   return { ...palette, radius: colors.radius };
 }
+

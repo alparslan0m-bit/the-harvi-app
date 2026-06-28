@@ -13,11 +13,11 @@ export function ProfileThemeSelector() {
     <View style={styles.fieldGroup}>
       <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>APPEARANCE</Text>
       <View style={styles.themeRow}>
-        {[
+        ([
           { id: "harvi", label: "Harvi", icon: "activity" },
           { id: "dark", label: "Dark", icon: "moon" },
           { id: "pink", label: "Pink", icon: "heart" },
-        ].map((item) => {
+        ] as const).map((item) => {
           const active = theme === item.id;
           const accent = item.id === "pink" ? "#db2777" : colors.primary;
           return (
@@ -31,13 +31,13 @@ export function ProfileThemeSelector() {
                 }
               ]}
               onPress={() => {
-                setTheme(item.id as any);
+                setTheme(item.id);
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               }}
               activeOpacity={0.75}
             >
               <Feather 
-                name={item.icon as any} 
+                name={item.icon} 
                 size={16} 
                 color={active ? accent : colors.mutedForeground} 
               />

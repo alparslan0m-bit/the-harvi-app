@@ -1,6 +1,6 @@
 import React from "react";
 import { View } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, Href } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Platform } from "react-native";
 
@@ -92,7 +92,7 @@ export default function QuizScreen() {
           if (router.canGoBack()) {
             router.back();
           } else {
-            router.replace("/(tabs)" as any);
+            router.replace("/(tabs)" as Href);
           }
         }}
       />

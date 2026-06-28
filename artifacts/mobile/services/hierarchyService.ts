@@ -25,7 +25,12 @@ function detectFK(row: Record<string, unknown>, candidates: string[], table: str
 async function readCachedHierarchy(): Promise<Year[] | null> {
   try {
     const raw = await AsyncStorage.getItem(HIERARCHY_CACHE_KEY);
-    return raw ? (JSON.parse(raw) as Year[]) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed as Year[];
+    }
+    return null;
   } catch {
     return null;
   }

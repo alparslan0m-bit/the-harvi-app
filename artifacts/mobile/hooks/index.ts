@@ -1,5 +1,5 @@
-export { useAuthForm } from './useAuthForm';
 export { useColors } from './useColors';
+export type { ThemeColors } from './useColors';
 export { useFeedback } from './useFeedback';
 export { useHierarchy } from './useHierarchy';
 export { useLearnFlow } from './useLearnFlow';

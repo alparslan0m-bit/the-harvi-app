@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, Href } from "expo-router";
 import React, { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
@@ -11,7 +11,7 @@ export default function AuthCallbackScreen() {
 
   useEffect(() => {
     if (session) {
-      router.replace("/(tabs)" as any);
+      router.replace("/(tabs)" as Href);
     }
   }, [session]);
 

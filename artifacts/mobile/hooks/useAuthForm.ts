@@ -1,5 +1,5 @@
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
+import { router, Href } from "expo-router";
 import { useState } from "react";
 
 import { useAuth } from "@/context/AuthContext";
@@ -34,7 +34,7 @@ export function useAuthForm() {
       setLoading(false);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace("/(tabs)" as any);
+      router.replace("/(tabs)" as Href);
     }
   };
 
@@ -52,7 +52,7 @@ export function useAuthForm() {
       setError(err);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } else {
-      router.replace("/(tabs)" as any);
+      router.replace("/(tabs)" as Href);
     }
   };
 
