@@ -5,26 +5,19 @@
  * comes back online.
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { PendingQuizResult, PendingQuizResultSchema } from "@/types";
+import { z } from "zod";
 
 const QUEUE_KEY = "harvi:quiz_queue";
-
-export interface PendingQuizResult {
-  localId: string;
-  userId: string;
-  lectureId: string;
-  score: number;
-  totalQuestions: number;
-  correctAnswers: number;
-  createdAt: string;
-}
 
 async function readQueue(): Promise<PendingQuizResult[]> {
   const raw = await AsyncStorage.getItem(QUEUE_KEY);
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return parsed as PendingQuizResult[];
+    const result = z.array(PendingQuizResultSchema).safeParse(parsed);
+    if (result.success) {
+      return result.data;
     }
     return [];
   } catch {

@@ -3,7 +3,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { supabase } from "@/lib/supabase";
-import { Lecture, Module, Subject, Year } from "@/types";
+import { Lecture, Module, Subject, Year, YearWithModulesSchema } from "@/lib/schemas";
+import { z } from "zod";
 
 const HIERARCHY_CACHE_KEY = "harvi:hierarchy";
 
@@ -27,9 +28,11 @@ async function readCachedHierarchy(): Promise<Year[] | null> {
     const raw = await AsyncStorage.getItem(HIERARCHY_CACHE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return parsed as Year[];
+    const result = z.array(YearWithModulesSchema).safeParse(parsed);
+    if (result.success) {
+      return result.data;
     }
+    console.error("[Hierarchy] Cache validation failed:", result.error);
     return null;
   } catch {
     return null;
@@ -62,69 +65,72 @@ async function buildHierarchyFromRemote(): Promise<Year[]> {
   if (subjectsErr) throw new Error(`subjects: ${subjectsErr.message} (${subjectsErr.code})`);
   if (lecturesErr) throw new Error(`lectures: ${lecturesErr.message} (${lecturesErr.code})`);
 
-  const firstModule = (modules ?? [])[0] as Record<string, unknown> | undefined;
-  const firstSubject = (subjects ?? [])[0] as Record<string, unknown> | undefined;
-  const firstLecture = (lectures ?? [])[0] as Record<string, unknown> | undefined;
+  const toRec = (v: unknown): Record<string, unknown> =>
+    typeof v === "object" && v !== null ? (v as Record<string, unknown>) : {};
 
-  const yearFk = firstModule ? detectFK(firstModule, YEAR_FK_CANDIDATES, "modules") : "year_id";
-  const moduleFk = firstSubject ? detectFK(firstSubject, MODULE_FK_CANDIDATES, "subjects") : "module_id";
-  const subjectFk = firstLecture ? detectFK(firstLecture, SUBJECT_FK_CANDIDATES, "lectures") : "subject_id";
+  const firstModule = (modules ?? [])[0];
+  const firstSubject = (subjects ?? [])[0];
+  const firstLecture = (lectures ?? [])[0];
+
+  const yearFk = firstModule ? detectFK(toRec(firstModule), YEAR_FK_CANDIDATES, "modules") : "year_id";
+  const moduleFk = firstSubject ? detectFK(toRec(firstSubject), MODULE_FK_CANDIDATES, "subjects") : "module_id";
+  const subjectFk = firstLecture ? detectFK(toRec(firstLecture), SUBJECT_FK_CANDIDATES, "lectures") : "subject_id";
 
   const lecturesBySubject: Record<string, Lecture[]> = {};
   for (const lec of (lectures ?? [])) {
-    const r = lec as Record<string, unknown>;
+    const r = toRec(lec);
     const key = str(r[subjectFk]);
     if (!lecturesBySubject[key]) lecturesBySubject[key] = [];
-    lecturesBySubject[key].push({
-      id: str(r.id),
-      name: str(r.name ?? r.title),
-      external_id: str(r.external_id ?? r.id),
+    lecturesBySubject[key]!.push({
+      id: str(r["id"]),
+      name: str(r["name"] ?? r["title"]),
+      external_id: str(r["external_id"] ?? r["id"]),
       subject_id: key,
-      question_count: num(r.question_count),
+      question_count: num(r["question_count"]),
     });
   }
 
   const subjectsByModule: Record<string, Subject[]> = {};
   for (const sub of (subjects ?? [])) {
-    const r = sub as Record<string, unknown>;
+    const r = toRec(sub);
     const key = str(r[moduleFk]);
     if (!subjectsByModule[key]) subjectsByModule[key] = [];
-    subjectsByModule[key].push({
-      id: str(r.id),
-      name: str(r.name ?? r.title),
+    subjectsByModule[key]!.push({
+      id: str(r["id"]),
+      name: str(r["name"] ?? r["title"]),
       module_id: key,
-      order: num(r.order ?? r.sort_order),
-      external_price_id: r.external_price_id ? str(r.external_price_id) : null,
-      lectures: lecturesBySubject[str(r.id)] ?? [],
+      order: num(r["order"] ?? r["sort_order"]),
+      external_price_id: r["external_price_id"] ? str(r["external_price_id"]) : null,
+      lectures: lecturesBySubject[str(r["id"])] ?? [],
     });
   }
 
   const modulesByYear: Record<string, Module[]> = {};
   for (const mod of (modules ?? [])) {
-    const r = mod as Record<string, unknown>;
+    const r = toRec(mod);
     const key = str(r[yearFk]);
     if (!modulesByYear[key]) modulesByYear[key] = [];
-    modulesByYear[key].push({
-      id: str(r.id),
-      name: str(r.name ?? r.title),
+    modulesByYear[key]!.push({
+      id: str(r["id"]),
+      name: str(r["name"] ?? r["title"]),
       year_id: key,
-      order: num(r.order ?? r.sort_order),
-      external_price_id: r.external_price_id ? str(r.external_price_id) : null,
-      subjects: (subjectsByModule[str(r.id)] ?? []).sort((a, b) => a.order - b.order),
+      order: num(r["order"] ?? r["sort_order"]),
+      external_price_id: r["external_price_id"] ? str(r["external_price_id"]) : null,
+      subjects: (subjectsByModule[str(r["id"])] ?? []).sort((a, b) => a.order - b.order),
     });
   }
 
   const sortedYears = [...(years ?? [])].sort(
-    (a, b) => num((a as Record<string, unknown>).order) - num((b as Record<string, unknown>).order)
+    (a, b) => num(toRec(a)["order"]) - num(toRec(b)["order"])
   );
 
   return sortedYears.map((y) => {
-    const r = y as Record<string, unknown>;
+    const r = toRec(y);
     return {
-      id: str(r.id),
-      name: str(r.name ?? r.title),
-      order: num(r.order),
-      modules: (modulesByYear[str(r.id)] ?? []).sort((a, b) => a.order - b.order),
+      id: str(r["id"]),
+      name: str(r["name"] ?? r["title"]),
+      order: num(r["order"]),
+      modules: (modulesByYear[str(r["id"])] ?? []).sort((a, b) => a.order - b.order),
     };
   });
 }

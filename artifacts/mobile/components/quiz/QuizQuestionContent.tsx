@@ -11,7 +11,7 @@ import { EdgeInsets } from "react-native-safe-area-context";
 interface QuizQuestionContentProps {
   question: Question;
   currentIndex: number;
-  answered: AnsweredState | null;
+  answered?: AnsweredState | null;
   isCorrectAnswer: boolean;
   colors: ThemeColors;
   onSelect: (index: number) => void;

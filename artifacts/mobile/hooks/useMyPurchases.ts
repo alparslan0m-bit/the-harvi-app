@@ -5,15 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 
-export interface Purchase {
-  id: string;
-  module_id: string | null;
-  subject_id: string | null;
-  amount_cents: number;
-  currency: string;
-  status: string;
-  created_at: string;
-}
+import { Purchase, PurchaseSchema } from "@/lib/schemas";
+import { z } from "zod";
 
 const PURCHASES_CACHE_KEY = (uid: string) => `harvi:purchases:${uid}`;
 
@@ -22,8 +15,9 @@ async function readCachedPurchases(userId: string): Promise<Purchase[] | null> {
     const raw = await AsyncStorage.getItem(PURCHASES_CACHE_KEY(userId));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return parsed as Purchase[];
+    const result = z.array(PurchaseSchema).safeParse(parsed);
+    if (result.success) {
+      return result.data;
     }
     return null;
   } catch {
@@ -57,7 +51,18 @@ async function fetchMyPurchases(userId: string): Promise<Purchase[]> {
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-    const list = (data ?? []) as Purchase[];
+    const list: Purchase[] = (data ?? []).map((r) => {
+      const rec = typeof r === "object" && r !== null ? (r as Record<string, unknown>) : {};
+      return {
+        id: String(rec["id"] ?? ""),
+        module_id: rec["module_id"] ? String(rec["module_id"]) : null,
+        subject_id: rec["subject_id"] ? String(rec["subject_id"]) : null,
+        amount_cents: Number(rec["amount_cents"] ?? 0),
+        currency: String(rec["currency"] ?? ""),
+        status: String(rec["status"] ?? ""),
+        created_at: String(rec["created_at"] ?? ""),
+      };
+    });
     await writeCachedPurchases(userId, list);
     return list;
   } catch (err) {
@@ -72,7 +77,10 @@ export function useMyPurchases() {
 
   return useQuery({
     queryKey: ["my_purchases", user?.id],
-    queryFn: () => fetchMyPurchases(user!.id),
+    queryFn: async () => {
+      if (!user) throw new Error("Not logged in");
+      return fetchMyPurchases(user.id);
+    },
     enabled: !!user,
     staleTime: 1000 * 60 * 10,
     gcTime: 1000 * 60 * 60 * 24,

@@ -2,7 +2,7 @@
 
 import { decryptAnswer, safeBtoa } from "@/lib/crypto";
 import { supabase } from "@/lib/supabase";
-import { Question } from "@/types";
+import { Question } from "@/lib/schemas";
 import {
   buildSecure,
   IMAGE_URL_CANDIDATES,
@@ -54,7 +54,7 @@ export async function fetchQuestions(lectureId: string): Promise<Question[]> {
           const options = parseOptions(pick(row, OPTIONS_CANDIDATES));
           const imageUrl = str(pick(row, IMAGE_URL_CANDIDATES) ?? "").trim();
           return {
-            id: str(row.id ?? i),
+            id: str(row["id"] ?? i),
             text: str(pick(row, TEXT_CANDIDATES) ?? ""),
             options,
             secure: buildSecure(row, options),

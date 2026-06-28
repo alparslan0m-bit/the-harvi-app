@@ -4,14 +4,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 
 import { supabase } from "@/lib/supabase";
-
-export interface ContentAccessEntry {
-  item_id: string;
-  item_type: 'module' | 'subject';
-  has_access: boolean;
-  is_free: boolean;
-  price_cents: number;
-}
+import { ContentAccessEntry, ContentAccessEntrySchema } from "@/lib/schemas";
+import { z } from "zod";
 
 const ACCESS_CACHE_KEY = (uid: string) => `harvi:access:${uid}`;
 
@@ -20,8 +14,12 @@ async function readCachedAccess(userId: string): Promise<Map<string, ContentAcce
     const raw = await AsyncStorage.getItem(ACCESS_CACHE_KEY(userId));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === "object") {
-      return new Map(Object.entries(parsed as Record<string, ContentAccessEntry>));
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const schema = z.record(z.string(), ContentAccessEntrySchema);
+      const result = schema.safeParse(parsed);
+      if (result.success) {
+        return new Map(Object.entries(result.data));
+      }
     }
     return null;
   } catch {
@@ -53,8 +51,11 @@ export async function fetchContentAccess(userId: string): Promise<Map<string, Co
     if (error) throw error;
 
     const map = new Map<string, ContentAccessEntry>();
-    for (const row of (data ?? []) as ContentAccessEntry[]) {
-      map.set(row.item_id, row);
+    const entries = z.array(ContentAccessEntrySchema).safeParse(data ?? []);
+    if (entries.success) {
+      for (const row of entries.data) {
+        map.set(row.item_id, row);
+      }
     }
     await writeCachedAccess(userId, map);
     return map;

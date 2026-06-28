@@ -16,7 +16,7 @@ import { AnsweredState } from "@/types";
 interface Props {
   text: string;
   index: number;
-  answered: AnsweredState | null;
+  answered?: AnsweredState | null;
   onSelect: (i: number) => void;
 }
 

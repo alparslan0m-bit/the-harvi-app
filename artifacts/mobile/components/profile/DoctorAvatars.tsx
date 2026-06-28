@@ -31,7 +31,7 @@ function generateDoctorXml(
     backgroundColor: [bg.replace("#", "")],
     accessories: accessory ? [accessory] : [],
     facialHair: facialHair ? [facialHair] : [],
-  } as any).toString();
+  } as Parameters<typeof createAvatar>[1]).toString();
 }
 
 interface Cfg {

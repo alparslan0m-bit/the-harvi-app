@@ -5,7 +5,7 @@ import NetInfo from "@react-native-community/netinfo";
 
 import { getQueue } from "@/lib/offlineQueue";
 import { supabase } from "@/lib/supabase";
-import { UserStats } from "@/types";
+import { UserStats, UserStatsSchema } from "@/lib/schemas";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -46,11 +46,8 @@ async function readCache(userId: string): Promise<UserStats | null> {
   try {
     const raw = await AsyncStorage.getItem(CACHE_KEY(userId));
     if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === "object") {
-      return parsed as UserStats;
-    }
-    return null;
+    const result = UserStatsSchema.safeParse(JSON.parse(raw));
+    return result.success ? result.data : null;
   } catch {
     return null;
   }
@@ -83,9 +80,9 @@ async function buildLectureNameMap(): Promise<Map<string, string>> {
   const map = new Map<string, string>();
   if (error || !data) return map;
   for (const row of data) {
-    const r = row as Record<string, unknown>;
-    const id = String(r.id ?? "");
-    const name = String(r.name ?? "");
+    const r = typeof row === "object" && row !== null ? (row as Record<string, unknown>) : {};
+    const id = String(r["id"] ?? "");
+    const name = String(r["name"] ?? "");
     if (id && name) map.set(id, name);
   }
   return map;
@@ -273,7 +270,18 @@ export async function fetchStats(userId: string): Promise<UserStats> {
     ]);
 
     if (quizRes.error) throw quizRes.error;
-    rows = (quizRes.data ?? []) as RawRow[];
+    rows = (quizRes.data ?? []).map((r) => {
+      const rec = typeof r === "object" && r !== null ? (r as Record<string, unknown>) : {};
+      return {
+        id: String(rec["id"] ?? ""),
+        user_id: String(rec["user_id"] ?? ""),
+        lecture_id: String(rec["lecture_id"] ?? ""),
+        score: Number(rec["score"] ?? 0),
+        total_questions: Number(rec["total_questions"] ?? 0),
+        correct_answers: Number(rec["correct_answers"] ?? 0),
+        created_at: String(rec["created_at"] ?? ""),
+      };
+    });
     lectureMap = map;
     dbStats = statsRes.data;
   } catch {

@@ -1,12 +1,12 @@
 import { useRef, useCallback } from "react";
-import { Animated } from "react-native";
+import { Animated, ScrollView } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 /**
  * Hook to manage the standard fade-in and slide-up animation for screens.
  * Includes automatic scroll-to-top on focus.
  */
-export function useScreenAnimation(scrollRef?: React.RefObject<any>) {
+export function useScreenAnimation(scrollRef?: React.RefObject<ScrollView>) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const translateY = fadeAnim.interpolate({

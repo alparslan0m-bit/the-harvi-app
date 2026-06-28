@@ -37,8 +37,8 @@ import { supabase } from "@/lib/supabase";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 
-const SUPABASE_URL = (process.env.EXPO_PUBLIC_SUPABASE_URL ?? "").replace(/\/$/, "");
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? "";
+const SUPABASE_URL = (process.env["EXPO_PUBLIC_SUPABASE_URL"] ?? "").replace(/\/$/, "");
+const SUPABASE_ANON_KEY = process.env["EXPO_PUBLIC_SUPABASE_ANON_KEY"] ?? "";
 
 /** Returns true if the URL looks like a direct image file rather than a webpage. */
 function looksLikeImageUrl(uri: string): boolean {

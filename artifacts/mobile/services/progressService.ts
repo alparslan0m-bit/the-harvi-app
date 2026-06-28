@@ -5,6 +5,7 @@ import NetInfo from "@react-native-community/netinfo";
 
 import { getQueue } from "@/lib/offlineQueue";
 import { supabase } from "@/lib/supabase";
+import { z } from "zod";
 
 const PROGRESS_CACHE_KEY = (uid: string) => `harvi:progress:${uid}`;
 
@@ -24,8 +25,9 @@ async function readCache(userId: string): Promise<Set<string> | null> {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return new Set(parsed as string[]);
+    const result = z.array(z.string()).safeParse(parsed);
+    if (result.success) {
+      return new Set(result.data);
     }
     return null;
   } catch {
@@ -114,10 +116,14 @@ export async function fetchCompletedLectures(userId: string): Promise<Set<string
         throw error;                           // real error → fall through to catch
       }
 
-      if (data && data.length > 0) {
-        const ids = (data as any[])
-          .map((r) => r[col])
-          .filter((v) => v != null && String(v) !== "null" && String(v).length > 0)
+      if (data && Array.isArray(data) && data.length > 0) {
+        const ids = data
+          .filter((r): r is Record<string, unknown> => typeof r === "object" && r !== null)
+          .map((r) => {
+            const val: unknown = r[col];
+            return val;
+          })
+          .filter((v): v is string | number => v != null && String(v) !== "null" && String(v).length > 0)
           .map((v) => String(v));
 
         if (ids.length > 0) {
@@ -135,7 +141,9 @@ export async function fetchCompletedLectures(userId: string): Promise<Set<string
 
   // Merge still-queued IDs (submitted offline, not yet synced)
   const pending = await queuedIds(userId);
-  pending.forEach((id) => result!.add(id));
+  pending.forEach((id) => {
+    if (result) result.add(id);
+  });
 
   // Persist for offline use + update memCache
   await writeProgressCache(userId, result);

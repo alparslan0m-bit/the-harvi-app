@@ -39,7 +39,10 @@ export function useProgress() {
 
   const query = useQuery({
     queryKey: ["progress", user?.id],
-    queryFn: () => fetchCompletedLectures(user!.id),
+    queryFn: () => {
+      if (!user?.id) throw new Error("User required");
+      return fetchCompletedLectures(user.id);
+    },
     enabled: !!user?.id,
     // Serve last-known data synchronously — no loading spinner or blank counts
     initialData: memData,

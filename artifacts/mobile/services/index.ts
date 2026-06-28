@@ -8,4 +8,4 @@ export {
 } from './progressService';
 export { fetchHierarchy } from './hierarchyService';
 export { fetchContentAccess } from './accessService';
-export type { ContentAccessEntry } from './accessService';
+

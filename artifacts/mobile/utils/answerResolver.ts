@@ -37,7 +37,7 @@ export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+    [a[i] as T, a[j] as T] = [a[j] as T, a[i] as T];
   }
   return a;
 }
@@ -48,13 +48,13 @@ export function extractOptionText(item: unknown): string {
   if (item !== null && typeof item === "object") {
     const obj = item as Record<string, unknown>;
     const val =
-      obj.text ??
-      obj.option ??
-      obj.value ??
-      obj.label ??
-      obj.content ??
-      obj.name ??
-      obj.body;
+      obj["text"] ??
+      obj["option"] ??
+      obj["value"] ??
+      obj["label"] ??
+      obj["content"] ??
+      obj["name"] ??
+      obj["body"];
     if (val !== undefined) return str(val);
     const firstStr = Object.values(obj).find((v) => typeof v === "string");
     if (firstStr !== undefined) return str(firstStr);
@@ -126,20 +126,26 @@ export function resolveAnswerIndex(rawAnswer: unknown, options: string[]): numbe
         د: 3,
         ا: 0,
       };
-      if (trimmed in arabicMap && arabicMap[trimmed] < n)
-        return arabicMap[trimmed];
+      const val = arabicMap[trimmed];
+      if (val !== undefined && val < n) return val;
     }
 
     // 4. Substring matching (Last resort — only if exactly ONE option matches)
     const containedMatches = options
       .map((o, i) => ({ i, text: o.trim().toLowerCase() }))
       .filter(({ text }) => lower.includes(text) && text.length > 5);
-    if (containedMatches.length === 1) return containedMatches[0].i;
+    if (containedMatches.length === 1) {
+      const match = containedMatches[0];
+      if (match) return match.i;
+    }
 
     const subMatches = options
       .map((o, i) => ({ i, text: o.trim().toLowerCase() }))
       .filter(({ text }) => text.includes(lower) && lower.length > 5);
-    if (subMatches.length === 1) return subMatches[0].i;
+    if (subMatches.length === 1) {
+      const match = subMatches[0];
+      if (match) return match.i;
+    }
   }
 
   if (typeof rawAnswer === "number") {
@@ -167,15 +173,15 @@ export function buildSecure(row: Record<string, unknown>, options: string[]): st
           decoded.charCodeAt(i) ^ XOR_KEY.charCodeAt(i % XOR_KEY.length),
         );
       }
-      const parsed = JSON.parse(decrypted) as Record<string, unknown> | null;
-      if (parsed && typeof parsed === "object" && typeof parsed.answer === "number") {
+      const parsed = JSON.parse(decrypted);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && "answer" in parsed && typeof parsed["answer"] === "number") {
         // Secure field stores a resolved 0-based index — trust directly, just bounds-check
-        const idx = Math.max(0, Math.min(parsed.answer, options.length - 1));
+        const idx = Math.max(0, Math.min(parsed["answer"], options.length - 1));
         if (__DEV__) console.log(`[db] Secure path success (XOR): direct index ${idx}`);
         return safeBtoa(
           JSON.stringify({
             answer: idx,
-            explanation: typeof parsed.explanation === "string" ? parsed.explanation : "",
+            explanation: "explanation" in parsed && typeof parsed["explanation"] === "string" ? parsed["explanation"] : "",
           }),
         );
       }
@@ -184,15 +190,15 @@ export function buildSecure(row: Record<string, unknown>, options: string[]): st
     }
 
     try {
-      const parsed = JSON.parse(rawSecure) as Record<string, unknown> | null;
-      if (parsed && typeof parsed === "object" && typeof parsed.answer === "number") {
+      const parsed = JSON.parse(rawSecure);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && "answer" in parsed && typeof parsed["answer"] === "number") {
         // JSON secure field stores a resolved 0-based index — trust directly, just bounds-check
-        const idx = Math.max(0, Math.min(parsed.answer, options.length - 1));
+        const idx = Math.max(0, Math.min(parsed["answer"], options.length - 1));
         if (__DEV__) console.log(`[db] JSON path success: direct index ${idx}`);
         return safeBtoa(
           JSON.stringify({
             answer: idx,
-            explanation: typeof parsed.explanation === "string" ? parsed.explanation : "",
+            explanation: "explanation" in parsed && typeof parsed["explanation"] === "string" ? parsed["explanation"] : "",
           }),
         );
       }

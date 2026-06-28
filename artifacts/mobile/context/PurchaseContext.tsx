@@ -15,8 +15,8 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 
 // Set these in your .env or replace with actual keys from RevenueCat dashboard
-const REVENUECAT_IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? "";
-const REVENUECAT_ANDROID_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ?? "";
+const REVENUECAT_IOS_KEY = process.env["EXPO_PUBLIC_REVENUECAT_IOS_KEY"] ?? "";
+const REVENUECAT_ANDROID_KEY = process.env["EXPO_PUBLIC_REVENUECAT_ANDROID_KEY"] ?? "";
 
 interface PurchaseContextType {
   isReady: boolean;
@@ -63,7 +63,7 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
           Purchases.setLogLevel(LOG_LEVEL.DEBUG);
         }
 
-        Purchases.configure({ apiKey, appUserID: user?.id ?? undefined });
+        Purchases.configure({ apiKey, appUserID: user?.id ?? null });
 
         const info = await Purchases.getCustomerInfo();
         setCustomerInfo(info);
@@ -149,11 +149,16 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
         await invalidateAccess();
 
         return { success: true };
-      } catch (e: any) {
-        if (e.userCancelled) {
-          return { success: false, error: undefined };
+      } catch (e: unknown) {
+        if (typeof e === "object" && e !== null) {
+          if ("userCancelled" in e && e.userCancelled) {
+            return { success: false };
+          }
+          if ("message" in e && typeof e.message === "string") {
+            return { success: false, error: e.message };
+          }
         }
-        return { success: false, error: e.message ?? "Purchase failed" };
+        return { success: false, error: "Purchase failed" };
       }
     },
     [recordIAP, invalidateAccess],
@@ -178,11 +183,16 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
         await invalidateAccess();
 
         return { success: true };
-      } catch (e: any) {
-        if (e.userCancelled) {
-          return { success: false, error: undefined };
+      } catch (e: unknown) {
+        if (typeof e === "object" && e !== null) {
+          if ("userCancelled" in e && e.userCancelled) {
+            return { success: false };
+          }
+          if ("message" in e && typeof e.message === "string") {
+            return { success: false, error: e.message };
+          }
         }
-        return { success: false, error: e.message ?? "Purchase failed" };
+        return { success: false, error: "Purchase failed" };
       }
     },
     [recordIAP, invalidateAccess],
@@ -200,20 +210,25 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
           return { success: false, error: error.message };
         }
 
-        const result = data as {
-          success: boolean;
-          error?: string;
-          item_name?: string;
-        };
+        if (!data || typeof data !== "object") {
+          return { success: false, error: "Invalid response from server" };
+        }
+        
+        const success = "success" in data ? Boolean(data.success) : false;
+        const resultError = "error" in data && typeof data.error === "string" ? data.error : undefined;
+        const itemName = "item_name" in data && typeof data.item_name === "string" ? data.item_name : undefined;
 
-        if (!result.success) {
-          return { success: false, error: result.error ?? "Redemption failed" };
+        if (!success) {
+          return { success: false, error: resultError ?? "Redemption failed" };
         }
 
         await invalidateAccess();
-        return { success: true, itemName: result.item_name };
-      } catch (e: any) {
-        return { success: false, error: e.message ?? "Redemption failed" };
+        return { success: true, itemName };
+      } catch (e: unknown) {
+        if (typeof e === "object" && e !== null && "message" in e && typeof e.message === "string") {
+          return { success: false, error: e.message };
+        }
+        return { success: false, error: "Redemption failed" };
       }
     },
     [invalidateAccess],
@@ -255,8 +270,11 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
           return { success: true };
         }
         return { success: false, error: "No purchase found to restore for this product." };
-      } catch (e: any) {
-        return { success: false, error: e.message ?? "Restore failed" };
+      } catch (e: unknown) {
+        if (typeof e === "object" && e !== null && "message" in e && typeof e.message === "string") {
+          return { success: false, error: e.message };
+        }
+        return { success: false, error: "Restore failed" };
       }
     },
     [recordIAP, invalidateAccess],

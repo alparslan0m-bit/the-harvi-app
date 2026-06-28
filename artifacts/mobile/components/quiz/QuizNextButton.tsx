@@ -7,7 +7,7 @@ import { ThemeColors } from "@/hooks/useColors";
 import { EdgeInsets } from "react-native-safe-area-context";
 
 interface QuizNextButtonProps {
-  answered: AnsweredState | null;
+  answered?: AnsweredState | null;
   isLast: boolean;
   colors: ThemeColors;
   onNext: () => void;

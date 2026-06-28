@@ -7,18 +7,11 @@
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { Question } from "@/types";
+import { CachedLecture, CachedLectureSchema, Question } from "@/types";
 
 const KEY = (id: string) => `harvi:qcache:${id}`;
 
 let memoryCacheBypassed = false;
-
-export interface CachedLecture {
-  questions: Question[];
-  /** Number of questions at download time — used for staleness detection */
-  questionCount: number;
-  downloadedAt: string;
-}
 
 export async function saveQuestionsToCache(
   lectureId: string,
@@ -45,10 +38,8 @@ export async function loadQuestionsFromCache(
     const raw = await AsyncStorage.getItem(KEY(lectureId));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === "object") {
-      return parsed as CachedLecture;
-    }
-    return null;
+    const result = CachedLectureSchema.safeParse(parsed);
+    return result.success ? result.data : null;
   } catch {
     return null;
   }
