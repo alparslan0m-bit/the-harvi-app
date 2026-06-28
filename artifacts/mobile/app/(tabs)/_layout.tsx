@@ -1,4 +1,3 @@
-import { BlurView } from "expo-blur";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
@@ -26,9 +25,9 @@ function ClassicTabLayout() {
         tabBarInactiveTintColor: colors.mutedForeground,
         headerShown: false,
         tabBarStyle: {
-          position: "absolute",
-          backgroundColor: isIOS ? "transparent" : colors.card,
-          borderTopWidth: 0,
+          backgroundColor: colors.card,
+          borderTopWidth: 1.5,
+          borderTopColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.03)",
           elevation: 0,
           shadowColor: "transparent",
           shadowOffset: { width: 0, height: 0 },
@@ -37,27 +36,6 @@ function ClassicTabLayout() {
           paddingBottom: isWeb ? 0 : Math.max(insets.bottom - 6, 4),
           ...(isWeb ? { height: 90 } : { height: 55 + Math.max(insets.bottom - 6, 4) }),
         },
-        tabBarBackground: () => (
-          <View style={StyleSheet.absoluteFill}>
-            {isIOS ? (
-              <BlurView
-                intensity={85}
-                tint={isDark ? "dark" : "light"}
-                style={StyleSheet.absoluteFill}
-              />
-            ) : (
-              <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.card }]} />
-            )}
-            {/* Rim-light top border */}
-            <View style={{
-              height: 1.5,
-              backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.03)",
-              width: "100%",
-              position: "absolute",
-              top: 0,
-            }} />
-          </View>
-        ),
         tabBarLabelStyle: {
           fontFamily: "Inter_700Bold",
           fontSize: 11,
