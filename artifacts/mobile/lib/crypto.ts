@@ -1,4 +1,4 @@
-const XOR_KEY = "harvi-quiz-secure-key-2024";
+export const XOR_KEY = "harvi-quiz-secure-key-2024";
 
 /** Unicode-safe base64 encode */
 export function safeBtoa(str: string): string {
@@ -33,7 +33,7 @@ export function decryptAnswer(encrypted: string): { answer: number; explanation:
     }
     const parsed = JSON.parse(decrypted);
     if (typeof parsed.answer === "number") {
-      console.log("[decrypt] XOR path success");
+      if (__DEV__) console.log("[decrypt] XOR path success");
       return { answer: parsed.answer, explanation: parsed.explanation ?? "" };
     }
   } catch { /* fall through */ }
@@ -43,7 +43,7 @@ export function decryptAnswer(encrypted: string): { answer: number; explanation:
     const decoded = safeAtob(encrypted);
     const parsed = JSON.parse(decoded);
     if (typeof parsed.answer === "number") {
-      console.log("[decrypt] safeBtoa path success");
+      if (__DEV__) console.log("[decrypt] safeBtoa path success");
       return { answer: parsed.answer, explanation: parsed.explanation ?? "" };
     }
   } catch { /* fall through */ }
@@ -53,11 +53,11 @@ export function decryptAnswer(encrypted: string): { answer: number; explanation:
     const decoded = atob(encrypted);
     const parsed = JSON.parse(decoded);
     if (typeof parsed.answer === "number") {
-      console.log("[decrypt] plain btoa path success");
+      if (__DEV__) console.log("[decrypt] plain btoa path success");
       return { answer: parsed.answer, explanation: parsed.explanation ?? "" };
     }
   } catch { /* fall through */ }
 
-  console.error("[decrypt] ALL PATHS FAILED — no valid answer for:", encrypted.slice(0, 20) + "...");
+  if (__DEV__) console.error("[decrypt] ALL PATHS FAILED — no valid answer for:", encrypted.slice(0, 20) + "...");
   return { answer: -1, explanation: "" };
 }
