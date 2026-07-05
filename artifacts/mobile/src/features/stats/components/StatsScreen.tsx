@@ -31,7 +31,7 @@ import { useScreenAnimation } from "@/src/shared/hooks/useScreenAnimation";
 /**
  * StatsScreen - Refactored for modularity and performance.
  */
-export default function StatsScreen() {
+export function StatsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();

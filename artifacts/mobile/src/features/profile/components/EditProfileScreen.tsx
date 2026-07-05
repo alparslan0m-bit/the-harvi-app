@@ -19,7 +19,7 @@ import { useProfileEdit } from "@/src/features/profile/hooks/useProfileEdit";
  * EditProfileScreen - Refactored for modularity.
  * Handles user profile updates, including name, avatar, and theme selection.
  */
-export default function EditProfileScreen() {
+export function EditProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();

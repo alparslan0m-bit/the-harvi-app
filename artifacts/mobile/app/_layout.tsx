@@ -47,12 +47,12 @@ function RootLayoutNav({ fontsLoaded, fontError }: { fontsLoaded: boolean; fontE
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="auth" options={{ headerShown: false }} />
-      <Stack.Screen name="quiz/[lectureId]" options={{ headerShown: false }} />
-      <Stack.Screen name="purchase/[moduleId]" options={{ presentation: 'modal' }} />
-      <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
-      <Stack.Screen name="profile/edit" options={{ headerShown: false }} />
+      <Stack.Screen name="(main)/(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
+      <Stack.Screen name="(main)/quiz/[lectureId]" options={{ headerShown: false }} />
+      <Stack.Screen name="(main)/purchase/[moduleId]" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="(auth)/callback" options={{ headerShown: false }} />
+      <Stack.Screen name="(main)/profile/edit" options={{ headerShown: false }} />
       <Stack.Screen
         name="+not-found"
         options={{ headerShown: true, title: "Not Found" }}

@@ -22,7 +22,7 @@ import { useColors } from "@/src/shared/hooks/useColors";
 
 type Tab = "buy" | "code";
 
-export default function PurchaseScreen() {
+export function PurchaseScreen() {
   const { moduleId, moduleName, priceDisplay, productId } = useLocalSearchParams<{
     moduleId: string;
     moduleName: string;

@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect } from "react";
+import React from "react";
 import {
   Platform,
   ScrollView,
@@ -11,27 +11,23 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { SubjectCard } from "@/src/features/learn";
+import { ModuleCard } from "@/src/features/learn";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { useHierarchy } from "@/src/features/learn/hooks/useHierarchy";
-import { useProgress } from "@/src/features/learn/hooks/useProgress";
 import { useModuleAccess } from "@/src/features/learn/hooks/useModuleAccess";
 
-export default function ModuleScreen() {
+export function YearScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: years } = useHierarchy();
   const { data: accessMap } = useModuleAccess();
-  const completedIds = useProgress();
-
-  const module = years?.flatMap((y) => y.modules).find((m) => m.id === id);
-  const moduleAccess = accessMap?.get(id);
-  const hasModuleAccess = moduleAccess?.has_access || moduleAccess?.is_free;
+  
+  const year = years?.find((y) => y.id === id);
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
 
-  if (!module) return null;
+  if (!year) return null;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -56,7 +52,7 @@ export default function ModuleScreen() {
           style={[styles.headerTitle, { color: colors.foreground }]}
           numberOfLines={2}
         >
-          {module.name}
+          {year.name}
         </Text>
       </View>
 
@@ -68,55 +64,33 @@ export default function ModuleScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>
-          SUBJECTS
+          MODULES
         </Text>
 
-        {module.subjects.map((sub, i) => {
-          const completedCount = sub.lectures.filter(
-            (lec) =>
-              completedIds.has(lec.external_id) || completedIds.has(lec.id),
-          ).length;
-
-          // Subject-level access check
-          const subAccess = accessMap?.get(sub.id);
-          const isLocked = !hasModuleAccess && !subAccess?.has_access && !subAccess?.is_free;
-          const isFreePreview = !!(!hasModuleAccess && (subAccess?.is_free || sub.is_free));
+        {year.modules.map((mod, i) => {
+          const access = accessMap?.get(mod.id);
+          const hasAccess = access?.has_access ?? false;
+          const isFree = access?.is_free ?? (access?.price_cents === 0);
 
           return (
-            <SubjectCard
-              key={sub.id}
-              subject={sub}
+            <ModuleCard
+              key={mod.id}
+              module={mod}
               index={i}
-              completedCount={completedCount}
-              isLocked={isLocked}
-              isFreePreview={isFreePreview}
+              hasAccess={hasAccess}
+              isFree={isFree}
               onPress={() => {
-                if (isLocked) {
-                  router.push({
-                    pathname: "/purchase/[moduleId]",
-                    params: {
-                      moduleId: module.id,
-                      moduleName: module.name,
-                      priceDisplay: `$${((moduleAccess?.price_cents ?? 0) / 100).toFixed(2)}`,
-                      productId: module.external_price_id || "",
-                    }
-                  });
-                } else {
-                  router.push({
-                    pathname: "/subject/[id]",
-                    params: { id: sub.id },
-                  });
-                }
+                router.push({ pathname: "/module/[id]", params: { id: mod.id } });
               }}
             />
           );
         })}
 
-        {module.subjects.length === 0 && (
+        {year.modules.length === 0 && (
           <View style={styles.empty}>
             <Feather name="inbox" size={36} color={colors.mutedForeground} />
             <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-              No subjects yet
+              No modules yet
             </Text>
           </View>
         )}

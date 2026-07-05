@@ -19,7 +19,7 @@ import { useLearnFlow } from "@/src/features/learn/hooks/useLearnFlow";
  * LearnScreen - Refactored for modularity.
  * The main dashboard displaying the learning hierarchy (Years -> Modules).
  */
-export default function LearnScreen() {
+export function LearnScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { data: years, isLoading, error, refetch } = useHierarchy();

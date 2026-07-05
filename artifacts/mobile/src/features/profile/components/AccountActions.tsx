@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, Alert, StyleSheet } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
+import { router, Href } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { clearStatsCache } from "@/src/features/stats/hooks/useStats";
@@ -98,7 +98,7 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
   const handleInternalSignOut = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     await onSignOut();
-    router.replace("/auth");
+    router.replace("/login" as Href);
   };
 
   return (

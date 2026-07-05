@@ -30,7 +30,7 @@ const googleIconStyles = StyleSheet.create({
   g: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#4285F4", letterSpacing: -0.5 },
 });
 
-export default function AuthScreen() {
+export function AuthScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const {

@@ -23,7 +23,7 @@ import { useScreenAnimation } from "@/src/shared/hooks/useScreenAnimation";
  * ProfileScreen - Refactored to be thin and readable.
  * Follows Phase 7 of the Senior Refactor Skill.
  */
-export default function ProfileScreen() {
+export function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { user, signOut } = useAuth();

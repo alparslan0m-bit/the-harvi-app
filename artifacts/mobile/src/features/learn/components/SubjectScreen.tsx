@@ -17,7 +17,7 @@ import { useHierarchy } from "@/src/features/learn/hooks/useHierarchy";
 import { useProgress } from "@/src/features/learn/hooks/useProgress";
 import { useSubjectCache } from "@/src/features/learn/hooks/useSubjectCache";
 
-export default function SubjectScreen() {
+export function SubjectScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();

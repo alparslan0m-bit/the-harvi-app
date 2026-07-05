@@ -12,7 +12,7 @@ interface SupabaseSetupHelperProps {
 
 export function SupabaseSetupHelper({ showSetup, onToggle }: SupabaseSetupHelperProps) {
   const colors = useColors();
-  const redirectUrl = Linking.createURL("/auth/callback");
+  const redirectUrl = Linking.createURL("/callback");
 
   return (
     <>
@@ -73,7 +73,7 @@ export function SupabaseSetupHelper({ showSetup, onToggle }: SupabaseSetupHelper
 
           <Text style={styles.setupNote}>
             Also add:{"\n"}
-            • <Text style={styles.monoSmall}>mobile://auth/callback</Text>
+            • <Text style={styles.monoSmall}>mobile://callback</Text>
             {"\n"}
             • <Text style={styles.monoSmall}>exp://**</Text> (wildcard for Expo Go){"\n\n"}
             Then in Supabase → Auth → Providers → Google, make sure Google is enabled and your OAuth credentials are set.

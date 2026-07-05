@@ -15,3 +15,5 @@ export * from './MasteryFilterChips';
 export * from './MasterySummaryPills';
 export * from './MasteryLectureCard';
 export * from './MasteryEmptyState';
+export * from "./StatsScreen";
+export * from "./MasteryScreen";

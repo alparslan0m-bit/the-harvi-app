@@ -17,7 +17,7 @@ import {
 import { useColors } from "@/src/shared/hooks/useColors";
 import { useQuizSession } from "@/src/features/quiz/hooks/useQuizSession";
 
-export default function QuizScreen() {
+export function QuizScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { lectureId, lectureName } = useLocalSearchParams<{

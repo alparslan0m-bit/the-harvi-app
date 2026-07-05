@@ -20,7 +20,7 @@ import { useMasteryFilter } from "@/src/features/learn/hooks/useMasteryFilter";
  * MasteryScreen - Refactored for modularity.
  * Displays a detailed leaderboard of lecture mastery with search and filtering.
  */
-export default function MasteryScreen() {
+export function MasteryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();

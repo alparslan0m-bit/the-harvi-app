@@ -10,3 +10,4 @@ export * from './QuizReviewScreen';
 export * from './ScoreRing';
 export * from './StatPill';
 
+export * from "./QuizScreen";

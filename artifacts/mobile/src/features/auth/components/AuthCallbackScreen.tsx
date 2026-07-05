@@ -5,7 +5,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useAuth } from "@/src/shared/store/authStore";
 import { useColors } from "@/src/shared/hooks/useColors";
 
-export default function AuthCallbackScreen() {
+export function AuthCallbackScreen() {
   const colors = useColors();
   const { session } = useAuth();
 

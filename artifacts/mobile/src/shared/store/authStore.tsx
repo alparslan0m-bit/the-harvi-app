@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   signInWithGoogle: async () => {
     try {
-      const redirectTo = Linking.createURL("/auth/callback");
+      const redirectTo = Linking.createURL("/callback");
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {

@@ -6,3 +6,5 @@ export * from './ProfileEditHeader';
 export * from './ProfileAvatarSection';
 export * from './ProfileEditField';
 export * from './ProfileThemeSelector';
+export * from "./ProfileScreen";
+export * from "./EditProfileScreen";

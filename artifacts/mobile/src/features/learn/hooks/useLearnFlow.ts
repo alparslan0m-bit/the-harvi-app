@@ -1,5 +1,5 @@
 import { useFocusEffect, useScrollToTop } from "@react-navigation/native";
-import { router } from "expo-router";
+import { router, Href } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import { Animated, ScrollView } from "react-native";
 import { useAuth } from "@/src/shared/store/authStore";
@@ -11,7 +11,7 @@ export function useLearnFlow(scrollRef: React.RefObject<ScrollView | null>) {
   // 1. Auth Guard
   useEffect(() => {
     if (!authLoading && !session) {
-      router.replace("/auth");
+      router.replace("/login" as Href);
     }
   }, [session, authLoading]);
 
