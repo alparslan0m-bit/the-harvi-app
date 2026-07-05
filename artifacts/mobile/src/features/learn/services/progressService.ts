@@ -118,7 +118,7 @@ export async function fetchCompletedLectures(userId: string): Promise<Set<string
 
       if (data && Array.isArray(data) && data.length > 0) {
         const ids = data
-          .filter((r: any): r is Record<string, unknown> => typeof r === "object" && r !== null)
+          .filter((r: unknown): r is Record<string, unknown> => typeof r === "object" && r !== null)
           .map((r) => {
             const val: unknown = r[col as keyof typeof r];
             return val;

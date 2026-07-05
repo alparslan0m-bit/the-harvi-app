@@ -73,8 +73,9 @@ export function usePurchaseActions() {
         return { success: true };
       } catch (e: unknown) {
         if (typeof e === "object" && e !== null) {
-          if ("userCancelled" in e && (e as any).userCancelled) return { success: false };
-          if ("message" in e && typeof (e as any).message === "string") return { success: false, error: (e as any).message };
+          const err = e as Record<string, unknown>;
+          if (err.userCancelled) return { success: false };
+          if (typeof err.message === "string") return { success: false, error: err.message };
         }
         return { success: false, error: "Purchase failed" };
       }
@@ -94,8 +95,9 @@ export function usePurchaseActions() {
         return { success: true };
       } catch (e: unknown) {
         if (typeof e === "object" && e !== null) {
-          if ("userCancelled" in e && (e as any).userCancelled) return { success: false };
-          if ("message" in e && typeof (e as any).message === "string") return { success: false, error: (e as any).message };
+          const err = e as Record<string, unknown>;
+          if (err.userCancelled) return { success: false };
+          if (typeof err.message === "string") return { success: false, error: err.message };
         }
         return { success: false, error: "Purchase failed" };
       }
@@ -110,16 +112,18 @@ export function usePurchaseActions() {
         if (error) return { success: false, error: error.message };
         if (!data || typeof data !== "object") return { success: false, error: "Invalid response from server" };
         
-        const success = "success" in data ? Boolean((data as any).success) : false;
-        const resultError = "error" in data && typeof (data as any).error === "string" ? (data as any).error : undefined;
-        const itemName = "item_name" in data && typeof (data as any).item_name === "string" ? (data as any).item_name : undefined;
+        const responseData = data as Record<string, unknown>;
+        const success = Boolean(responseData.success);
+        const resultError = typeof responseData.error === "string" ? responseData.error : undefined;
+        const itemName = typeof responseData.item_name === "string" ? responseData.item_name : undefined;
 
         if (!success) return { success: false, error: resultError ?? "Redemption failed" };
         await invalidateAccess();
         return { success: true, itemName };
       } catch (e: unknown) {
-        if (typeof e === "object" && e !== null && "message" in e && typeof (e as any).message === "string") {
-          return { success: false, error: (e as any).message };
+        if (typeof e === "object" && e !== null) {
+          const err = e as Record<string, unknown>;
+          if (typeof err.message === "string") return { success: false, error: err.message };
         }
         return { success: false, error: "Redemption failed" };
       }
@@ -153,7 +157,10 @@ export function usePurchaseActions() {
         }
         return { success: false, error: "No purchase found to restore for this product." };
       } catch (e: unknown) {
-        if (typeof e === "object" && e !== null && "message" in e && typeof (e as any).message === "string") return { success: false, error: (e as any).message };
+        if (typeof e === "object" && e !== null) {
+          const err = e as Record<string, unknown>;
+          if (typeof err.message === "string") return { success: false, error: err.message };
+        }
         return { success: false, error: "Restore failed" };
       }
     },
