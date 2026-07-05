@@ -1,7 +1,7 @@
 // artifacts/mobile/app/purchase/[moduleId].tsx
 // Purchase screen with two tabs: native IAP and access code redemption.
 import { router, useLocalSearchParams } from "expo-router";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -22,6 +22,223 @@ import { useColors } from "@/src/shared/hooks/useColors";
 
 type Tab = "buy" | "code";
 
+// ── Memoized Sub-components ─────────────────────────────────
+
+const BuyTab = React.memo(function BuyTab({
+  productId,
+  moduleId,
+  priceDisplay,
+  buyModule,
+  restorePurchase,
+  status,
+  onSuccess,
+  colors,
+}: {
+  productId?: string;
+  moduleId: string;
+  priceDisplay: string;
+  buyModule: any;
+  restorePurchase: any;
+  status: any;
+  onSuccess: (msg: string) => void;
+  colors: any;
+}) {
+  const [rcPackage, setRcPackage] = useState<PurchasesPackage | null>(null);
+  const [storePrice, setStorePrice] = useState<string | null>(null);
+  const [loadingProduct, setLoadingProduct] = useState(true);
+
+  useEffect(() => {
+    if (Platform.OS === "web" || !productId) {
+      setLoadingProduct(false);
+      return;
+    }
+
+    let isMounted = true;
+    const load = async () => {
+      try {
+        const offerings = await Purchases.getOfferings();
+        const allOfferings = offerings.all;
+        for (const key of Object.keys(allOfferings)) {
+          const offering = allOfferings[key];
+          if (!offering) continue;
+          for (const pkg of offering.availablePackages) {
+            if (pkg.product.identifier === productId) {
+              if (isMounted) {
+                setRcPackage(pkg);
+                setStorePrice(pkg.product.priceString);
+              }
+              break;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("[BuyTab] Failed to load product:", e);
+      } finally {
+        if (isMounted) setLoadingProduct(false);
+      }
+    };
+
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, [productId]);
+
+  const handleBuy = async () => {
+    if (!rcPackage) return;
+    const result = await buyModule(moduleId, rcPackage);
+    if (result.success) {
+      onSuccess("Purchase complete! You now have full access.");
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!productId) return;
+    const result = await restorePurchase(moduleId, productId);
+    if (result.success) {
+      onSuccess("Purchase restored successfully! You now have full access.");
+    }
+  };
+
+  const isLoading = status === "loading";
+  const displayPrice = storePrice ?? priceDisplay ?? "—";
+  const isBuyDisabled = Platform.OS === "web" || !rcPackage || loadingProduct;
+
+  return (
+    <View style={styles.tabContent}>
+      <Text style={[styles.price, { color: colors.primary }]}>{displayPrice}</Text>
+
+      {loadingProduct ? (
+        <ActivityIndicator size="large" color={colors.primary} />
+      ) : (
+        <TouchableOpacity
+          style={[
+            styles.btn,
+            {
+              backgroundColor: isBuyDisabled
+                ? colors.mutedForeground
+                : colors.primary,
+            },
+          ]}
+          onPress={handleBuy}
+          disabled={isLoading || isBuyDisabled}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Feather name="shopping-bag" size={18} color="#fff" />
+              <Text style={styles.btnText}>
+                {Platform.OS === "web" ? "Not available on web" : "Purchase Now"}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+      )}
+
+      <Text style={[styles.footer, { color: colors.mutedForeground }]}>
+        {Platform.OS === "ios"
+          ? "Payment processed by Apple App Store."
+          : Platform.OS === "android"
+            ? "Payment processed by Google Play."
+            : "In-app purchase available on mobile only."}
+      </Text>
+
+      {Platform.OS !== "web" && productId && (
+        <TouchableOpacity
+          style={styles.restoreBtn}
+          onPress={handleRestore}
+          disabled={isLoading}
+        >
+          <Text style={[styles.restoreBtnText, { color: colors.primary }]}>
+            Restore Purchases
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+});
+
+const CodeTab = React.memo(function CodeTab({
+  submitCode,
+  status,
+  error,
+  onSuccess,
+  colors,
+}: {
+  submitCode: any;
+  status: any;
+  error: any;
+  onSuccess: (msg: string) => void;
+  colors: any;
+}) {
+  const [codeInput, setCodeInput] = useState("");
+  const isLoading = status === "loading";
+
+  const handleRedeem = async () => {
+    if (!codeInput.trim()) return;
+    const result = await submitCode(codeInput.trim());
+    if (result.success) {
+      onSuccess(
+        `Code redeemed! You now have access to ${result.itemName ?? "this content"}.`,
+      );
+    }
+  };
+
+  return (
+    <View style={styles.tabContent}>
+      <Text style={[styles.codeLabel, { color: colors.mutedForeground }]}>
+        Enter the access code from your bookshop receipt
+      </Text>
+
+      <TextInput
+        style={[
+          styles.codeInput,
+          {
+            backgroundColor: colors.muted,
+            color: colors.foreground,
+            borderColor: error ? colors.destructive : colors.border,
+          },
+        ]}
+        placeholder="XXXX-XXXX-XXXX-XXXX"
+        placeholderTextColor={colors.mutedForeground}
+        value={codeInput}
+        onChangeText={setCodeInput}
+        autoCapitalize="characters"
+        autoCorrect={false}
+        maxLength={19}
+        editable={!isLoading}
+      />
+
+      <TouchableOpacity
+        style={[
+          styles.btn,
+          {
+            backgroundColor: !codeInput.trim()
+              ? colors.mutedForeground
+              : colors.primary,
+          },
+        ]}
+        onPress={handleRedeem}
+        disabled={isLoading || !codeInput.trim()}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <>
+            <Feather name="unlock" size={18} color="#fff" />
+            <Text style={styles.btnText}>Redeem Code</Text>
+          </>
+        )}
+      </TouchableOpacity>
+
+      <Text style={[styles.footer, { color: colors.mutedForeground }]}>
+        Codes can be purchased from authorized bookshops.
+      </Text>
+    </View>
+  );
+});
+
 export function PurchaseScreen() {
   const { moduleId, moduleName, priceDisplay, productId } = useLocalSearchParams<{
     moduleId: string;
@@ -34,81 +251,14 @@ export function PurchaseScreen() {
   const { buyModule, submitCode, restorePurchase, status, error, reset } = usePurchase();
 
   const [tab, setTab] = useState<Tab>("buy");
-  const [codeInput, setCodeInput] = useState("");
-  const [rcPackage, setRcPackage] = useState<PurchasesPackage | null>(null);
-  const [storePrice, setStorePrice] = useState<string | null>(null);
-  const [loadingProduct, setLoadingProduct] = useState(true);
   const [successMessage, setSuccessMessage] = useState("");
-
-  // ── Load RevenueCat product ───────────────────────────────
-  useEffect(() => {
-    if (Platform.OS === "web" || !productId) {
-      setLoadingProduct(false);
-      return;
-    }
-
-    const load = async () => {
-      try {
-        const offerings = await Purchases.getOfferings();
-        // Search all offerings for a package matching the product
-        const allOfferings = offerings.all;
-        for (const key of Object.keys(allOfferings)) {
-          const offering = allOfferings[key];
-          if (!offering) continue;
-          for (const pkg of offering.availablePackages) {
-            if (pkg.product.identifier === productId) {
-              setRcPackage(pkg);
-              setStorePrice(pkg.product.priceString);
-              break;
-            }
-          }
-        }
-      } catch (e) {
-        console.error("[PurchaseScreen] Failed to load product:", e);
-      } finally {
-        setLoadingProduct(false);
-      }
-    };
-
-    load();
-  }, [productId]);
-
-  // ── Handlers ──────────────────────────────────────────────
-  const handleBuy = async () => {
-    if (!rcPackage) return;
-    const result = await buyModule(moduleId, rcPackage);
-    if (result.success) {
-      setSuccessMessage("Purchase complete! You now have full access.");
-    }
-  };
-
-  const handleRedeem = async () => {
-    if (!codeInput.trim()) return;
-    const result = await submitCode(codeInput.trim());
-    if (result.success) {
-      setSuccessMessage(
-        `Code redeemed! You now have access to ${result.itemName ?? "this content"}.`,
-      );
-    }
-  };
-
-  const handleRestore = async () => {
-    if (!productId) return;
-    const result = await restorePurchase(moduleId, productId);
-    if (result.success) {
-      setSuccessMessage("Purchase restored successfully! You now have full access.");
-    }
-  };
 
   const handleDone = () => {
     reset();
     router.back();
   };
 
-  const isLoading = status === "loading";
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
-  const displayPrice = storePrice ?? priceDisplay ?? "—";
-  const isBuyDisabled = Platform.OS === "web" || !rcPackage || loadingProduct;
 
   return (
     <KeyboardAvoidingView
@@ -216,111 +366,27 @@ export function PurchaseScreen() {
 
               {/* ── Buy Tab ──────────────────────────────────── */}
               {tab === "buy" && (
-                <View style={styles.tabContent}>
-                  <Text style={[styles.price, { color: colors.primary }]}>{displayPrice}</Text>
-
-                  {loadingProduct ? (
-                    <ActivityIndicator size="large" color={colors.primary} />
-                  ) : (
-                    <TouchableOpacity
-                      style={[
-                        styles.btn,
-                        {
-                          backgroundColor: isBuyDisabled
-                            ? colors.mutedForeground
-                            : colors.primary,
-                        },
-                      ]}
-                      onPress={handleBuy}
-                      disabled={isLoading || isBuyDisabled}
-                    >
-                      {isLoading ? (
-                        <ActivityIndicator color="#fff" />
-                      ) : (
-                        <>
-                          <Feather name="shopping-bag" size={18} color="#fff" />
-                          <Text style={styles.btnText}>
-                            {Platform.OS === "web" ? "Not available on web" : "Purchase Now"}
-                          </Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  )}
-
-                  <Text style={[styles.footer, { color: colors.mutedForeground }]}>
-                    {Platform.OS === "ios"
-                      ? "Payment processed by Apple App Store."
-                      : Platform.OS === "android"
-                        ? "Payment processed by Google Play."
-                        : "In-app purchase available on mobile only."}
-                  </Text>
-
-                  {Platform.OS !== "web" && productId && (
-                    <TouchableOpacity
-                      style={styles.restoreBtn}
-                      onPress={handleRestore}
-                      disabled={isLoading}
-                    >
-                      <Text style={[styles.restoreBtnText, { color: colors.primary }]}>
-                        Restore Purchases
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
+                <BuyTab
+                  productId={productId}
+                  moduleId={moduleId}
+                  priceDisplay={priceDisplay}
+                  buyModule={buyModule}
+                  restorePurchase={restorePurchase}
+                  status={status}
+                  onSuccess={setSuccessMessage}
+                  colors={colors}
+                />
               )}
 
               {/* ── Code Tab ─────────────────────────────────── */}
               {tab === "code" && (
-                <View style={styles.tabContent}>
-                  <Text style={[styles.codeLabel, { color: colors.mutedForeground }]}>
-                    Enter the access code from your bookshop receipt
-                  </Text>
-
-                  <TextInput
-                    style={[
-                      styles.codeInput,
-                      {
-                        backgroundColor: colors.muted,
-                        color: colors.foreground,
-                        borderColor: error ? colors.destructive : colors.border,
-                      },
-                    ]}
-                    placeholder="XXXX-XXXX-XXXX-XXXX"
-                    placeholderTextColor={colors.mutedForeground}
-                    value={codeInput}
-                    onChangeText={setCodeInput}
-                    autoCapitalize="characters"
-                    autoCorrect={false}
-                    maxLength={19}
-                    editable={!isLoading}
-                  />
-
-                  <TouchableOpacity
-                    style={[
-                      styles.btn,
-                      {
-                        backgroundColor: !codeInput.trim()
-                          ? colors.mutedForeground
-                          : colors.primary,
-                      },
-                    ]}
-                    onPress={handleRedeem}
-                    disabled={isLoading || !codeInput.trim()}
-                  >
-                    {isLoading ? (
-                      <ActivityIndicator color="#fff" />
-                    ) : (
-                      <>
-                        <Feather name="unlock" size={18} color="#fff" />
-                        <Text style={styles.btnText}>Redeem Code</Text>
-                      </>
-                    )}
-                  </TouchableOpacity>
-
-                  <Text style={[styles.footer, { color: colors.mutedForeground }]}>
-                    Codes can be purchased from authorized bookshops.
-                  </Text>
-                </View>
+                <CodeTab
+                  submitCode={submitCode}
+                  status={status}
+                  error={error}
+                  onSuccess={setSuccessMessage}
+                  colors={colors}
+                />
               )}
             </>
           )}

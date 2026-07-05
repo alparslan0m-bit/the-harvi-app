@@ -91,7 +91,7 @@ interface Props {
   caption?: string;
 }
 
-export function QuizImage({ uri, caption }: Props) {
+function QuizImageComponent({ uri, caption }: Props) {
   const [source, setSource] = useState<ImageSource | null>(null);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState(false);
@@ -332,5 +332,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "rgba(255,255,255,0.5)",
     fontFamily: "Inter_400Regular",
-  },
 });
+
+export const QuizImage = React.memo(QuizImageComponent);

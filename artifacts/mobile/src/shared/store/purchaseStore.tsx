@@ -167,7 +167,13 @@ export function usePurchaseActions() {
     [recordIAP, invalidateAccess, setCustomerInfo],
   );
 
-  return { purchaseModule, purchaseSubject, redeemCode, restorePurchases, restoreModule };
+  return React.useMemo(() => ({
+    purchaseModule, 
+    purchaseSubject, 
+    redeemCode, 
+    restorePurchases, 
+    restoreModule 
+  }), [purchaseModule, purchaseSubject, redeemCode, restorePurchases, restoreModule]);
 }
 
 export function PurchaseProvider({ children }: { children: React.ReactNode }) {
