@@ -13,9 +13,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { SupabaseSetupHelper } from "@/components";
-import { useColors } from "@/hooks/useColors";
-import { useAuthForm } from "@/hooks/useAuthForm";
+import { SupabaseSetupHelper } from "@/src/shared/components";
+import { useColors } from "@/src/shared/hooks/useColors";
+import { useAuthForm } from "@/src/features/auth/hooks/useAuthForm";
 
 function GoogleIcon() {
   return (

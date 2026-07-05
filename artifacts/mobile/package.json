@@ -64,11 +64,12 @@
     "@expo-google-fonts/nunito": "^0.4.2",
     "@react-native-community/netinfo": "^11.4.1",
     "@supabase/supabase-js": "^2.105.1",
+    "expo": "~54.0.35",
     "expo-secure-store": "~15.0.8",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
     "react-native-purchases": "^8.10.2",
     "react-native-url-polyfill": "^3.0.0",
-    "expo": "~54.0.35",
-    "react": "19.1.0",
-    "react-native": "0.81.5"
+    "zustand": "^5.0.14"
   }
 }

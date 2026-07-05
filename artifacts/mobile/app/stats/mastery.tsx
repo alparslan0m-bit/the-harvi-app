@@ -9,12 +9,12 @@ import {
   MasterySummaryPills, 
   MasteryLectureCard, 
   MasteryEmptyState 
-} from "@/components";
+} from "@/src/features/stats";
 
-import { useAuth } from "@/context/AuthContext";
-import { useColors } from "@/hooks/useColors";
-import { useStats } from "@/hooks/useStats";
-import { useMasteryFilter } from "@/hooks/useMasteryFilter";
+import { useAuth } from "@/src/shared/store/authStore";
+import { useColors } from "@/src/shared/hooks/useColors";
+import { useStats } from "@/src/features/stats/hooks/useStats";
+import { useMasteryFilter } from "@/src/features/learn/hooks/useMasteryFilter";
 
 /**
  * MasteryScreen - Refactored for modularity.

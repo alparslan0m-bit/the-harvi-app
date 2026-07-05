@@ -11,11 +11,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { SubjectCard } from "@/components";
-import { useColors } from "@/hooks/useColors";
-import { useHierarchy } from "@/hooks/useHierarchy";
-import { useProgress } from "@/hooks/useProgress";
-import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { SubjectCard } from "@/src/features/learn";
+import { useColors } from "@/src/shared/hooks/useColors";
+import { useHierarchy } from "@/src/features/learn/hooks/useHierarchy";
+import { useProgress } from "@/src/features/learn/hooks/useProgress";
+import { useModuleAccess } from "@/src/features/learn/hooks/useModuleAccess";
 
 export default function ModuleScreen() {
   const colors = useColors();
@@ -80,7 +80,7 @@ export default function ModuleScreen() {
           // Subject-level access check
           const subAccess = accessMap?.get(sub.id);
           const isLocked = !hasModuleAccess && !subAccess?.has_access && !subAccess?.is_free;
-          const isFreePreview = !hasModuleAccess && (subAccess?.is_free || sub.is_free);
+          const isFreePreview = !!(!hasModuleAccess && (subAccess?.is_free || sub.is_free));
 
           return (
             <SubjectCard

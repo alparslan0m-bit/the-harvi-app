@@ -3,8 +3,8 @@ import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useColors } from "@/hooks/useColors";
-import { TabIcon } from "@/components";
+import { useColors } from "@/src/shared/hooks/useColors";
+import { TabIcon } from "@/src/shared/components";
 
 /**
  * Standard tab layout for Web, Android, and older iOS versions.

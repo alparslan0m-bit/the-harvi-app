@@ -12,20 +12,21 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { StreakCard, StatsMetricsGrid } from "@/components";
 import {
+  StreakCard,
+  StatsMetricsGrid,
   WeeklyActivitySection,
   MasterySection,
   EmptyNudge,
   RecentResultsSection,
   StatsErrorView,
-} from "@/components";
+} from "@/src/features/stats";
 
-import { useAuth } from "@/context/AuthContext";
-import { useSyncStatus } from "@/context/SyncContext";
-import { useColors } from "@/hooks/useColors";
-import { useStats } from "@/hooks/useStats";
-import { useScreenAnimation } from "@/hooks/useScreenAnimation";
+import { useAuth } from "@/src/shared/store/authStore";
+import { useSyncStatus } from "@/src/shared/store/syncStore";
+import { useColors } from "@/src/shared/hooks/useColors";
+import { useStats } from "@/src/features/stats/hooks/useStats";
+import { useScreenAnimation } from "@/src/shared/hooks/useScreenAnimation";
 
 /**
  * StatsScreen - Refactored for modularity and performance.
@@ -37,8 +38,8 @@ export default function StatsScreen() {
   const { data: stats, isLoading, error } = useStats(user?.id);
   const { isOnline, pendingCount } = useSyncStatus();
 
-  const scrollRef = useRef<ScrollView>(null);
-  useScrollToTop(scrollRef);
+  const scrollRef = useRef<any>(null);
+  useScrollToTop(scrollRef as any);
 
   // Reusable screen transition animation
   const { fadeAnim, translateY } = useScreenAnimation(scrollRef);

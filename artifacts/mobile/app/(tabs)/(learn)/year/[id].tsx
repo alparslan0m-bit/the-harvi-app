@@ -11,10 +11,10 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ModuleCard } from "@/components";
-import { useColors } from "@/hooks/useColors";
-import { useHierarchy } from "@/hooks/useHierarchy";
-import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { ModuleCard } from "@/src/features/learn";
+import { useColors } from "@/src/shared/hooks/useColors";
+import { useHierarchy } from "@/src/features/learn/hooks/useHierarchy";
+import { useModuleAccess } from "@/src/features/learn/hooks/useModuleAccess";
 
 export default function YearScreen() {
   const colors = useColors();

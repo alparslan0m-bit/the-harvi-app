@@ -17,8 +17,8 @@ import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Purchases, { type PurchasesPackage } from "react-native-purchases";
 
-import { usePurchase } from "@/hooks/usePurchase";
-import { useColors } from "@/hooks/useColors";
+import { usePurchase } from "@/src/features/purchase/hooks/usePurchase";
+import { useColors } from "@/src/shared/hooks/useColors";
 
 type Tab = "buy" | "code";
 

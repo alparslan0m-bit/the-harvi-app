@@ -9,11 +9,11 @@ import {
   ProfileAvatarSection, 
   ProfileEditField, 
   ProfileThemeSelector 
-} from "@/components";
+} from "@/src/features/profile";
 
-import { useAuth } from "@/context/AuthContext";
-import { useColors } from "@/hooks/useColors";
-import { useProfileEdit } from "@/hooks/useProfileEdit";
+import { useAuth } from "@/src/shared/store/authStore";
+import { useColors } from "@/src/shared/hooks/useColors";
+import { useProfileEdit } from "@/src/features/profile/hooks/useProfileEdit";
 
 /**
  * EditProfileScreen - Refactored for modularity.

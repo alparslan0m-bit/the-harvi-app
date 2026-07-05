@@ -11,12 +11,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { LectureCard } from "@/components";
-import { SubjectDownloadButton } from "@/components";
-import { useColors } from "@/hooks/useColors";
-import { useHierarchy } from "@/hooks/useHierarchy";
-import { useProgress } from "@/hooks/useProgress";
-import { useSubjectCache } from "@/hooks/useSubjectCache";
+import { LectureCard, SubjectDownloadButton } from "@/src/features/learn";
+import { useColors } from "@/src/shared/hooks/useColors";
+import { useHierarchy } from "@/src/features/learn/hooks/useHierarchy";
+import { useProgress } from "@/src/features/learn/hooks/useProgress";
+import { useSubjectCache } from "@/src/features/learn/hooks/useSubjectCache";
 
 export default function SubjectScreen() {
   const colors = useColors();

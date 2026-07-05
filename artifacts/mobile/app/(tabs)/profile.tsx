@@ -11,12 +11,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ProfileHeroCard, FeedbackForm, AccountActions } from "@/components";
-import { useAuth } from "@/context/AuthContext";
-import { useColors } from "@/hooks/useColors";
-import { useProfileData } from "@/hooks/useProfileData";
+import { FeedbackForm } from "@/src/shared/components";
+import { ProfileHeroCard, AccountActions } from "@/src/features/profile";
+import { useAuth } from "@/src/shared/store/authStore";
+import { useColors } from "@/src/shared/hooks/useColors";
+import { useProfileData } from "@/src/features/profile/hooks/useProfileData";
 
-import { useScreenAnimation } from "@/hooks/useScreenAnimation";
+import { useScreenAnimation } from "@/src/shared/hooks/useScreenAnimation";
 
 /**
  * ProfileScreen - Refactored to be thin and readable.
@@ -28,8 +29,8 @@ export default function ProfileScreen() {
   const { user, signOut } = useAuth();
   const { avatarId, displayName } = useProfileData();
 
-  const scrollRef = useRef<ScrollView>(null);
-  useScrollToTop(scrollRef);
+  const scrollRef = useRef<any>(null);
+  useScrollToTop(scrollRef as any);
 
   // Reusable screen transition animation
   const { fadeAnim, translateY } = useScreenAnimation(scrollRef);
@@ -86,9 +87,9 @@ export default function ProfileScreen() {
           />
 
           {/* --- Feedback Section --- */}
-          <FeedbackForm userId={user?.id} />
+          <FeedbackForm userId={user?.id ?? ""} />
 
-          <AccountActions userId={user?.id} onSignOut={signOut} />
+          <AccountActions userId={user?.id ?? ""} onSignOut={signOut} />
 
           <Text style={[styles.versionText, { color: colors.mutedForeground }]}>
             Harvi · v1.0.0

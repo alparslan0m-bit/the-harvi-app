@@ -13,9 +13,9 @@ import {
   QuizProgressBar,
   QuizQuestionContent,
   QuizNextButton,
-} from "@/components";
-import { useColors } from "@/hooks/useColors";
-import { useQuizSession } from "@/hooks/useQuizSession";
+} from "@/src/features/quiz";
+import { useColors } from "@/src/shared/hooks/useColors";
+import { useQuizSession } from "@/src/features/quiz/hooks/useQuizSession";
 
 export default function QuizScreen() {
   const colors = useColors();
@@ -102,6 +102,7 @@ export default function QuizScreen() {
   // ── Active quiz ───────────────────────────────────────────────────────────
 
   const question = questions[currentIndex];
+  if (!question) return null;
   const isLast = currentIndex === questions.length - 1;
   const isCorrectAnswer =
     answered !== null && answered.selected === answered.correct;

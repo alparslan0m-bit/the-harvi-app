@@ -15,11 +15,11 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
 
-import { ErrorBoundary } from "@/components";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { PurchaseProvider } from "@/context/PurchaseContext";
-import { SyncProvider } from "@/context/SyncContext";
-import { ThemeProvider } from "@/context/ThemeContext";
+import { ErrorBoundary } from "@/src/shared/components";
+import { AuthProvider, useAuth } from "@/src/shared/store/authStore";
+import { PurchaseProvider } from "@/src/shared/store/purchaseStore";
+import { SyncProvider } from "@/src/shared/store/syncStore";
+import { ThemeProvider } from "@/src/shared/store/themeStore";
 
 SplashScreen.preventAutoHideAsync();
 

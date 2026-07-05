@@ -2,8 +2,8 @@ import { router, Href } from "expo-router";
 import React, { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
-import { useAuth } from "@/context/AuthContext";
-import { useColors } from "@/hooks/useColors";
+import { useAuth } from "@/src/shared/store/authStore";
+import { useColors } from "@/src/shared/hooks/useColors";
 
 export default function AuthCallbackScreen() {
   const colors = useColors();

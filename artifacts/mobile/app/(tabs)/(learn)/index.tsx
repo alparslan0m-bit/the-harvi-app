@@ -9,11 +9,11 @@ import {
   LearnLoadingState, 
   LearnErrorState, 
   LearnEmptyState 
-} from "@/components";
+} from "@/src/features/learn";
 
-import { useColors } from "@/hooks/useColors";
-import { useHierarchy } from "@/hooks/useHierarchy";
-import { useLearnFlow } from "@/hooks/useLearnFlow";
+import { useColors } from "@/src/shared/hooks/useColors";
+import { useHierarchy } from "@/src/features/learn/hooks/useHierarchy";
+import { useLearnFlow } from "@/src/features/learn/hooks/useLearnFlow";
 
 /**
  * LearnScreen - Refactored for modularity.
