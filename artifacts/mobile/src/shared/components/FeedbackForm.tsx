@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  Keyboard,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useFeedback } from "@/src/shared/hooks/useFeedback";

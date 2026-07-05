@@ -1,6 +1,5 @@
-import { Feather } from "@expo/vector-icons";
-import { useFocusEffect, useScrollToTop } from "@react-navigation/native";
-import React, { useCallback, useRef } from "react";
+import { useScrollToTop } from "@react-navigation/native";
+import React, { useRef } from "react";
 import {
   Platform,
   ScrollView,

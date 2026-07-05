@@ -36,10 +36,6 @@ export function SubjectScreen() {
 
   if (!subject) return null;
 
-  const completedCount = subject.lectures.filter(
-    (lec) => completedIds.has(lec.external_id) || completedIds.has(lec.id),
-  ).length;
-
   const totalCount = subject.lectures.length;
 
   return (

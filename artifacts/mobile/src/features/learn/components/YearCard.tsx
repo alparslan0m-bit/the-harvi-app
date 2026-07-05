@@ -7,7 +7,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-import { COLORS as colors, THEME } from "@/src/shared/constants/theme";
+import { THEME } from "@/src/shared/constants/theme";
 import { Year } from "@/src/shared/types";
 
 interface Props {

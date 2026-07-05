@@ -23,7 +23,6 @@ export interface ResultsViewProps {
   submitting: boolean;
   savedOffline: boolean;
   saveError: string | null;
-  lectureName?: string;
   onRetry: () => void;
   onReview: () => void;
   onHome: () => void;
@@ -33,7 +32,6 @@ export function ResultsView({
   score,
   correctCount,
   totalCount,
-  lectureName,
   onRetry,
   onReview,
   onHome,

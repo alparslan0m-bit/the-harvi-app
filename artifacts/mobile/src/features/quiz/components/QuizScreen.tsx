@@ -85,7 +85,6 @@ export function QuizScreen() {
         submitting={submitting}
         savedOffline={savedOffline}
         saveError={saveError}
-        lectureName={lectureName}
         onRetry={handleRetry}
         onReview={() => setReviewing(true)}
         onHome={() => {

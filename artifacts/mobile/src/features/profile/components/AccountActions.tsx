@@ -10,7 +10,6 @@ import { clearProgressCache } from "@/src/features/learn/hooks/useProgress";
 import { supabase } from "@/src/shared/services/supabase";
 import { clearAllLectureCache } from "@/src/features/quiz/services/questionCache";
 import { clearQueueForUser } from "@/src/shared/services/offlineQueue";
-import { useTheme } from "@/src/shared/store/themeStore";
 
 interface AccountActionsProps {
   userId?: string;
@@ -23,7 +22,6 @@ interface AccountActionsProps {
  */
 export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
   const colors = useColors();
-  const { theme, setTheme } = useTheme();
 
   const queryClient = useQueryClient();
 

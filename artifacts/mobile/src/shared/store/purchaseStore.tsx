@@ -30,7 +30,6 @@ export const usePurchaseStore = create<PurchaseState>((set) => ({
 
 export function usePurchaseActions() {
   const queryClient = useQueryClient();
-  const setIsReady = usePurchaseStore(s => s.setIsReady);
   const setCustomerInfo = usePurchaseStore(s => s.setCustomerInfo);
 
   const invalidateAccess = useCallback(async () => {
