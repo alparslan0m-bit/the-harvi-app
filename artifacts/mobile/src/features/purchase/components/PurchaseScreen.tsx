@@ -17,8 +17,8 @@ import { Feather } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Purchases, { type PurchasesPackage } from "react-native-purchases";
 
-import { usePurchase } from "@/src/features/purchase/hooks/usePurchase";
-import { useColors } from "@/src/shared/hooks/useColors";
+import { usePurchase, type PurchaseStatus } from "@/src/features/purchase/hooks/usePurchase";
+import { useColors, type ThemeColors } from "@/src/shared/hooks/useColors";
 
 type Tab = "buy" | "code";
 
@@ -37,11 +37,11 @@ const BuyTab = React.memo(function BuyTab({
   productId?: string;
   moduleId: string;
   priceDisplay: string;
-  buyModule: any;
-  restorePurchase: any;
-  status: any;
+  buyModule: (moduleId: string, rcPackage: PurchasesPackage) => Promise<{ success: boolean; cancelled?: boolean; error?: string }>;
+  restorePurchase: (moduleId: string, productId: string) => Promise<{ success: boolean; error?: string }>;
+  status: PurchaseStatus;
   onSuccess: (msg: string) => void;
-  colors: any;
+  colors: ThemeColors;
 }) {
   const [rcPackage, setRcPackage] = useState<PurchasesPackage | null>(null);
   const [storePrice, setStorePrice] = useState<string | null>(null);
@@ -166,11 +166,11 @@ const CodeTab = React.memo(function CodeTab({
   onSuccess,
   colors,
 }: {
-  submitCode: any;
-  status: any;
-  error: any;
+  submitCode: (code: string) => Promise<{ success: boolean; itemName?: string; error?: string }>;
+  status: PurchaseStatus;
+  error: string | null;
   onSuccess: (msg: string) => void;
-  colors: any;
+  colors: ThemeColors;
 }) {
   const [codeInput, setCodeInput] = useState("");
   const isLoading = status === "loading";

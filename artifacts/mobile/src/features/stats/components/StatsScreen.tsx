@@ -83,7 +83,7 @@ export function StatsScreen() {
           },
         ]}
       >
-        <View style={{ flex: 1 }}>
+        <View style={styles.titleWrapper}>
           <Text style={[styles.title, { color: colors.foreground }]}>
             Performance
           </Text>
@@ -107,7 +107,7 @@ export function StatsScreen() {
       </View>
 
       <Animated.View
-        style={{ flex: 1, opacity: fadeAnim, transform: [{ translateY }] }}
+        style={[styles.animatedContent, { opacity: fadeAnim, transform: [{ translateY }] }]}
       >
         {isLoading && (
           <View style={styles.center}>
@@ -162,6 +162,8 @@ export function StatsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  titleWrapper: { flex: 1 },
+  animatedContent: { flex: 1 },
   header: {
     paddingHorizontal: 20,
     paddingBottom: 10,

@@ -39,7 +39,7 @@ export function SubjectScreen() {
   const totalCount = subject.lectures.length;
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <View
         style={[
@@ -69,7 +69,7 @@ export function SubjectScreen() {
         </View>
 
         {/* Placeholder for balance */}
-        <View style={{ width: 40 }} />
+        <View style={styles.spacer} />
       </View>
 
       {/* ── Download row ─────────────────────────────────────────────────── */}
@@ -174,6 +174,8 @@ export function SubjectScreen() {
 }
 
 const styles = StyleSheet.create({
+  root: { flex: 1 },
+  spacer: { width: 40 },
   header: {
     flexDirection: "row",
     alignItems: "center",

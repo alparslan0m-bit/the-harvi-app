@@ -19,7 +19,7 @@
  */
 import { Feather } from "@expo/vector-icons";
 import { Image, ImageSource } from "expo-image";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   Dimensions,
   Modal,
@@ -34,6 +34,7 @@ import {
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 import { supabase } from "@/src/shared/services/supabase";
+import { useColors, type ThemeColors } from "@/src/shared/hooks/useColors";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 
@@ -97,6 +98,9 @@ function QuizImageComponent({ uri, caption }: Props) {
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+  
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   // Resolve auth headers (async) before rendering the image
   useEffect(() => {
@@ -149,13 +153,13 @@ function QuizImageComponent({ uri, caption }: Props) {
             exiting={FadeOut.duration(180)}
             style={styles.skeleton}
           >
-            <Feather name="image" size={28} color="#cbd5e1" />
+            <Feather name="image" size={28} color={colors.mutedForeground} />
           </Animated.View>
         )}
 
         {error ? (
           <View style={styles.errorBox}>
-            <Feather name="image" size={28} color="#94a3b8" />
+            <Feather name="image" size={28} color={colors.mutedForeground} />
             <Text style={styles.errorText}>Image unavailable</Text>
             {__DEV__ && (
               <Text style={styles.errorUri} numberOfLines={3}>{uri}</Text>
@@ -240,20 +244,20 @@ function QuizImageComponent({ uri, caption }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   thumbWrap: {
     width: "100%",
     height: 220,
     borderRadius: 16,
     overflow: "hidden",
-    backgroundColor: "#f1f5f9",
+    backgroundColor: colors.muted,
     marginBottom: 4,
     borderWidth: 1.5,
-    borderColor: "#e2e8f0",
+    borderColor: colors.border,
   },
   skeleton: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#e2e8f0",
+    backgroundColor: colors.muted,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -275,12 +279,12 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 13,
-    color: "#94a3b8",
+    color: colors.mutedForeground,
     fontFamily: "Inter_400Regular",
   },
   errorUri: {
     fontSize: 10,
-    color: "#cbd5e1",
+    color: colors.mutedForeground,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
     marginTop: 4,
@@ -288,13 +292,15 @@ const styles = StyleSheet.create({
   caption: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
-    color: "#64748b",
+    color: colors.mutedForeground,
     textAlign: "center",
     marginBottom: 2,
     lineHeight: 17,
   },
 
   // ── Full-screen modal ───────────────────────────────────────────────────
+  // Note: Modal styles keep hardcoded #fff/black because they overlay the entire screen
+  // in a standard image-viewer presentation, regardless of app theme.
   modalBg: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.96)",
@@ -332,6 +338,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "rgba(255,255,255,0.5)",
     fontFamily: "Inter_400Regular",
+  },
 });
 
 export const QuizImage = React.memo(QuizImageComponent);
