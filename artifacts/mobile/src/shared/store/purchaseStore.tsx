@@ -177,7 +177,7 @@ export function usePurchaseActions() {
 }
 
 export function PurchaseProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const user = useAuth((s) => s.user);
   const setIsReady = usePurchaseStore(s => s.setIsReady);
   const setCustomerInfo = usePurchaseStore(s => s.setCustomerInfo);
   const isReady = usePurchaseStore(s => s.isReady);
@@ -224,8 +224,4 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export function usePurchaseContext() {
-  const state = usePurchaseStore();
-  const actions = usePurchaseActions();
-  return { ...state, ...actions };
-}
+

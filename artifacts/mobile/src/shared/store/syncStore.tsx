@@ -25,7 +25,7 @@ export const useSyncStore = create<SyncState>((set) => ({
 
 export function useSyncActions() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const user = useAuth((s) => s.user);
   const setPendingCount = useSyncStore(s => s.setPendingCount);
   const setIsSyncing = useSyncStore(s => s.setIsSyncing);
   const flushing = useRef(false);
@@ -90,7 +90,7 @@ export function useSyncActions() {
 
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const isOnline = useSyncStore((s) => s.isOnline);
-  const { user } = useAuth();
+  const user = useAuth((s) => s.user);
   const { refreshCount, flush } = useSyncActions();
 
   useEffect(() => {
@@ -101,8 +101,4 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export function useSyncStatus() {
-  const state = useSyncStore();
-  const actions = useSyncActions();
-  return { ...state, ...actions };
-}
+

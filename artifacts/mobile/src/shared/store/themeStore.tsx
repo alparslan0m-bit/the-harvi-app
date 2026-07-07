@@ -37,6 +37,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export function useTheme() {
-  return useThemeStore();
+export function useTheme<T>(selector: (state: ThemeState) => T): T {
+  return useThemeStore(selector);
 }

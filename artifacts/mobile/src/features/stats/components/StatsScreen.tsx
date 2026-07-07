@@ -23,7 +23,7 @@ import {
 } from "@/src/features/stats";
 
 import { useAuth } from "@/src/shared/store/authStore";
-import { useSyncStatus } from "@/src/shared/store/syncStore";
+import { useSyncStore } from "@/src/shared/store/syncStore";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { useStats } from "@/src/features/stats/hooks/useStats";
 import { useScreenAnimation } from "@/src/shared/hooks/useScreenAnimation";
@@ -34,9 +34,10 @@ import { useScreenAnimation } from "@/src/shared/hooks/useScreenAnimation";
 export function StatsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+  const user = useAuth((s) => s.user);
   const { data: stats, isLoading, error } = useStats(user?.id);
-  const { isOnline, pendingCount } = useSyncStatus();
+  const isOnline = useSyncStore((s) => s.isOnline);
+  const pendingCount = useSyncStore((s) => s.pendingCount);
 
   const scrollRef = useRef<ScrollView>(null);
   useScrollToTop(scrollRef);

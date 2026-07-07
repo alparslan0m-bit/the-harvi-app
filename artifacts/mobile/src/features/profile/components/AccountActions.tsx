@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import { View, Text, Alert, StyleSheet } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router, Href } from "expo-router";

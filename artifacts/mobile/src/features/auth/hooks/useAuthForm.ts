@@ -5,7 +5,9 @@ import { useState } from "react";
 import { useAuth } from "@/src/shared/store/authStore";
 
 export function useAuthForm() {
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const signIn = useAuth((s) => s.signIn);
+  const signUp = useAuth((s) => s.signUp);
+  const signInWithGoogle = useAuth((s) => s.signInWithGoogle);
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

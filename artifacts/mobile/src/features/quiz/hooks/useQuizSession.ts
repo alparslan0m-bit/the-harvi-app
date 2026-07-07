@@ -9,7 +9,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useAuth } from "@/src/shared/store/authStore";
-import { useSyncStatus } from "@/src/shared/store/syncStore";
+import { useSyncStore, useSyncActions } from "@/src/shared/store/syncStore";
 import { useQuizQuestions } from "@/src/features/quiz/hooks/useQuiz";
 import { optimisticallyMarkComplete } from "@/src/features/learn/hooks/useProgress";
 import { decryptAnswer } from "@/src/shared/utils/crypto";
@@ -20,8 +20,9 @@ import { AnsweredState, HistoryItem, Question } from "@/src/shared/types";
 
 export function useQuizSession(lectureId: string) {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
-  const { isOnline, refreshCount, flush } = useSyncStatus();
+  const user = useAuth((s) => s.user);
+  const isOnline = useSyncStore((s) => s.isOnline);
+  const { refreshCount, flush } = useSyncActions();
 
   // ── Fast path: pre-load from AsyncStorage before RQ resolves ─────────────
   const [cachedQuestions, setCachedQuestions] = useState<

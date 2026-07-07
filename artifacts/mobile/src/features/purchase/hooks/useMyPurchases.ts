@@ -73,7 +73,7 @@ async function fetchMyPurchases(userId: string): Promise<Purchase[]> {
 }
 
 export function useMyPurchases() {
-  const { user } = useAuth();
+  const user = useAuth((s) => s.user);
 
   return useQuery({
     queryKey: ["my_purchases", user?.id],

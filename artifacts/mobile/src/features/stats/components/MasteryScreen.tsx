@@ -23,7 +23,7 @@ import { useMasteryFilter } from "@/src/features/learn/hooks/useMasteryFilter";
 export function MasteryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+  const user = useAuth((s) => s.user);
   const { data: stats } = useStats(user?.id);
 
   const allData = stats?.subject_mastery ?? [];

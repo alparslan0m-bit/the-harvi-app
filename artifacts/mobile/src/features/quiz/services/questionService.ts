@@ -45,9 +45,7 @@ export async function fetchQuestions(lectureId: string): Promise<Question[]> {
 
     if (data && data.length > 0) {
       if (__DEV__) {
-        console.log(
-          `[fetch] questions matched FK column: ${fkCol} for ID: ${lectureId} (${data.length} items)`,
-        );
+        // console.log(`[fetch] questions matched FK column: ${fkCol} for ID: ${lectureId} (${data.length} items)`);
       }
       const raw: Question[] = data.map(
         (row: Record<string, unknown>, i: number) => {

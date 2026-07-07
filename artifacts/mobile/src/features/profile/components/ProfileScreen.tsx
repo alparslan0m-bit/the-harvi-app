@@ -25,7 +25,8 @@ import { useScreenAnimation } from "@/src/shared/hooks/useScreenAnimation";
 export function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { user, signOut } = useAuth();
+  const user = useAuth((s) => s.user);
+  const signOut = useAuth((s) => s.signOut);
   const { avatarId, displayName } = useProfileData();
 
   const scrollRef = useRef<ScrollView>(null);

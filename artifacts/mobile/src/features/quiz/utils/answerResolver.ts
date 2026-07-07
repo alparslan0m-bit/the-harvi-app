@@ -177,7 +177,7 @@ export function buildSecure(row: Record<string, unknown>, options: string[]): st
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && "answer" in parsed && typeof parsed["answer"] === "number") {
         // Secure field stores a resolved 0-based index — trust directly, just bounds-check
         const idx = Math.max(0, Math.min(parsed["answer"], options.length - 1));
-        if (__DEV__) console.log(`[db] Secure path success (XOR): direct index ${idx}`);
+        // if (__DEV__) console.log(`[db] Secure path success (XOR): direct index ${idx}`);
         return safeBtoa(
           JSON.stringify({
             answer: idx,
@@ -194,7 +194,7 @@ export function buildSecure(row: Record<string, unknown>, options: string[]): st
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && "answer" in parsed && typeof parsed["answer"] === "number") {
         // JSON secure field stores a resolved 0-based index — trust directly, just bounds-check
         const idx = Math.max(0, Math.min(parsed["answer"], options.length - 1));
-        if (__DEV__) console.log(`[db] JSON path success: direct index ${idx}`);
+        // if (__DEV__) console.log(`[db] JSON path success: direct index ${idx}`);
         return safeBtoa(
           JSON.stringify({
             answer: idx,

@@ -7,7 +7,7 @@ import { useColors } from "@/src/shared/hooks/useColors";
 
 export function AuthCallbackScreen() {
   const colors = useColors();
-  const { session } = useAuth();
+  const session = useAuth((s) => s.session);
 
   useEffect(() => {
     if (session) {

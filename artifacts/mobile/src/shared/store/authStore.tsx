@@ -120,6 +120,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-export function useAuth() {
-  return useAuthStore();
+export function useAuth<T>(selector: (state: AuthState) => T): T {
+  return useAuthStore(selector);
 }

@@ -5,7 +5,8 @@ import { Animated, ScrollView } from "react-native";
 import { useAuth } from "@/src/shared/store/authStore";
 
 export function useLearnFlow(scrollRef: React.RefObject<ScrollView | null>) {
-  const { session, loading: authLoading } = useAuth();
+  const session = useAuth((s) => s.session);
+  const authLoading = useAuth((s) => s.loading);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // 1. Auth Guard

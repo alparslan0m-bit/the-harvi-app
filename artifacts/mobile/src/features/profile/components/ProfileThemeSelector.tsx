@@ -1,12 +1,14 @@
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import { useTheme } from "@/src/shared/store/themeStore";
 import { useColors } from "@/src/shared/hooks/useColors";
 
 export function ProfileThemeSelector() {
-  const { theme, setTheme } = useTheme();
+  const theme = useTheme((s) => s.theme);
+  const setTheme = useTheme((s) => s.setTheme);
   const colors = useColors();
 
   return (

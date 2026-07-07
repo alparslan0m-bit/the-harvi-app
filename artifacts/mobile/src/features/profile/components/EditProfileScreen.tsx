@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { 
@@ -22,7 +23,7 @@ import { useProfileEdit } from "@/src/features/profile/hooks/useProfileEdit";
 export function EditProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+  const user = useAuth((s) => s.user);
   
   // Custom hook for state and persistence logic
   const {

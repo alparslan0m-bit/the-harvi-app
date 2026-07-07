@@ -6,7 +6,7 @@ import { fetchContentAccess } from "@/src/features/learn/services/accessService"
 
 
 export function useModuleAccess() {
-  const { user } = useAuth();
+  const user = useAuth((s) => s.user);
 
   return useQuery({
     queryKey: ["content_access", user?.id],

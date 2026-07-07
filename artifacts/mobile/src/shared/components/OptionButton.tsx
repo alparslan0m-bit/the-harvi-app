@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import React, { useEffect } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import Animated, {
   FadeInDown,
   useAnimatedStyle,

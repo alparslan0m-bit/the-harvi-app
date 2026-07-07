@@ -33,7 +33,7 @@ export function decryptAnswer(encrypted: string): { answer: number; explanation:
     }
     const parsed = JSON.parse(decrypted) as Record<string, unknown> | null;
     if (parsed && typeof parsed === "object" && typeof parsed["answer"] === "number") {
-      if (__DEV__) console.log("[decrypt] XOR path success");
+      // if (__DEV__) console.log("[decrypt] XOR path success");
       return { answer: parsed["answer"], explanation: typeof parsed["explanation"] === "string" ? parsed["explanation"] : "" };
     }
   } catch { /* fall through */ }
@@ -43,7 +43,7 @@ export function decryptAnswer(encrypted: string): { answer: number; explanation:
     const decoded = safeAtob(encrypted);
     const parsed = JSON.parse(decoded) as Record<string, unknown> | null;
     if (parsed && typeof parsed === "object" && typeof parsed["answer"] === "number") {
-      if (__DEV__) console.log("[decrypt] safeBtoa path success");
+      // if (__DEV__) console.log("[decrypt] safeBtoa path success");
       return { answer: parsed["answer"], explanation: typeof parsed["explanation"] === "string" ? parsed["explanation"] : "" };
     }
   } catch { /* fall through */ }
@@ -53,7 +53,7 @@ export function decryptAnswer(encrypted: string): { answer: number; explanation:
     const decoded = atob(encrypted);
     const parsed = JSON.parse(decoded) as Record<string, unknown> | null;
     if (parsed && typeof parsed === "object" && typeof parsed["answer"] === "number") {
-      if (__DEV__) console.log("[decrypt] plain btoa path success");
+      // if (__DEV__) console.log("[decrypt] plain btoa path success");
       return { answer: parsed["answer"], explanation: typeof parsed["explanation"] === "string" ? parsed["explanation"] : "" };
     }
   } catch { /* fall through */ }

@@ -1,7 +1,8 @@
 import { Feather } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import React from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 import { useColors } from "@/src/shared/hooks/useColors";
 

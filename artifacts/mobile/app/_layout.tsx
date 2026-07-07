@@ -34,7 +34,7 @@ const queryClient = new QueryClient({
 });
 
 function RootLayoutNav({ fontsLoaded, fontError }: { fontsLoaded: boolean; fontError: Error | null }) {
-  const { loading } = useAuth();
+  const loading = useAuth((s) => s.loading);
 
   useEffect(() => {
     if ((fontsLoaded || fontError) && !loading) {

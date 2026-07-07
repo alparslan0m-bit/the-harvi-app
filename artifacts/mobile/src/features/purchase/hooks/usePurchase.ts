@@ -3,12 +3,12 @@
 // Provides a unified status state machine for both IAP and code redemption flows.
 import { useState, useCallback } from "react";
 import type { PurchasesPackage } from "react-native-purchases";
-import { usePurchaseContext } from "@/src/shared/store/purchaseStore";
+import { usePurchaseActions } from "@/src/shared/store/purchaseStore";
 
 export type PurchaseStatus = "idle" | "loading" | "success" | "error";
 
 export function usePurchase() {
-  const { purchaseModule, purchaseSubject, redeemCode, restoreModule } = usePurchaseContext();
+  const { purchaseModule, purchaseSubject, redeemCode, restoreModule } = usePurchaseActions();
   const [status, setStatus] = useState<PurchaseStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 

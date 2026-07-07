@@ -6,7 +6,7 @@ export type ThemeColors = {
 } & { radius: number };
 
 export function useColors(): ThemeColors {
-  const { theme } = useTheme();
+  const theme = useTheme((s) => s.theme);
 
   const activeTheme = (theme === "harvi" ? "light" : theme) as "light" | "dark" | "pink";
   

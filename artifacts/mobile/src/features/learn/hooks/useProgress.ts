@@ -27,7 +27,7 @@ export {
 } from "@/src/features/learn/services/progressService";
 
 export function useProgress() {
-  const { user } = useAuth();
+  const user = useAuth((s) => s.user);
 
   // Kick off async warm of memCache on first call for this user.
   // By the time they navigate to a subject, memCache will be populated.
@@ -62,7 +62,7 @@ export function useProgress() {
  */
 export function useRefreshProgress() {
   const qc = useQueryClient();
-  const { user } = useAuth();
+  const user = useAuth((s) => s.user);
   return () => {
     if (user?.id) qc.invalidateQueries({ queryKey: ["progress", user.id] });
   };
