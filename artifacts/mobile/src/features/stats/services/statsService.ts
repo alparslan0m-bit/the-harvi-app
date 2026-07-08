@@ -35,10 +35,9 @@ type RawRow = {
   created_at: string;
 };
 
-// ── Module-level memory cache (survives re-renders, cleared on app restart) ──
+// ── Store-backed memory cache ────────────────────────────────────────────────
 
-export const memCache = new Map<string, UserStats>();
-export const warmed = new Set<string>();
+import { useCacheStore } from "@/src/shared/store/cacheStore";
 
 // ── AsyncStorage helpers ─────────────────────────────────────────────────────
 
@@ -48,7 +47,8 @@ async function readCache(userId: string): Promise<UserStats | null> {
     if (!raw) return null;
     const result = UserStatsSchema.safeParse(JSON.parse(raw));
     return result.success ? result.data : null;
-  } catch {
+  } catch (e) {
+    if (__DEV__) console.warn('[statsService] Error reading cache:', e);
     return null;
   }
 }
@@ -56,20 +56,21 @@ async function readCache(userId: string): Promise<UserStats | null> {
 async function writeCache(userId: string, data: UserStats): Promise<void> {
   try {
     await AsyncStorage.setItem(CACHE_KEY(userId), JSON.stringify(data));
-    memCache.set(userId, data);
-  } catch {
-    // silently ignore write errors
+    useCacheStore.getState().setStatsCache(userId, data);
+  } catch (e) {
+    if (__DEV__) console.warn('[statsService] Error writing cache:', e);
   }
 }
 
 // ── Warm memory cache from AsyncStorage (called once per session) ────────────
 
 export async function warmMemCache(userId: string): Promise<void> {
-  if (warmed.has(userId)) return;
-  warmed.add(userId);
+  const { warmedStats, statsCache, setWarmed, setStatsCache } = useCacheStore.getState();
+  if (warmedStats.has(userId)) return;
+  setWarmed(userId);
   const cached = await readCache(userId);
-  if (cached && !memCache.has(userId)) {
-    memCache.set(userId, cached);
+  if (cached && !statsCache.has(userId)) {
+    setStatsCache(userId, cached);
   }
 }
 
@@ -191,7 +192,7 @@ async function serveFromCache(userId: string): Promise<UserStats> {
   const base = cached ?? ZERO_STATS;
 
   // Update memCache with fresh cache read
-  if (cached) memCache.set(userId, cached);
+  if (cached) useCacheStore.getState().setStatsCache(userId, cached);
 
   if (pending.length === 0) return base;
 
@@ -284,7 +285,8 @@ export async function fetchStats(userId: string): Promise<UserStats> {
     });
     lectureMap = map;
     dbStats = statsRes.data;
-  } catch {
+  } catch (e) {
+    if (__DEV__) console.warn('[statsService] Network error mid-request:', e);
     // Network error mid-request — fall back to cache
     return serveFromCache(userId);
   }
@@ -332,8 +334,7 @@ export async function fetchStats(userId: string): Promise<UserStats> {
 export async function clearStatsCache(userId: string) {
   try {
     await AsyncStorage.removeItem(CACHE_KEY(userId));
-    memCache.delete(userId);
-    warmed.delete(userId);
+    useCacheStore.getState().clearStatsCacheForUser(userId);
   } catch (error) {
     if (__DEV__) console.error("[clearStatsCache] Error clearing stats cache:", error);
   }

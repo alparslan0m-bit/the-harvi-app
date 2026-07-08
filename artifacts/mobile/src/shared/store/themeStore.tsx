@@ -25,7 +25,9 @@ export const useThemeStore = create<ThemeState>((set) => ({
         set({ theme: saved as ThemeMode });
         Appearance.setColorScheme(saved === "harvi" || saved === "pink" ? "light" : "dark");
       }
-    } catch {}
+    } catch (e) {
+      if (__DEV__) console.warn('[themeStore] Error loading theme:', e);
+    }
   }
 }));
 

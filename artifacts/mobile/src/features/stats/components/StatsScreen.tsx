@@ -39,7 +39,7 @@ export function StatsScreen() {
   const isOnline = useSyncStore((s) => s.isOnline);
   const pendingCount = useSyncStore((s) => s.pendingCount);
 
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<any>(null);
   useScrollToTop(scrollRef);
 
   // Reusable screen transition animation

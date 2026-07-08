@@ -4,6 +4,7 @@ import { Session, User } from "@supabase/supabase-js";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import { supabase } from "@/src/shared/services/supabase";
+import { useCacheStore } from "@/src/shared/store/cacheStore";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -75,6 +76,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   signOut: async () => {
     await supabase.auth.signOut();
+    useCacheStore.getState().clearAll();
   }
 }));
 
@@ -90,6 +92,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (!session) {
+        useCacheStore.getState().clearAll();
+      }
     });
 
     return () => subscription.unsubscribe();

@@ -1,5 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, Redirect } from "expo-router";
 import React from "react";
 import {
   Platform,
@@ -20,6 +20,7 @@ export function YearScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
+  if (!id || typeof id !== "string") return <Redirect href="/+not-found" />;
   const { data: years } = useHierarchy();
   const { data: accessMap } = useModuleAccess();
   

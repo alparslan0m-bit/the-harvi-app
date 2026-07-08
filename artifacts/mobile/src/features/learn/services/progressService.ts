@@ -30,7 +30,8 @@ async function readCache(userId: string): Promise<Set<string> | null> {
       return new Set(result.data);
     }
     return null;
-  } catch {
+  } catch (e) {
+    if (__DEV__) console.warn('[progressService] readCache error:', e);
     return null;
   }
 }
@@ -40,8 +41,8 @@ export async function writeProgressCache(userId: string, ids: Set<string>): Prom
   try {
     await AsyncStorage.setItem(PROGRESS_CACHE_KEY(userId), JSON.stringify([...ids]));
     memCache.set(userId, ids);
-  } catch {
-    // silently ignore
+  } catch (e) {
+    if (__DEV__) console.warn('[progressService] writeProgressCache error:', e);
   }
 }
 
@@ -134,7 +135,8 @@ export async function fetchCompletedLectures(userId: string): Promise<Set<string
     }
 
     if (!result) result = new Set<string>();
-  } catch {
+  } catch (e) {
+    if (__DEV__) console.warn('[progressService] fetchCompletedLectures error:', e);
     // Network error mid-request — fall back to cache
     return serveFromCache(userId);
   }

@@ -1,7 +1,7 @@
 // artifacts/mobile/app/purchase/[moduleId].tsx
 // Purchase screen with two tabs: native IAP and access code redemption.
 // Premium UI: gradient hero, animated tabs, spring buttons, entry animations.
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, Redirect } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -260,11 +260,11 @@ const BuyTab = React.memo(function BuyTab({
   onSuccess,
   colors,
 }: {
-  productId?: string;
+  productId?: string | undefined;
   moduleId: string;
   priceDisplay: string;
-  buyModule: (moduleId: string, rcPackage: PurchasesPackage) => Promise<{ success: boolean; cancelled?: boolean; error?: string }>;
-  restorePurchase: (moduleId: string, productId: string) => Promise<{ success: boolean; error?: string }>;
+  buyModule: (moduleId: string, rcPackage: PurchasesPackage) => Promise<{ success: boolean; cancelled?: boolean; error?: string | undefined }>;
+  restorePurchase: (moduleId: string, productId: string) => Promise<{ success: boolean; error?: string | undefined }>;
   status: PurchaseStatus;
   onSuccess: (msg: string) => void;
   colors: ThemeColors;
@@ -406,7 +406,7 @@ const CodeTab = React.memo(function CodeTab({
   onSuccess,
   colors,
 }: {
-  submitCode: (code: string) => Promise<{ success: boolean; itemName?: string; error?: string }>;
+  submitCode: (code: string) => Promise<{ success: boolean; itemName?: string | undefined; error?: string | undefined }>;
   status: PurchaseStatus;
   error: string | null;
   onSuccess: (msg: string) => void;
@@ -587,6 +587,7 @@ export function PurchaseScreen() {
     priceDisplay: string;
     productId?: string;
   }>();
+  if (!moduleId || typeof moduleId !== "string") return <Redirect href="/+not-found" />;
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { buyModule, submitCode, restorePurchase, status, error, reset } = usePurchase();

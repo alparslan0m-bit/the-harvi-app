@@ -20,7 +20,8 @@ async function readCachedPurchases(userId: string): Promise<Purchase[] | null> {
       return result.data;
     }
     return null;
-  } catch {
+  } catch (e) {
+    if (__DEV__) console.warn('[useMyPurchases] Error reading cache:', e);
     return null;
   }
 }
@@ -28,8 +29,8 @@ async function readCachedPurchases(userId: string): Promise<Purchase[] | null> {
 async function writeCachedPurchases(userId: string, data: Purchase[]): Promise<void> {
   try {
     await AsyncStorage.setItem(PURCHASES_CACHE_KEY(userId), JSON.stringify(data));
-  } catch {
-    // best-effort
+  } catch (e) {
+    if (__DEV__) console.warn('[useMyPurchases] Error writing cache:', e);
   }
 }
 

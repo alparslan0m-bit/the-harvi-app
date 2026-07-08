@@ -35,7 +35,7 @@ export function WeeklyActivitySection({ weekData }: { weekData: UserStats["weekl
         </Text>
       </View>
       <View style={{ marginTop: 24 }}>
-        <WeeklyChart data={weekData.map(d => ({ day: d.day, count: d.count, isToday: d.isToday }))} />
+        <WeeklyChart data={weekData.map(d => ({ day: d.day, count: d.count, isToday: !!d.isToday }))} />
       </View>
     </View>
   );

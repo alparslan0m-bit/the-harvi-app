@@ -36,7 +36,7 @@ export function decryptAnswer(encrypted: string): { answer: number; explanation:
       // if (__DEV__) console.log("[decrypt] XOR path success");
       return { answer: parsed["answer"], explanation: typeof parsed["explanation"] === "string" ? parsed["explanation"] : "" };
     }
-  } catch { /* fall through */ }
+  } catch (e) { if (__DEV__) console.warn('[crypto] XOR path failed:', e); }
 
   // Try 2: Unicode-safe base64-encoded plain JSON (built by buildSecure)
   try {
@@ -46,7 +46,7 @@ export function decryptAnswer(encrypted: string): { answer: number; explanation:
       // if (__DEV__) console.log("[decrypt] safeBtoa path success");
       return { answer: parsed["answer"], explanation: typeof parsed["explanation"] === "string" ? parsed["explanation"] : "" };
     }
-  } catch { /* fall through */ }
+  } catch (e) { if (__DEV__) console.warn('[crypto] safeBtoa path failed:', e); }
 
   // Try 3: plain base64 JSON (ASCII only, older format)
   try {
@@ -56,7 +56,7 @@ export function decryptAnswer(encrypted: string): { answer: number; explanation:
       // if (__DEV__) console.log("[decrypt] plain btoa path success");
       return { answer: parsed["answer"], explanation: typeof parsed["explanation"] === "string" ? parsed["explanation"] : "" };
     }
-  } catch { /* fall through */ }
+  } catch (e) { if (__DEV__) console.warn('[crypto] plain btoa path failed:', e); }
 
   if (__DEV__) console.error("[decrypt] ALL PATHS FAILED — no valid answer for:", encrypted.slice(0, 20) + "...");
   return { answer: -1, explanation: "" };

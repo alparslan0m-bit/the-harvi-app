@@ -29,7 +29,7 @@ export function ProfileScreen() {
   const signOut = useAuth((s) => s.signOut);
   const { avatarId, displayName } = useProfileData();
 
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<any>(null);
   useScrollToTop(scrollRef);
 
   // Reusable screen transition animation
