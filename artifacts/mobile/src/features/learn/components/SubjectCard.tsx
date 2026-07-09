@@ -71,18 +71,13 @@ export function SubjectCard({
           <Text style={styles.title} numberOfLines={2}>
             {subject.name}
           </Text>
-          {/* Completion/Lock/Open badge */}
-          <View style={[styles.badge, allDone && styles.badgeDone, isLocked && styles.badgeLocked]}>
-            {isLocked ? (
-              <Feather name="lock" size={12} color="#fff" />
-            ) : (
-              <View style={styles.flexRow}>
-                {/* If it's a free preview, show OPEN icon or text */}
-                <Text style={styles.badgeText}>
-                  {allDone ? "✓" : `${completedCount}/${total}`}
-                </Text>
-              </View>
-            )}
+          {/* Completion badge */}
+          <View style={[styles.badge, allDone && styles.badgeDone]}>
+            <View style={styles.flexRow}>
+              <Text style={styles.badgeText}>
+                {allDone ? "✓" : `${completedCount}/${total}`}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -95,13 +90,6 @@ export function SubjectCard({
                 { width: `${Math.round(progress * 100)}%` as `${number}%` },
               ]}
             />
-          </View>
-        )}
-
-        {/* Status indicator for free content */}
-        {isFreePreview && (
-          <View style={styles.statusLabel}>
-             <Text style={styles.statusText}>FREE PREVIEW</Text>
           </View>
         )}
 
@@ -165,30 +153,10 @@ const styles = StyleSheet.create({
   badgeDone: {
     backgroundColor: "rgba(255,255,255,0.4)",
   },
-  badgeLocked: {
-    backgroundColor: "rgba(0,0,0,0.3)",
-  },
   badgeText: {
     color: "#fff",
     fontSize: 12,
     fontFamily: "Inter_700Bold",
-  },
-  statusLabel: {
-    position: "absolute",
-    bottom: 20,
-    right: 24,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-  },
-  statusText: {
-    color: "#fff",
-    fontSize: 10,
-    fontFamily: "Inter_800ExtraBold",
-    letterSpacing: 0.5,
   },
   flexRow: {
     flexDirection: "row",

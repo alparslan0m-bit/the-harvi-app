@@ -19,6 +19,8 @@ interface Props {
   hasNewQuestions?: boolean;
   /** True when questions are pre-cached for offline use */
   isCached?: boolean;
+  /** True when the lecture (or parent subject/module) is free */
+  isFree?: boolean;
   onPress: () => void;
 }
 
@@ -30,6 +32,7 @@ export function LectureCard({
   completed = false,
   hasNewQuestions = false,
   isCached = false,
+  isFree = false,
   onPress,
 }: Props) {
   const colors = useColors();
@@ -98,6 +101,13 @@ export function LectureCard({
               style={[styles.newBadge, { backgroundColor: colors.primary }]}
             >
               <Text style={styles.newBadgeText}>NEW</Text>
+            </View>
+          )}
+          {isFree && (
+            <View
+              style={[styles.newBadge, { backgroundColor: colors.success }]}
+            >
+              <Text style={styles.newBadgeText}>FREE</Text>
             </View>
           )}
         </View>

@@ -71,7 +71,7 @@ export function YearScreen() {
         {year.modules.map((mod, i) => {
           const access = accessMap?.get(mod.id);
           const hasAccess = access?.has_access ?? false;
-          const isFree = access?.is_free ?? (access?.price_cents === 0);
+          const isFree = false;
 
           return (
             <ModuleCard

@@ -15,6 +15,7 @@ export const LectureSchema = z.object({
   external_id: z.string(),
   subject_id: z.string(),
   question_count: z.number().optional(),
+  is_free: z.boolean().optional(),
 });
 export type Lecture = z.infer<typeof LectureSchema>;
 
@@ -23,7 +24,6 @@ export const SubjectSchema = z.object({
   name: z.string(),
   module_id: z.string(),
   order: z.number(),
-  is_free: z.boolean().optional(),
   external_price_id: z.string().nullable().optional(),
 });
 export type Subject = z.infer<typeof SubjectSchema> & { lectures: Lecture[] };

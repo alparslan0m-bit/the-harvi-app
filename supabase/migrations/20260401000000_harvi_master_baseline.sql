@@ -33,7 +33,6 @@ CREATE TABLE IF NOT EXISTS public.modules (
     external_id TEXT NOT NULL UNIQUE,
     order_index INTEGER DEFAULT 0,
     -- Unified Monetization Logic
-    is_free BOOLEAN NOT NULL DEFAULT false,
     price_cents INTEGER NOT NULL DEFAULT 0,
     external_price_id TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
@@ -49,7 +48,6 @@ CREATE TABLE IF NOT EXISTS public.subjects (
     external_id TEXT NOT NULL UNIQUE,
     order_index INTEGER DEFAULT 0,
     -- Unified Monetization Logic
-    is_free BOOLEAN NOT NULL DEFAULT false,
     price_cents INTEGER NOT NULL DEFAULT 0,
     external_price_id TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
@@ -64,6 +62,7 @@ CREATE TABLE IF NOT EXISTS public.lectures (
     name TEXT NOT NULL,
     external_id TEXT NOT NULL UNIQUE,
     order_index INTEGER DEFAULT 0,
+    is_free BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now(),
     CONSTRAINT unique_lecture_per_subject UNIQUE (name, subject_id)

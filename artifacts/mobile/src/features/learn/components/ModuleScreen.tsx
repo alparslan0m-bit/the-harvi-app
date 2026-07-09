@@ -28,7 +28,7 @@ export function ModuleScreen() {
 
   const module = years?.flatMap((y) => y.modules).find((m) => m.id === id);
   const moduleAccess = accessMap?.get(id);
-  const hasModuleAccess = moduleAccess?.has_access || moduleAccess?.is_free;
+  const hasModuleAccess = moduleAccess?.has_access;
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
 
@@ -80,8 +80,8 @@ export function ModuleScreen() {
 
           // Subject-level access check
           const subAccess = accessMap?.get(sub.id);
-          const isLocked = !hasModuleAccess && !subAccess?.has_access && !subAccess?.is_free;
-          const isFreePreview = !!(!hasModuleAccess && (subAccess?.is_free || sub.is_free));
+          const isLocked = !hasModuleAccess && !subAccess?.has_access;
+          const isFreePreview = !hasModuleAccess && sub.lectures.some((l) => l.is_free);
 
           return (
             <SubjectCard
@@ -92,22 +92,10 @@ export function ModuleScreen() {
               isLocked={isLocked}
               isFreePreview={isFreePreview}
               onPress={() => {
-                if (isLocked) {
-                  router.push({
-                    pathname: "/purchase/[moduleId]",
-                    params: {
-                      moduleId: module.id,
-                      moduleName: module.name,
-                      priceDisplay: `$${((moduleAccess?.price_cents ?? 0) / 100).toFixed(2)}`,
-                      productId: module.external_price_id || "",
-                    }
-                  });
-                } else {
-                  router.push({
-                    pathname: "/subject/[id]",
-                    params: { id: sub.id },
-                  });
-                }
+                router.push({
+                  pathname: "/subject/[id]",
+                  params: { id: sub.id },
+                });
               }}
             />
           );

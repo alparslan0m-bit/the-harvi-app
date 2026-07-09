@@ -87,6 +87,7 @@ async function buildHierarchyFromRemote(): Promise<Year[]> {
       external_id: str(r["external_id"] ?? r["id"]),
       subject_id: key,
       question_count: num(r["question_count"]),
+      is_free: r["is_free"] ? Boolean(r["is_free"]) : undefined,
     });
   }
 

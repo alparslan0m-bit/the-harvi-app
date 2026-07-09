@@ -48,8 +48,7 @@ AS $$
             JOIN public.subjects s ON s.id = l.subject_id
             JOIN public.modules m ON m.id = s.module_id
             WHERE l.id = p_lecture_id AND (
-                s.is_free = true OR
-                m.is_free = true OR
+                l.is_free = true OR
                 EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.subject_id = s.id AND p.status = 'active') OR
                 EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = m.id AND p.status = 'active')
             )
@@ -69,8 +68,8 @@ AS $$
     SELECT 
         m.id, 
         'module', 
-        (public.is_admin() OR m.is_free OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = m.id AND p.status = 'active')), 
-        m.is_free, 
+        (public.is_admin() OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = m.id AND p.status = 'active')), 
+        false AS is_free, 
         m.price_cents 
     FROM public.modules m
     UNION ALL
@@ -78,8 +77,8 @@ AS $$
     SELECT 
         s.id, 
         'subject', 
-        (public.is_admin() OR s.is_free OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = s.module_id AND p.status = 'active') OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.subject_id = s.id AND p.status = 'active')), 
-        s.is_free, 
+        (public.is_admin() OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = s.module_id AND p.status = 'active') OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.subject_id = s.id AND p.status = 'active')), 
+        false AS is_free, 
         s.price_cents 
     FROM public.subjects s;
 $$;
@@ -88,21 +87,7 @@ $$;
 -- 2. ADMIN HELPERS (Privileged Operations)
 -- =============================================
 
-CREATE OR REPLACE FUNCTION public.admin_grant_free_module(p_module_id UUID)
-RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-BEGIN
-    IF NOT is_admin() THEN RAISE EXCEPTION 'Unauthorized'; END IF;
-    UPDATE public.modules SET is_free = true WHERE id = p_module_id;
-END;
-$$;
 
-CREATE OR REPLACE FUNCTION public.admin_grant_free_subject(p_subject_id UUID)
-RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-BEGIN
-    IF NOT is_admin() THEN RAISE EXCEPTION 'Unauthorized'; END IF;
-    UPDATE public.subjects SET is_free = true WHERE id = p_subject_id;
-END;
-$$;
 
 -- =============================================
 -- 3. ENABLE RLS (The Boundary Layer)

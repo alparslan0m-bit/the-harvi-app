@@ -16,6 +16,7 @@ import { useColors } from "@/src/shared/hooks/useColors";
 import { useHierarchy } from "@/src/features/learn/hooks/useHierarchy";
 import { useProgress } from "@/src/features/learn/hooks/useProgress";
 import { useSubjectCache } from "@/src/features/learn/hooks/useSubjectCache";
+import { useModuleAccess } from "@/src/features/learn/hooks/useModuleAccess";
 
 export function SubjectScreen() {
   const colors = useColors();
@@ -23,12 +24,22 @@ export function SubjectScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   if (!id || typeof id !== "string") return <Redirect href="/+not-found" />;
   const { data: years } = useHierarchy();
+  const { data: accessMap } = useModuleAccess();
   const completedIds = useProgress();
 
   const subject = years
     ?.flatMap((y) => y.modules)
     .flatMap((m) => m.subjects)
     .find((s) => s.id === id);
+
+  // Find parent module for access checks and purchase navigation
+  const parentModule = years
+    ?.flatMap((y) => y.modules)
+    .find((m) => m.subjects.some((s) => s.id === id));
+
+  const moduleAccess = parentModule ? accessMap?.get(parentModule.id) : undefined;
+  const subjectAccess = accessMap?.get(id);
+  const hasAccess = moduleAccess?.has_access || subjectAccess?.has_access;
 
   const { status, progress, lectureInfo, downloadSubject, newQuestionCount } =
     useSubjectCache(subject);
@@ -138,6 +149,9 @@ export function SubjectScreen() {
           const info = lectureInfo.find((li) => li.lectureId === lec.id);
           const isCached = info?.isCached ?? false;
           const hasNewQuestions = info?.isStale ?? false;
+          
+          const isLectureFree = !!lec.is_free;
+          const canAccessLecture = hasAccess || isLectureFree;
 
           return (
             <LectureCard
@@ -147,12 +161,28 @@ export function SubjectScreen() {
               completed={isCompleted}
               isCached={isCached}
               hasNewQuestions={hasNewQuestions}
-              onPress={() =>
-                router.push({
-                  pathname: "/quiz/[lectureId]",
-                  params: { lectureId: lec.id, lectureName: lec.name },
-                })
-              }
+              isFree={isLectureFree}
+              onPress={() => {
+                if (!canAccessLecture && parentModule) {
+                  router.push({
+                    pathname: "/purchase/[moduleId]",
+                    params: {
+                      moduleId: parentModule.id,
+                      moduleName: parentModule.name,
+                      priceDisplay: `$${((moduleAccess?.price_cents ?? 0) / 100).toFixed(2)}`,
+                      productId: parentModule.external_price_id || "",
+                      totalSubjects: String(parentModule.subjects.length),
+                      totalLectures: String(parentModule.subjects.reduce((s, sub) => s + sub.lectures.length, 0)),
+                      totalQuestions: String(parentModule.subjects.reduce((s, sub) => s + sub.lectures.reduce((ls, l) => ls + (l.question_count ?? 0), 0), 0)),
+                    },
+                  });
+                } else {
+                  router.push({
+                    pathname: "/quiz/[lectureId]",
+                    params: { lectureId: lec.id, lectureName: lec.name },
+                  });
+                }
+              }}
             />
           );
         })}
