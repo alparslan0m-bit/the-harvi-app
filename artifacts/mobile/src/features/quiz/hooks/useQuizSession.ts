@@ -12,7 +12,6 @@ import { useAuth } from "@/src/shared/store/authStore";
 import { useSyncStore, useSyncActions } from "@/src/shared/store/syncStore";
 import { useQuizQuestions } from "@/src/features/quiz/hooks/useQuiz";
 import { optimisticallyMarkComplete } from "@/src/features/learn/hooks/useProgress";
-import { decryptAnswer } from "@/src/shared/utils/crypto";
 import { loadQuestionsFromCache } from "@/src/features/quiz/services/questionCache";
 import { enqueueQuizResult } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
@@ -86,8 +85,8 @@ export function useQuizSession(lectureId: string) {
       if (!questions || answered) return;
       const q: Question | undefined = questions[currentIndex];
       if (!q) return;
-      const { answer, explanation } = decryptAnswer(q.secure);
-      // answer === -1 means decryption failed — no option should be marked correct
+      const { answer, explanation } = q;
+      // answer === -1 means resolution failed — no option should be marked correct
       const isCorrect = answer >= 0 && selectedIndex === answer;
 
       Haptics.notificationAsync(

@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { LectureCard, SubjectDownloadButton } from "@/src/features/learn";
+import { LectureCard } from "./LectureCard";
+import { SubjectDownloadButton } from "./SubjectDownloadButton";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { useHierarchy } from "@/src/features/learn/hooks/useHierarchy";
 import { useProgress } from "@/src/features/learn/hooks/useProgress";

@@ -1,8 +1,6 @@
 // Extracted from hooks/useQuiz.ts — pure business logic for quiz answer resolution.
 // No React dependencies.
 
-import { safeBtoa, XOR_KEY } from "@/src/shared/utils/crypto";
-
 // ── Schema field-name candidates ────────────────────────────────────────────
 
 export const TEXT_CANDIDATES = [
@@ -16,7 +14,7 @@ export const ANSWER_CANDIDATES = [
 export const EXPLANATION_CANDIDATES = [
   "explanation", "rationale", "reason", "feedback", "solution", "comment",
 ];
-export const SECURE_CANDIDATES = ["secure", "encrypted", "encrypted_answer"];
+
 export const IMAGE_URL_CANDIDATES = [
   "image_url", "image", "picture_url", "photo_url",
   "img_url", "image_link", "img", "media_url",
@@ -37,7 +35,9 @@ export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [a[i] as T, a[j] as T] = [a[j] as T, a[i] as T];
+    const temp = a[i];
+    a[i] = a[j] as T;
+    a[j] = temp as T;
   }
   return a;
 }
@@ -73,14 +73,24 @@ export function parseOptions(raw: unknown): string[] {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
         arr = parsed;
+      } else if (typeof parsed === "object" && parsed !== null) {
+        arr = Object.entries(parsed)
+          .filter(([k]) => !['answer', 'correct', 'explanation', 'id'].includes(k.toLowerCase()))
+          .map(([k, v]) => v);
       } else {
         return [raw];
       }
     } catch {
       return [raw];
     }
+  } else if (typeof raw === "object" && raw !== null) {
+    arr = Object.entries(raw as Record<string, unknown>)
+      .filter(([k]) => !['answer', 'correct', 'explanation', 'id'].includes(k.toLowerCase()))
+      .map(([k, v]) => v);
   }
-  return arr.map(extractOptionText).filter(Boolean);
+  
+  const mapped = arr.map(extractOptionText).filter(Boolean);
+  return Array.from(new Set(mapped));
 }
 
 /**
@@ -158,57 +168,14 @@ export function resolveAnswerIndex(rawAnswer: unknown, options: string[]): numbe
   return 0;
 }
 
-export function buildSecure(row: Record<string, unknown>, options: string[]): string {
-  const rawSecure = pick(row, SECURE_CANDIDATES);
+export function resolveAnswer(
+  row: Record<string, unknown>,
+  options: string[],
+): { answer: number; explanation: string } {
   const rawAnswer = pick(row, ANSWER_CANDIDATES);
   const explanation = str(pick(row, EXPLANATION_CANDIDATES) ?? "");
   const answerIndex = resolveAnswerIndex(rawAnswer, options);
-
-  if (rawSecure && typeof rawSecure === "string" && rawSecure.length > 0) {
-    try {
-      const decoded = atob(rawSecure);
-      let decrypted = "";
-      for (let i = 0; i < decoded.length; i++) {
-        decrypted += String.fromCharCode(
-          decoded.charCodeAt(i) ^ XOR_KEY.charCodeAt(i % XOR_KEY.length),
-        );
-      }
-      const parsed = JSON.parse(decrypted);
-      if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && "answer" in parsed && typeof parsed["answer"] === "number") {
-        // Secure field stores a resolved 0-based index — trust directly, just bounds-check
-        const idx = Math.max(0, Math.min(parsed["answer"], options.length - 1));
-        // if (__DEV__) console.log(`[db] Secure path success (XOR): direct index ${idx}`);
-        return safeBtoa(
-          JSON.stringify({
-            answer: idx,
-            explanation: "explanation" in parsed && typeof parsed["explanation"] === "string" ? parsed["explanation"] : "",
-          }),
-        );
-      }
-    } catch {
-      /* fall through */
-    }
-
-    try {
-      const parsed = JSON.parse(rawSecure);
-      if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && "answer" in parsed && typeof parsed["answer"] === "number") {
-        // JSON secure field stores a resolved 0-based index — trust directly, just bounds-check
-        const idx = Math.max(0, Math.min(parsed["answer"], options.length - 1));
-        // if (__DEV__) console.log(`[db] JSON path success: direct index ${idx}`);
-        return safeBtoa(
-          JSON.stringify({
-            answer: idx,
-            explanation: "explanation" in parsed && typeof parsed["explanation"] === "string" ? parsed["explanation"] : "",
-          }),
-        );
-      }
-
-    } catch {
-      /* fall through */
-    }
-  }
-
-  return safeBtoa(JSON.stringify({ answer: answerIndex, explanation }));
+  return { answer: answerIndex, explanation };
 }
 
 export function shuffleOptions(

@@ -4,16 +4,14 @@ import { router, useLocalSearchParams, Href, Redirect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Platform } from "react-native";
 
-import {
-  QuizLoadingScreen,
-  QuizErrorScreen,
-  QuizReviewScreen,
-  ResultsView,
-  QuizActiveHeader,
-  QuizProgressBar,
-  QuizQuestionContent,
-  QuizNextButton,
-} from "@/src/features/quiz";
+import { QuizLoadingScreen } from "./QuizLoadingScreen";
+import { QuizErrorScreen } from "./QuizErrorScreen";
+import { QuizReviewScreen } from "./QuizReviewScreen";
+import { ResultsView } from "./QuizResultsView";
+import { QuizActiveHeader } from "./QuizActiveHeader";
+import { QuizProgressBar } from "./QuizProgressBar";
+import { QuizQuestionContent } from "./QuizQuestionContent";
+import { QuizNextButton } from "./QuizNextButton";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { useQuizSession } from "@/src/features/quiz/hooks/useQuizSession";
 

@@ -11,7 +11,8 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FeedbackForm } from "@/src/shared/components";
-import { ProfileHeroCard, AccountActions } from "@/src/features/profile";
+import { ProfileHeroCard } from "./ProfileHeroCard";
+import { AccountActions } from "./AccountActions";
 import { useAuth } from "@/src/shared/store/authStore";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { useProfileData } from "@/src/features/profile/hooks/useProfileData";

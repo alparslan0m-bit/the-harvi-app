@@ -3,13 +3,11 @@ import React, { useRef } from "react";
 import { Animated, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { 
-  YearCard, 
-  LearnHeader, 
-  LearnLoadingState, 
-  LearnErrorState, 
-  LearnEmptyState 
-} from "@/src/features/learn";
+import { YearCard } from "./YearCard";
+import { LearnHeader } from "./LearnHeader";
+import { LearnLoadingState } from "./LearnLoadingState";
+import { LearnErrorState } from "./LearnErrorState";
+import { LearnEmptyState } from "./LearnEmptyState";
 
 import { useColors } from "@/src/shared/hooks/useColors";
 import { useHierarchy } from "@/src/features/learn/hooks/useHierarchy";

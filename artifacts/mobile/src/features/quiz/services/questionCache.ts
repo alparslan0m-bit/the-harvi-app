@@ -13,6 +13,8 @@ const KEY = (id: string) => `harvi:qcache:${id}`;
 
 import { useCacheStore } from "@/src/shared/store/cacheStore";
 
+const CACHE_VERSION = "v3";
+
 export async function saveQuestionsToCache(
   lectureId: string,
   questions: Question[]
@@ -22,6 +24,7 @@ export async function saveQuestionsToCache(
     questions,
     questionCount: questions.length,
     downloadedAt: new Date().toISOString(),
+    version: CACHE_VERSION,
   };
   try {
     await AsyncStorage.setItem(KEY(lectureId), JSON.stringify(entry));
@@ -40,7 +43,12 @@ export async function loadQuestionsFromCache(
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     const result = CachedLectureSchema.safeParse(parsed);
-    return result.success ? result.data : null;
+    if (!result.success) return null;
+    if (result.data.version !== CACHE_VERSION) {
+      if (__DEV__) console.log(`[questionCache] Invalid cache version for lecture ${lectureId}, discarding.`);
+      return null;
+    }
+    return result.data;
   } catch (e) {
     if (__DEV__) console.warn('[questionCache] Error loading cache:', e);
     return null;

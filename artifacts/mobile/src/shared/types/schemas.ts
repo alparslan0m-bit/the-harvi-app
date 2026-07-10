@@ -52,7 +52,8 @@ export const QuestionSchema = z.object({
   id: z.string(),
   text: z.string(),
   options: z.array(z.string()),
-  secure: z.string(),
+  answer: z.number(),
+  explanation: z.string().default(""),
   image_url: z.string().optional(),
 });
 export type Question = z.infer<typeof QuestionSchema>;
@@ -139,5 +140,6 @@ export const CachedLectureSchema = z.object({
   questions: z.array(QuestionSchema),
   questionCount: z.number(),
   downloadedAt: z.string(),
+  version: z.string().optional(),
 });
 export type CachedLecture = z.infer<typeof CachedLectureSchema>;

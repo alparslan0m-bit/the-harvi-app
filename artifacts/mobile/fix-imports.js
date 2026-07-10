@@ -14,7 +14,7 @@ const replacements = [
   { from: /@\/lib\/supabase/g, to: '@/src/shared/services/supabase' },
   { from: /@\/lib\/offlineQueue/g, to: '@/src/shared/services/offlineQueue' },
   { from: /@\/lib\/schemas/g, to: '@/src/shared/types/schemas' },
-  { from: /@\/lib\/crypto/g, to: '@/src/shared/utils/crypto' },
+
   { from: /@\/lib\/questionCache/g, to: '@/src/features/quiz/services/questionCache' },
 
   // Constants

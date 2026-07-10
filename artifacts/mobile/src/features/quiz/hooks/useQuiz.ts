@@ -7,7 +7,7 @@ import {
 import { fetchQuestions } from "@/src/features/quiz/services/questionService";
 import { Question } from "@/src/shared/types";
 
-const QUIZ_CACHE_VERSION = "v2"; // Increment this to force cache clear
+const QUIZ_CACHE_VERSION = "v3"; // Increment this to force cache clear
 
 // Re-export for backward compatibility (used by useSubjectCache)
 export { fetchQuestions } from "@/src/features/quiz/services/questionService";

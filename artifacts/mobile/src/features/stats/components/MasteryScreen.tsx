@@ -2,14 +2,12 @@ import React from "react";
 import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { 
-  MasteryHeader, 
-  MasterySearch, 
-  MasteryFilterChips, 
-  MasterySummaryPills, 
-  MasteryLectureCard, 
-  MasteryEmptyState 
-} from "@/src/features/stats";
+import { MasteryHeader } from "./MasteryHeader";
+import { MasterySearch } from "./MasterySearch";
+import { MasteryFilterChips } from "./MasteryFilterChips";
+import { MasterySummaryPills } from "./MasterySummaryPills";
+import { MasteryLectureCard } from "./MasteryLectureCard";
+import { MasteryEmptyState } from "./MasteryEmptyState";
 
 import { useAuth } from "@/src/shared/store/authStore";
 import { useColors } from "@/src/shared/hooks/useColors";

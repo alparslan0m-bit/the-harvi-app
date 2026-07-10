@@ -4,13 +4,11 @@ import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { 
-  AvatarPicker, 
-  ProfileEditHeader, 
-  ProfileAvatarSection, 
-  ProfileEditField, 
-  ProfileThemeSelector 
-} from "@/src/features/profile";
+import { AvatarPicker } from "./AvatarPicker";
+import { ProfileEditHeader } from "./ProfileEditHeader";
+import { ProfileAvatarSection } from "./ProfileAvatarSection";
+import { ProfileEditField } from "./ProfileEditField";
+import { ProfileThemeSelector } from "./ProfileThemeSelector";
 
 import { useAuth } from "@/src/shared/store/authStore";
 import { useColors } from "@/src/shared/hooks/useColors";

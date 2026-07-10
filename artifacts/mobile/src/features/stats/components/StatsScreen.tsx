@@ -12,15 +12,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import {
-  StreakCard,
-  StatsMetricsGrid,
-  WeeklyActivitySection,
-  MasterySection,
-  EmptyNudge,
-  RecentResultsSection,
-  StatsErrorView,
-} from "@/src/features/stats";
+import { StreakCard } from "./StreakCard";
+import { StatsMetricsGrid } from "./StatsMetricsGrid";
+import { WeeklyActivitySection } from "./WeeklyActivitySection";
+import { MasterySection } from "./MasterySection";
+import { EmptyNudge } from "./EmptyNudge";
+import { RecentResultsSection } from "./RecentResultsSection";
+import { StatsErrorView } from "./StatsErrorView";
 
 import { useAuth } from "@/src/shared/store/authStore";
 import { useSyncStore } from "@/src/shared/store/syncStore";

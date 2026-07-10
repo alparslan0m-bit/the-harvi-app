@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { ModuleCard } from "@/src/features/learn";
+import { ModuleCard } from "./ModuleCard";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { useHierarchy } from "@/src/features/learn/hooks/useHierarchy";
 import { useModuleAccess } from "@/src/features/learn/hooks/useModuleAccess";
