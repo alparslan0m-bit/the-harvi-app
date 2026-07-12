@@ -66,10 +66,12 @@ BEGIN
     p_code := upper(regexp_replace(trim(p_code), '[-\s]', '', 'g'));
 
     -- Look up the code with a row lock to prevent race conditions
+    -- CHANGED: Removed SKIP LOCKED. This forces concurrent requests to wait
+    -- for the lock to be released, rather than immediately returning NULL.
     SELECT * INTO v_code_row
     FROM public.access_codes
     WHERE code = p_code
-    FOR UPDATE SKIP LOCKED;
+    FOR UPDATE;
 
     IF v_code_row IS NULL THEN
         RETURN jsonb_build_object('success', false, 'error', 'Invalid code');
