@@ -62,10 +62,10 @@ export function usePurchaseActions() {
   const purchaseModule = useCallback(
     async (moduleId: string, rcPackage: PurchasesPackage) => {
       try {
-        const { customerInfo: info } = await Purchases.purchasePackage(rcPackage);
+        const { customerInfo: info, transaction } = await Purchases.purchasePackage(rcPackage);
         setCustomerInfo(info);
         const store = Platform.OS === "ios" ? "apple_iap" : "google_play";
-        const txId = info.nonSubscriptionTransactions?.[info.nonSubscriptionTransactions.length - 1]?.transactionIdentifier ?? rcPackage.identifier;
+        const txId = transaction?.transactionIdentifier ?? rcPackage.identifier;
         await recordIAP({ moduleId, transactionId: txId, store });
         await invalidateAccess();
         return { success: true };
@@ -159,16 +159,18 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
   const setCustomerInfo = usePurchaseStore(s => s.setCustomerInfo);
   const isReady = usePurchaseStore(s => s.isReady);
 
+  const apiKey = Platform.OS === "ios" ? REVENUECAT_IOS_KEY : REVENUECAT_ANDROID_KEY;
+  const IS_REVENUECAT_ENABLED = Boolean(Platform.OS !== "web" && apiKey);
+
   useEffect(() => {
-    const apiKey = Platform.OS === "ios" ? REVENUECAT_IOS_KEY : REVENUECAT_ANDROID_KEY;
-    if (!apiKey || Platform.OS === "web") {
+    if (!IS_REVENUECAT_ENABLED) {
       setIsReady(true);
       return;
     }
     const init = async () => {
       try {
         if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-        Purchases.configure({ apiKey, appUserID: user?.id ?? null });
+        Purchases.configure({ apiKey, appUserID: null }); // Configure exactly once
         const info = await Purchases.getCustomerInfo();
         setCustomerInfo(info);
         setIsReady(true);
@@ -178,10 +180,10 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
       }
     };
     init();
-  }, [user?.id, setIsReady, setCustomerInfo]);
+  }, [apiKey, setIsReady, setCustomerInfo, IS_REVENUECAT_ENABLED]);
 
   useEffect(() => {
-    if (!isReady || Platform.OS === "web") return;
+    if (!isReady || !IS_REVENUECAT_ENABLED) return;
     const sync = async () => {
       try {
         if (user?.id) {
@@ -196,7 +198,7 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
       }
     };
     sync();
-  }, [user?.id, isReady, setCustomerInfo]);
+  }, [user?.id, isReady, setCustomerInfo, IS_REVENUECAT_ENABLED]);
 
   return <>{children}</>;
 }

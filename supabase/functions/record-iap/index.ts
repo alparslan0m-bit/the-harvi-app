@@ -85,16 +85,26 @@ serve(async (req: Request) => {
       });
     }
 
-    // ── 4. Idempotency: check for duplicate transaction ─────────
+    // ── 4. Idempotency & Replay Protection ─────────
     const { data: existing } = await supabaseAdmin
       .from("purchases")
-      .select("id, status")
+      .select("id, status, user_id")
       .eq("store_transaction_id", transaction_id)
-      .eq("user_id", user.id)
       .maybeSingle();
 
     if (existing) {
-      // Already recorded — return success (idempotent)
+      if (existing.user_id !== user.id) {
+        // Receipt replay vulnerability blocked
+        return new Response(
+          JSON.stringify({ error: "Transaction has already been redeemed by another user." }),
+          {
+            status: 409,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      // Already recorded by this user — return success (idempotent)
       return new Response(
         JSON.stringify({
           status: existing.status,

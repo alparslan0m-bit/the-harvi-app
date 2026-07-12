@@ -24,11 +24,13 @@ export const ValueProposition = React.memo(function ValueProposition({
   totalQuestions: number;
   colors: ThemeColors;
 }) {
-  const stats: StatItem[] = [
-    { icon: "book", count: totalSubjects, label: "Subjects" },
-    { icon: "file-text", count: totalLectures, label: "Lectures" },
-    { icon: "help-circle", count: totalQuestions, label: "Questions" },
-  ].filter((s) => s.count > 0);
+  const stats: StatItem[] = (
+    [
+      { icon: "book", count: totalSubjects, label: "Subjects" },
+      { icon: "file-text", count: totalLectures, label: "Lectures" },
+      { icon: "help-circle", count: totalQuestions, label: "Questions" },
+    ] satisfies StatItem[]
+  ).filter((s) => s.count > 0);
 
   if (stats.length === 0) return null;
 

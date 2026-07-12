@@ -13,17 +13,12 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS public.access_codes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT NOT NULL UNIQUE,
-    module_id UUID REFERENCES public.modules(id) ON DELETE CASCADE,
-    subject_id UUID REFERENCES public.subjects(id) ON DELETE CASCADE,
+    module_id UUID NOT NULL REFERENCES public.modules(id) ON DELETE CASCADE,
     batch_id TEXT,
     redeemed_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     redeemed_at TIMESTAMPTZ,
     expires_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    CONSTRAINT check_code_target CHECK (
-        (module_id IS NOT NULL AND subject_id IS NULL) OR
-        (module_id IS NULL AND subject_id IS NOT NULL)
-    )
+    created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- Indexes
@@ -90,24 +85,14 @@ BEGIN
         RETURN jsonb_build_object('success', false, 'error', 'This code has expired');
     END IF;
 
-    -- Check if user already has active access to this content
-    IF v_code_row.module_id IS NOT NULL THEN
-        IF EXISTS (
-            SELECT 1 FROM public.purchases
-            WHERE user_id = v_uid AND module_id = v_code_row.module_id AND status = 'active'
-        ) THEN
-            RETURN jsonb_build_object('success', false, 'error', 'You already have access to this content');
-        END IF;
-        SELECT name INTO v_item_name FROM public.modules WHERE id = v_code_row.module_id;
-    ELSE
-        IF EXISTS (
-            SELECT 1 FROM public.purchases
-            WHERE user_id = v_uid AND subject_id = v_code_row.subject_id AND status = 'active'
-        ) THEN
-            RETURN jsonb_build_object('success', false, 'error', 'You already have access to this content');
-        END IF;
-        SELECT name INTO v_item_name FROM public.subjects WHERE id = v_code_row.subject_id;
+    -- Check if user already has active access to this module
+    IF EXISTS (
+        SELECT 1 FROM public.purchases
+        WHERE user_id = v_uid AND module_id = v_code_row.module_id AND status = 'active'
+    ) THEN
+        RETURN jsonb_build_object('success', false, 'error', 'You already have access to this content');
     END IF;
+    SELECT name INTO v_item_name FROM public.modules WHERE id = v_code_row.module_id;
 
     -- Mark code as redeemed
     UPDATE public.access_codes
@@ -116,11 +101,10 @@ BEGIN
 
     -- Insert purchase record (unified with IAP purchases)
     INSERT INTO public.purchases (
-        user_id, module_id, subject_id, status, amount_cents, currency, provider, payment_id
+        user_id, module_id, status, amount_cents, currency, provider, payment_id
     ) VALUES (
         v_uid,
         v_code_row.module_id,
-        v_code_row.subject_id,
         'active',
         0,
         'usd',
@@ -131,8 +115,8 @@ BEGIN
     RETURN jsonb_build_object(
         'success', true,
         'item_name', COALESCE(v_item_name, 'Content'),
-        'item_type', CASE WHEN v_code_row.module_id IS NOT NULL THEN 'module' ELSE 'subject' END,
-        'item_id', COALESCE(v_code_row.module_id, v_code_row.subject_id)
+        'item_type', 'module',
+        'item_id', v_code_row.module_id
     );
 END;
 $$;
@@ -142,8 +126,7 @@ $$;
 -- =============================================
 
 CREATE OR REPLACE FUNCTION public.admin_generate_codes(
-    p_target_type TEXT,       -- 'module' or 'subject'
-    p_target_id UUID,         -- the module or subject UUID
+    p_target_id UUID,         -- the module UUID
     p_count INTEGER,          -- how many codes to generate
     p_expires_days INTEGER DEFAULT NULL -- optional: days until expiry
 )
@@ -163,19 +146,9 @@ BEGIN
         RAISE EXCEPTION 'Unauthorized';
     END IF;
 
-    -- Validate target type
-    IF p_target_type NOT IN ('module', 'subject') THEN
-        RAISE EXCEPTION 'target_type must be "module" or "subject"';
-    END IF;
-
     -- Validate target exists
-    IF p_target_type = 'module' THEN
-        PERFORM 1 FROM public.modules WHERE id = p_target_id;
-        IF NOT FOUND THEN RAISE EXCEPTION 'Module not found'; END IF;
-    ELSE
-        PERFORM 1 FROM public.subjects WHERE id = p_target_id;
-        IF NOT FOUND THEN RAISE EXCEPTION 'Subject not found'; END IF;
-    END IF;
+    PERFORM 1 FROM public.modules WHERE id = p_target_id;
+    IF NOT FOUND THEN RAISE EXCEPTION 'Module not found'; END IF;
 
     -- Validate count
     IF p_count < 1 OR p_count > 500 THEN
@@ -193,11 +166,10 @@ BEGIN
         v_new_code := upper(encode(gen_random_bytes(8), 'hex'));
 
         INSERT INTO public.access_codes (
-            code, module_id, subject_id, batch_id, expires_at
+            code, module_id, batch_id, expires_at
         ) VALUES (
             v_new_code,
-            CASE WHEN p_target_type = 'module' THEN p_target_id ELSE NULL END,
-            CASE WHEN p_target_type = 'subject' THEN p_target_id ELSE NULL END,
+            p_target_id,
             v_batch_id,
             v_expires_at
         );

@@ -39,8 +39,7 @@ export function SubjectScreen() {
     .find((m) => m.subjects.some((s) => s.id === id));
 
   const moduleAccess = parentModule ? accessMap?.get(parentModule.id) : undefined;
-  const subjectAccess = accessMap?.get(id);
-  const hasAccess = moduleAccess?.has_access || subjectAccess?.has_access;
+  const hasAccess = !!moduleAccess?.has_access;
 
   const { status, progress, lectureInfo, downloadSubject, newQuestionCount } =
     useSubjectCache(subject);

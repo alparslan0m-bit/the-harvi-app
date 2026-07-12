@@ -79,8 +79,7 @@ export function ModuleScreen() {
           ).length;
 
           // Subject-level access check
-          const subAccess = accessMap?.get(sub.id);
-          const isLocked = !hasModuleAccess && !subAccess?.has_access;
+          const isLocked = !hasModuleAccess;
           const isFreePreview = !hasModuleAccess && sub.lectures.some((l) => l.is_free);
 
           return (

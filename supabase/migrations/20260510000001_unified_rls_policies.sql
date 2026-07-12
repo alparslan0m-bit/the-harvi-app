@@ -49,7 +49,6 @@ AS $$
             JOIN public.modules m ON m.id = s.module_id
             WHERE l.id = p_lecture_id AND (
                 l.is_free = true OR
-                EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.subject_id = s.id AND p.status = 'active') OR
                 EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = m.id AND p.status = 'active')
             )
         );
@@ -73,13 +72,13 @@ AS $$
         m.price_cents 
     FROM public.modules m
     UNION ALL
-    -- Subjects
+    -- Subjects: Access derived from module purchase
     SELECT 
         s.id, 
         'subject', 
-        (public.is_admin() OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = s.module_id AND p.status = 'active') OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.subject_id = s.id AND p.status = 'active')), 
+        (public.is_admin() OR EXISTS (SELECT 1 FROM public.purchases p WHERE p.user_id = (SELECT auth.uid()) AND p.module_id = s.module_id AND p.status = 'active')), 
         false AS is_free, 
-        s.price_cents 
+        0 AS price_cents 
     FROM public.subjects s;
 $$;
 

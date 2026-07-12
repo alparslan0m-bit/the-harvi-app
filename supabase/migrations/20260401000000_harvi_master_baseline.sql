@@ -47,9 +47,6 @@ CREATE TABLE IF NOT EXISTS public.subjects (
     name TEXT NOT NULL,
     external_id TEXT NOT NULL UNIQUE,
     order_index INTEGER DEFAULT 0,
-    -- Unified Monetization Logic
-    price_cents INTEGER NOT NULL DEFAULT 0,
-    external_price_id TEXT,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now(),
     CONSTRAINT unique_subject_per_module UNIQUE (name, module_id)
@@ -150,7 +147,6 @@ CREATE TABLE IF NOT EXISTS public.purchases (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     module_id UUID REFERENCES public.modules(id) ON DELETE CASCADE,
-    subject_id UUID REFERENCES public.subjects(id) ON DELETE CASCADE,
     status TEXT NOT NULL CHECK (status IN ('pending', 'active', 'failed', 'refunded', 'disputed')),
     amount_cents INTEGER NOT NULL CONSTRAINT check_purchase_amount CHECK (amount_cents >= 0),
     currency TEXT NOT NULL DEFAULT 'usd',
@@ -159,10 +155,7 @@ CREATE TABLE IF NOT EXISTS public.purchases (
     provider TEXT NOT NULL DEFAULT 'manual',
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now(),
-    CONSTRAINT check_purchase_target CHECK (
-        (module_id IS NOT NULL AND subject_id IS NULL) OR
-        (module_id IS NULL AND subject_id IS NOT NULL)
-    )
+    CONSTRAINT check_purchase_has_module CHECK (module_id IS NOT NULL)
 );
 
 -- =============================================
@@ -507,12 +500,6 @@ CREATE INDEX IF NOT EXISTS idx_feedback_user_id ON public.feedback(user_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_results_user_lecture ON public.quiz_results(user_id, lecture_id);
 CREATE INDEX IF NOT EXISTS idx_user_stats_user_id ON public.user_stats(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_stats_average_score ON public.user_stats(average_score DESC);
-
--- NEW-HIGH-02 FIX: Subject-level purchase lookups had no supporting index.
--- check_content_access() does WHERE p.subject_id = s.id AND p.status = 'active'
-CREATE INDEX IF NOT EXISTS idx_purchases_user_subject_status
-    ON public.purchases(user_id, subject_id, status)
-    WHERE status = 'active';
 
 -- Partial index for module-level purchase lookups (matching the existing pattern)
 CREATE INDEX IF NOT EXISTS idx_purchases_user_module_status
