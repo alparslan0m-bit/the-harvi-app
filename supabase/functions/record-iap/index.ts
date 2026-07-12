@@ -44,21 +44,11 @@ serve(async (req: Request) => {
     }
 
     // ── 2. Validate Input ───────────────────────────────────────
-    const { module_id, subject_id, transaction_id, store } = await req.json();
+    const { module_id, transaction_id, store } = await req.json();
 
-    if (!transaction_id || !store) {
+    if (!module_id || !transaction_id || !store) {
       return new Response(
-        JSON.stringify({ error: "transaction_id and store are required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    if (!module_id && !subject_id) {
-      return new Response(
-        JSON.stringify({ error: "module_id or subject_id required" }),
+        JSON.stringify({ error: "module_id, transaction_id and store are required" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -81,18 +71,15 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // ── 3. Validate target exists ───────────────────────────────
-    const targetTable = subject_id ? "subjects" : "modules";
-    const targetId = subject_id || module_id;
-
+    // ── 3. Validate module exists ───────────────────────────────
     const { data: item, error: itemError } = await supabaseAdmin
-      .from(targetTable)
+      .from("modules")
       .select("id, name, price_cents")
-      .eq("id", targetId)
+      .eq("id", module_id)
       .single();
 
     if (itemError || !item) {
-      return new Response(JSON.stringify({ error: "Item not found" }), {
+      return new Response(JSON.stringify({ error: "Module not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -111,8 +98,7 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({
           status: existing.status,
-          module_id: module_id || null,
-          subject_id: subject_id || null,
+          module_id,
           already_recorded: true,
         }),
         {
@@ -123,18 +109,17 @@ serve(async (req: Request) => {
     }
 
     // ── 5. Check for existing active purchase (prevent double-buy)
-    const targetColumn = subject_id ? "subject_id" : "module_id";
     const { data: activePurchase } = await supabaseAdmin
       .from("purchases")
       .select("id")
       .eq("user_id", user.id)
-      .eq(targetColumn, targetId)
+      .eq("module_id", module_id)
       .eq("status", "active")
       .maybeSingle();
 
     if (activePurchase) {
       return new Response(
-        JSON.stringify({ error: "You already have access to this content" }),
+        JSON.stringify({ error: "You already have access to this module" }),
         {
           status: 409,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -147,8 +132,7 @@ serve(async (req: Request) => {
       .from("purchases")
       .insert({
         user_id: user.id,
-        module_id: module_id || null,
-        subject_id: subject_id || null,
+        module_id,
         status: "active",
         amount_cents: item.price_cents || 0,
         currency: "usd",
@@ -176,8 +160,7 @@ serve(async (req: Request) => {
     return new Response(
       JSON.stringify({
         status: "active",
-        module_id: module_id || null,
-        subject_id: subject_id || null,
+        module_id,
       }),
       {
         status: 200,

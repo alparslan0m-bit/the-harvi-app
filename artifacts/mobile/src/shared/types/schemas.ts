@@ -24,7 +24,6 @@ export const SubjectSchema = z.object({
   name: z.string(),
   module_id: z.string(),
   order: z.number(),
-  external_price_id: z.string().nullable().optional(),
 });
 export type Subject = z.infer<typeof SubjectSchema> & { lectures: Lecture[] };
 
@@ -117,7 +116,6 @@ export type ContentAccessEntry = z.infer<typeof ContentAccessEntrySchema>;
 export const PurchaseSchema = z.object({
   id: z.string(),
   module_id: z.string().nullable(),
-  subject_id: z.string().nullable(),
   amount_cents: z.number(),
   currency: z.string(),
   status: z.string(),

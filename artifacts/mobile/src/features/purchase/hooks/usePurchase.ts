@@ -8,7 +8,7 @@ import { usePurchaseActions } from "@/src/shared/store/purchaseStore";
 export type PurchaseStatus = "idle" | "loading" | "success" | "error";
 
 export function usePurchase() {
-  const { purchaseModule, purchaseSubject, redeemCode, restoreModule } = usePurchaseActions();
+  const { purchaseModule, redeemCode, restoreModule } = usePurchaseActions();
   const [status, setStatus] = useState<PurchaseStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -37,29 +37,7 @@ export function usePurchase() {
     [purchaseModule],
   );
 
-  const buySubject = useCallback(
-    async (subjectId: string, rcPackage: PurchasesPackage) => {
-      setStatus("loading");
-      setError(null);
 
-      const result = await purchaseSubject(subjectId, rcPackage);
-
-      if (result.success) {
-        setStatus("success");
-        return { success: true };
-      }
-
-      if (!result.error) {
-        setStatus("idle");
-        return { success: false, cancelled: true };
-      }
-
-      setError(result.error);
-      setStatus("error");
-      return { success: false, error: result.error };
-    },
-    [purchaseSubject],
-  );
 
   const submitCode = useCallback(
     async (code: string) => {
@@ -104,5 +82,5 @@ export function usePurchase() {
     setError(null);
   }, []);
 
-  return { buyModule, buySubject, submitCode, restorePurchase, status, error, reset };
+  return { buyModule, submitCode, restorePurchase, status, error, reset };
 }

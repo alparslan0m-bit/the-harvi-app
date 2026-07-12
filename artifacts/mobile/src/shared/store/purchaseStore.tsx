@@ -41,15 +41,13 @@ export function usePurchaseActions() {
 
   const recordIAP = useCallback(
     async (params: {
-      moduleId?: string;
-      subjectId?: string;
+      moduleId: string;
       transactionId: string;
       store: "apple_iap" | "google_play";
     }) => {
       const { data, error } = await supabase.functions.invoke("record-iap", {
         body: {
-          module_id: params.moduleId ?? null,
-          subject_id: params.subjectId ?? null,
+          module_id: params.moduleId,
           transaction_id: params.transactionId,
           store: params.store,
         },
@@ -83,27 +81,7 @@ export function usePurchaseActions() {
     [recordIAP, invalidateAccess, setCustomerInfo],
   );
 
-  const purchaseSubject = useCallback(
-    async (subjectId: string, rcPackage: PurchasesPackage) => {
-      try {
-        const { customerInfo: info } = await Purchases.purchasePackage(rcPackage);
-        setCustomerInfo(info);
-        const store = Platform.OS === "ios" ? "apple_iap" : "google_play";
-        const txId = info.nonSubscriptionTransactions?.[info.nonSubscriptionTransactions.length - 1]?.transactionIdentifier ?? rcPackage.identifier;
-        await recordIAP({ subjectId, transactionId: txId, store });
-        await invalidateAccess();
-        return { success: true };
-      } catch (e: unknown) {
-        if (typeof e === "object" && e !== null) {
-          const err = e as Record<string, unknown>;
-          if (err["userCancelled"]) return { success: false };
-          if (typeof err["message"] === "string") return { success: false, error: err["message"] };
-        }
-        return { success: false, error: "Purchase failed" };
-      }
-    },
-    [recordIAP, invalidateAccess, setCustomerInfo],
-  );
+
 
   const redeemCode = useCallback(
     async (code: string) => {
@@ -169,11 +147,10 @@ export function usePurchaseActions() {
 
   return React.useMemo(() => ({
     purchaseModule, 
-    purchaseSubject, 
     redeemCode, 
     restorePurchases, 
     restoreModule 
-  }), [purchaseModule, purchaseSubject, redeemCode, restorePurchases, restoreModule]);
+  }), [purchaseModule, redeemCode, restorePurchases, restoreModule]);
 }
 
 export function PurchaseProvider({ children }: { children: React.ReactNode }) {

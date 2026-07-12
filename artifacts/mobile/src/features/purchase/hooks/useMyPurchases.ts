@@ -47,7 +47,7 @@ async function fetchMyPurchases(userId: string): Promise<Purchase[]> {
   try {
     const { data, error } = await supabase
       .from("purchases")
-      .select("id, module_id, subject_id, amount_cents, currency, status, created_at")
+      .select("id, module_id, amount_cents, currency, status, created_at")
       .eq("status", "active")
       .order("created_at", { ascending: false });
 
@@ -57,7 +57,6 @@ async function fetchMyPurchases(userId: string): Promise<Purchase[]> {
       return {
         id: String(rec["id"] ?? ""),
         module_id: rec["module_id"] ? String(rec["module_id"]) : null,
-        subject_id: rec["subject_id"] ? String(rec["subject_id"]) : null,
         amount_cents: Number(rec["amount_cents"] ?? 0),
         currency: String(rec["currency"] ?? ""),
         status: String(rec["status"] ?? ""),
