@@ -1,4 +1,4 @@
-import { Feather } from "@expo/vector-icons";
+import { Feather, FontAwesome } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
@@ -14,22 +14,34 @@ import { Lecture } from "@/src/shared/types";
 interface Props {
   lecture: Lecture;
   index: number;
-  completed?: boolean;
+  /** Best score percentage (0-100) for this lecture, undefined if never attempted */
+  bestScorePercent?: number | undefined;
   /** True when new questions were added since this lecture was last downloaded */
-  hasNewQuestions?: boolean;
+  hasNewQuestions?: boolean | undefined;
   /** True when questions are pre-cached for offline use */
-  isCached?: boolean;
+  isCached?: boolean | undefined;
   /** True when the lecture (or parent subject/module) is free */
-  isFree?: boolean;
+  isFree?: boolean | undefined;
   onPress: () => void;
 }
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
+/** Maps a 0-100 percentage to 0/1/2/3 filled stars */
+function scoreToStars(percent: number): number {
+  if (percent <= 0) return 0;
+  if (percent <= 33) return 1;
+  if (percent <= 66) return 2;
+  return 3;
+}
+
+const STAR_COLOR_FILLED = "#F59E0B"; // Warm amber
+const STAR_COLOR_EMPTY = "#E2E8F0"; // Subtle neutral
+
 export function LectureCard({
   lecture,
   index,
-  completed = false,
+  bestScorePercent,
   hasNewQuestions = false,
   isCached = false,
   isFree = false,
@@ -41,6 +53,9 @@ export function LectureCard({
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
+
+  const hasAttempted = bestScorePercent != null && bestScorePercent > 0;
+  const filledStars = hasAttempted ? scoreToStars(bestScorePercent) : 0;
 
   return (
     <AnimatedTouchable
@@ -66,7 +81,12 @@ export function LectureCard({
         style={[
           styles.accentStripe,
           {
-            backgroundColor: completed ? colors.success : colors.primary + "33",
+            backgroundColor:
+              filledStars === 3
+                ? STAR_COLOR_FILLED
+                : hasAttempted
+                  ? STAR_COLOR_FILLED + "66"
+                  : colors.primary + "33",
           },
         ]}
       />
@@ -75,13 +95,23 @@ export function LectureCard({
       <View
         style={[
           styles.indexBadge,
-          { backgroundColor: completed ? colors.success + "1A" : colors.muted },
+          {
+            backgroundColor:
+              filledStars === 3
+                ? STAR_COLOR_FILLED + "1A"
+                : colors.muted,
+          },
         ]}
       >
         <Text
           style={[
             styles.indexText,
-            { color: completed ? colors.success : colors.mutedForeground },
+            {
+              color:
+                filledStars === 3
+                  ? STAR_COLOR_FILLED
+                  : colors.mutedForeground,
+            },
           ]}
         >
           {index + 1}
@@ -129,23 +159,21 @@ export function LectureCard({
         </View>
       </View>
 
-      {/* Right icon */}
-      {completed ? (
-        <View
-          style={[
-            styles.checkCircle,
-            { backgroundColor: colors.success + "1A" },
-          ]}
-        >
-          <Feather name="check" size={14} color={colors.success} />
-        </View>
-      ) : (
-        <View
-          style={[styles.playIcon, { backgroundColor: colors.primary + "1A" }]}
-        >
-          <Feather name="play-circle" size={18} color={colors.primary} />
-        </View>
-      )}
+      {/* Star Rating */}
+      <View style={styles.starsContainer}>
+        {[0, 1, 2].map((i) => {
+          const isFilled = i < filledStars;
+          return (
+            <FontAwesome
+              key={i}
+              name={isFilled ? "star" : "star-o"}
+              size={14}
+              color={isFilled ? STAR_COLOR_FILLED : colors.border}
+              style={isFilled ? styles.starFilled : undefined}
+            />
+          );
+        })}
+      </View>
     </AnimatedTouchable>
   );
 }
@@ -215,18 +243,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_600SemiBold",
   },
-  checkCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  starsContainer: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 2,
+    marginLeft: 8,
   },
-  playIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
+  starFilled: {
+    // Subtle shadow glow on filled stars
+    textShadowColor: "#F59E0B44",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
 });

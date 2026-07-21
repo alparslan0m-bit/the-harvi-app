@@ -15,7 +15,7 @@ import { LectureCard } from "./LectureCard";
 import { SubjectDownloadButton } from "./SubjectDownloadButton";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { useHierarchy } from "@/src/features/learn/hooks/useHierarchy";
-import { useProgress } from "@/src/features/learn/hooks/useProgress";
+import { useLectureBestScores } from "@/src/features/learn/hooks/useLectureBestScores";
 import { useSubjectCache } from "@/src/features/learn/hooks/useSubjectCache";
 import { useModuleAccess } from "@/src/features/learn/hooks/useModuleAccess";
 
@@ -26,7 +26,7 @@ export function SubjectScreen() {
   if (!id || typeof id !== "string") return <Redirect href="/+not-found" />;
   const { data: years } = useHierarchy();
   const { data: accessMap } = useModuleAccess();
-  const completedIds = useProgress();
+  const bestScores = useLectureBestScores();
 
   const subject = years
     ?.flatMap((y) => y.modules)
@@ -144,8 +144,7 @@ export function SubjectScreen() {
         </Text>
 
         {subject.lectures.map((lec, i) => {
-          const isCompleted =
-            completedIds.has(lec.external_id) || completedIds.has(lec.id);
+          const bestScore = bestScores.get(lec.id) ?? bestScores.get(lec.external_id);
           const info = lectureInfo.find((li) => li.lectureId === lec.id);
           const isCached = info?.isCached ?? false;
           const hasNewQuestions = info?.isStale ?? false;
@@ -158,7 +157,7 @@ export function SubjectScreen() {
               key={lec.id}
               lecture={lec}
               index={i}
-              completed={isCompleted}
+              bestScorePercent={bestScore}
               isCached={isCached}
               hasNewQuestions={hasNewQuestions}
               isFree={isLectureFree}

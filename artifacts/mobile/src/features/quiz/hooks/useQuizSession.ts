@@ -12,6 +12,7 @@ import { useAuth } from "@/src/shared/store/authStore";
 import { useSyncStore, useSyncActions } from "@/src/shared/store/syncStore";
 import { useQuizQuestions } from "@/src/features/quiz/hooks/useQuiz";
 import { optimisticallyMarkComplete } from "@/src/features/learn/hooks/useProgress";
+import { optimisticallyUpdateBestScore } from "@/src/features/learn/hooks/useLectureBestScores";
 import { loadQuestionsFromCache } from "@/src/features/quiz/services/questionCache";
 import { enqueueQuizResult } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
@@ -129,8 +130,10 @@ export function useQuizSession(lectureId: string) {
             correctAnswers: correctCount,
             createdAt: now,
           });
-          if (user?.id && lectureId)
+          if (user?.id && lectureId) {
             await optimisticallyMarkComplete(user.id, lectureId);
+            await optimisticallyUpdateBestScore(user.id, lectureId, score);
+          }
           setSavedOffline(true);
           refreshCount();
         } else {
@@ -160,11 +163,15 @@ export function useQuizSession(lectureId: string) {
               correctAnswers: correctCount,
               createdAt: now,
             });
-            if (user?.id && lectureId)
+            if (user?.id && lectureId) {
               await optimisticallyMarkComplete(user.id, lectureId);
+              await optimisticallyUpdateBestScore(user.id, lectureId, score);
+            }
             setSavedOffline(true);
             refreshCount();
             flush().catch((e) => console.error("[QuizSession] Background flush failed:", e));
+          } else if (user?.id && lectureId) {
+            await optimisticallyUpdateBestScore(user.id, lectureId, score);
           }
         }
       } catch (err) {
@@ -174,6 +181,7 @@ export function useQuizSession(lectureId: string) {
       } finally {
         queryClient.invalidateQueries({ queryKey: ["progress"] });
         queryClient.invalidateQueries({ queryKey: ["stats"] });
+        queryClient.invalidateQueries({ queryKey: ["lectureBestScores"] });
         setSubmitting(false);
       }
     } else {

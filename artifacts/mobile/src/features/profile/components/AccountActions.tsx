@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { clearStatsCache } from "@/src/features/stats/hooks/useStats";
 import { clearProgressCache } from "@/src/features/learn/hooks/useProgress";
+import { clearBestScoreCache } from "@/src/features/learn/services/bestScoreService";
 import { supabase } from "@/src/shared/services/supabase";
 import { clearAllLectureCache } from "@/src/features/quiz/services/questionCache";
 import { clearQueueForUser } from "@/src/shared/services/offlineQueue";
@@ -57,14 +58,17 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
             await Promise.all([
               clearStatsCache(uid),
               clearProgressCache(uid),
+              clearBestScoreCache(uid),
               clearQueueForUser(uid),
             ]);
 
             // 3. Zero out UI immediately, then re-fetch clean state
             queryClient.setQueriesData({ queryKey: ["stats"] }, undefined);
             queryClient.setQueriesData({ queryKey: ["progress"] }, undefined);
+            queryClient.setQueriesData({ queryKey: ["lectureBestScores"] }, undefined);
             queryClient.removeQueries({ queryKey: ["stats"] });
             queryClient.removeQueries({ queryKey: ["progress"] });
+            queryClient.removeQueries({ queryKey: ["lectureBestScores"] });
 
             Alert.alert("History Cleared", "Your quiz history has been reset.");
           },
