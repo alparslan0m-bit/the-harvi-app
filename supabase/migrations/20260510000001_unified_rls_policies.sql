@@ -28,7 +28,7 @@ AS $$
   SELECT COALESCE(
     (SELECT (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'),
     false
-  );
+  ) OR COALESCE((auth.jwt() ->> 'role') = 'service_role', false);
 $$;
 
 -- 1.2 The Master Access Gatekeeper (Performance Optimized)

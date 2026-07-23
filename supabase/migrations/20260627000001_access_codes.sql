@@ -164,8 +164,8 @@ BEGIN
     END IF;
 
     FOR i IN 1..p_count LOOP
-        -- Generate a 16-char code in XXXX-XXXX-XXXX-XXXX format (stored without dashes)
-        v_new_code := upper(encode(gen_random_bytes(8), 'hex'));
+        -- Generate a 6-digit random number (000000 to 999999)
+        v_new_code := lpad((floor(random() * 1000000))::text, 6, '0');
 
         INSERT INTO public.access_codes (
             code, module_id, batch_id, expires_at
@@ -176,8 +176,7 @@ BEGIN
             v_expires_at
         );
 
-        -- Format with dashes for display
-        code := substr(v_new_code, 1, 4) || '-' || substr(v_new_code, 5, 4) || '-' || substr(v_new_code, 9, 4) || '-' || substr(v_new_code, 13, 4);
+        code := v_new_code;
         RETURN NEXT;
     END LOOP;
 END;
