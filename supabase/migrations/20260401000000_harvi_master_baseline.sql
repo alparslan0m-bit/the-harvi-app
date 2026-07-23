@@ -150,8 +150,8 @@ CREATE TABLE IF NOT EXISTS public.purchases (
     status TEXT NOT NULL CHECK (status IN ('pending', 'active', 'failed', 'refunded', 'disputed')),
     amount_cents INTEGER NOT NULL CONSTRAINT check_purchase_amount CHECK (amount_cents >= 0),
     currency TEXT NOT NULL DEFAULT 'usd',
-    payment_id TEXT, -- provider-specific reference
-    payment_session_id TEXT, -- checkout session reference
+    payment_id TEXT NULL, -- provider-specific reference
+    payment_session_id TEXT NULL, -- checkout session reference
     provider TEXT NOT NULL DEFAULT 'manual',
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now(),
