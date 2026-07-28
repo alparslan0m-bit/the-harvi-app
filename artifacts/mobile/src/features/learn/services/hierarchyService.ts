@@ -120,8 +120,18 @@ async function buildHierarchyFromRemote(): Promise<Year[]> {
     });
   }
 
+  const getYearOrder = (r: Record<string, unknown>) => {
+    const ord = num(r["order"] ?? r["sort_order"]);
+    if (ord === 0) {
+      const name = str(r["name"] ?? r["title"]);
+      const match = name.match(/\d+/);
+      if (match) return parseInt(match[0], 10);
+    }
+    return ord;
+  };
+
   const sortedYears = [...(years ?? [])].sort(
-    (a, b) => num(toRec(a)["order"]) - num(toRec(b)["order"])
+    (a, b) => getYearOrder(toRec(a)) - getYearOrder(toRec(b))
   );
 
   return sortedYears.map((y) => {
@@ -129,7 +139,7 @@ async function buildHierarchyFromRemote(): Promise<Year[]> {
     return {
       id: str(r["id"]),
       name: str(r["name"] ?? r["title"]),
-      order: num(r["order"]),
+      order: getYearOrder(r),
       modules: (modulesByYear[str(r["id"])] ?? []).sort((a, b) => a.order - b.order),
     };
   });

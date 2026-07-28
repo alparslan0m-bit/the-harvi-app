@@ -84,12 +84,12 @@ export const COLORS = {
 
 export const THEME = {
   radius: 24,
-  yearGradients: [
-    ["#0ea5e9", "#0284c7"],
-    ["#10b981", "#059669"],
-    ["#f59e0b", "#d97706"],
-    ["#8b5cf6", "#7c3aed"],
-    ["#ec4899", "#db2777"],
-    ["#14b8a6", "#0d9488"],
+  cardColors: [
+    "#4f46e5", // Indigo
+    "#7c3aed", // Violet
+    "#059669", // Emerald
+    "#d97706", // Amber
+    "#ea580c", // Orange
+    "#0d9488", // Teal
   ],
 } as const;
