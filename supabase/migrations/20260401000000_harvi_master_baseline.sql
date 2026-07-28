@@ -185,6 +185,27 @@ BEGIN
 END;
 $$;
 
+-- Streak Decay: resets current_streak to 0 for users who haven't taken a quiz in > 1 day.
+-- Called by a daily pg_cron job (see Section 9).
+CREATE OR REPLACE FUNCTION public.decay_stale_streaks()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    UPDATE public.user_stats
+    SET 
+        current_streak = 0,
+        updated_at = now()
+    WHERE current_streak > 0
+      AND (
+          last_quiz_date IS NULL 
+          OR last_quiz_date < CURRENT_DATE - INTERVAL '1 day'
+      );
+END;
+$$;
+
 -- Dashboard: Admin KPIs
 -- NEW-CRIT-01 FIX: Admin guard added — was callable by any authenticated user.
 CREATE OR REPLACE FUNCTION get_admin_dashboard_stats()
@@ -578,5 +599,12 @@ SELECT cron.schedule('harvi-weekly-cleanup', '0 3 * * 0', $$
         DROP TABLE _affected_lectures;
     COMMIT;
 $$);
+
+-- Daily streak decay — resets stale streaks at midnight UTC
+SELECT cron.schedule(
+    'decay-stale-streaks',
+    '0 0 * * *',
+    $$SELECT public.decay_stale_streaks()$$
+);
 
 COMMIT;

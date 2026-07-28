@@ -95,6 +95,7 @@ export interface DbStats {
   average_score?: number | null;
   best_score?: number | null;
   current_streak?: number | null;
+  last_quiz_date?: string | null;
 }
 
 function computeStats(
@@ -112,7 +113,16 @@ function computeStats(
   const total_questions = dbStats?.total_questions_answered ?? 0;
   const average_score = dbStats?.average_score ?? 0;
   const best_score = dbStats?.best_score ?? 0;
-  const streak = dbStats?.current_streak ?? 0;
+
+  // Decay streak client-side if last_quiz_date is stale (> 1 day ago)
+  let streak = dbStats?.current_streak ?? 0;
+  if (streak > 0 && dbStats?.last_quiz_date) {
+    const lastQuiz = new Date(dbStats.last_quiz_date + 'T00:00:00');
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const diffDays = Math.floor((now.getTime() - lastQuiz.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays > 1) streak = 0;
+  }
 
 
   // ── Weekly activity ───────────────────────────────────────────────────────
