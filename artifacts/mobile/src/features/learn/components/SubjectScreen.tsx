@@ -58,22 +58,22 @@ export function SubjectScreen() {
           styles.header,
           {
             paddingTop: topPad + 14,
-            backgroundColor: colors.background,
+            backgroundColor: colors.headerBackground,
             borderBottomColor: "transparent",
           },
         ]}
       >
         <TouchableOpacity
           onPress={() => router.back()}
-          style={[styles.backBtn, { backgroundColor: colors.muted }]}
+          style={[styles.backBtn, { backgroundColor: "rgba(255,255,255,0.15)" }]}
           activeOpacity={0.7}
         >
-          <Feather name="arrow-left" size={20} color={colors.foreground} />
+          <Feather name="arrow-left" size={20} color={colors.headerForeground} />
         </TouchableOpacity>
 
         <View style={styles.titleWrapper}>
           <Text
-            style={[styles.headerTitle, { color: colors.foreground }]}
+            style={[styles.headerTitle, { color: colors.headerForeground }]}
             numberOfLines={2}
           >
             {subject.name}

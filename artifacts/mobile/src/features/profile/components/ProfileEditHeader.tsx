@@ -4,18 +4,27 @@ import { StyleSheet, Text, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { useColors } from "@/src/shared/hooks/useColors";
 
-export function ProfileEditHeader({ 
-  topPad, 
-  onSave, 
-  onCancel 
-}: { topPad: number; onSave: () => void; onCancel: () => void }) {
+export function ProfileEditHeader({
+  topPad,
+  onSave,
+  onCancel,
+}: {
+  topPad: number;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
   const colors = useColors();
   return (
-    <View style={[styles.header, {
-      paddingTop: topPad + 14,
-      borderBottomColor: "transparent",
-      backgroundColor: colors.background,
-    }]}>
+    <View
+      style={[
+        styles.header,
+        {
+          paddingTop: topPad + 14,
+          borderBottomColor: "transparent",
+          backgroundColor: colors.background,
+        },
+      ]}
+    >
       <TouchableOpacity
         style={[styles.backBtn, { backgroundColor: colors.muted }]}
         onPress={onCancel}
@@ -24,7 +33,9 @@ export function ProfileEditHeader({
         <Feather name="arrow-left" size={18} color={colors.foreground} />
       </TouchableOpacity>
 
-      <Text style={[styles.headerTitle, { color: colors.foreground }]}>Edit Profile</Text>
+      <Text style={[styles.headerTitle, { color: colors.foreground }]}>
+        Edit Profile
+      </Text>
 
       <TouchableOpacity
         style={[styles.headerBtn, { backgroundColor: colors.primary }]}
@@ -60,5 +71,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     flexShrink: 0,
   },
-  headerTitle: { fontSize: 24, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
+  headerTitle: {
+    fontSize: 24,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -0.5,
+  },
 });

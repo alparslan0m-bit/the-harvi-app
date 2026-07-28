@@ -23,7 +23,7 @@ export function LearnScreen() {
   const { data: years, isLoading, error, refetch } = useHierarchy();
 
   const scrollRef = useRef<ScrollView>(null);
-  
+
   // Custom hook for auth guard, transitions, and scroll management
   const { authLoading, fadeAnim, translateY } = useLearnFlow(scrollRef);
 

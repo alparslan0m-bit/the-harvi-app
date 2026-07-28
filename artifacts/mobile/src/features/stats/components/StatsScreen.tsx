@@ -78,16 +78,13 @@ export function StatsScreen() {
           {
             paddingTop: topPad + 14,
             borderBottomColor: "transparent",
-            backgroundColor: colors.background,
+            backgroundColor: colors.headerBackground,
           },
         ]}
       >
         <View style={styles.titleWrapper}>
-          <Text style={[styles.title, { color: colors.foreground }]}>
+          <Text style={[styles.title, { color: colors.headerForeground }]}>
             Performance
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-            Your medical learning journey
           </Text>
         </View>
         {!isOnline && (
@@ -165,17 +162,16 @@ const styles = StyleSheet.create({
   animatedContent: { flex: 1 },
   header: {
     paddingHorizontal: 20,
-    paddingBottom: 10,
+    paddingBottom: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
   },
   title: {
     fontSize: 38,
     fontFamily: "Nunito_800ExtraBold",
     letterSpacing: -0.5,
   },
-  subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", marginTop: -2 },
   cachePill: {
     flexDirection: "row",
     alignItems: "center",

@@ -21,7 +21,12 @@ interface Props {
   onBack: () => void;
 }
 
-export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props) {
+export function QuizReviewScreen({
+  history,
+  totalCount,
+  topPad,
+  onBack,
+}: Props) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
 
@@ -30,9 +35,17 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-
       {/* ── Header ── */}
-      <View style={[styles.header, { paddingTop: topPad + 14, backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: topPad + 14,
+            backgroundColor: colors.background,
+            borderBottomColor: colors.border,
+          },
+        ]}
+      >
         <TouchableOpacity
           onPress={onBack}
           style={[styles.backBtn, { backgroundColor: colors.muted }]}
@@ -42,7 +55,9 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
         </TouchableOpacity>
 
         <View style={styles.headerText}>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Review Answers</Text>
+          <Text style={[styles.headerTitle, { color: colors.foreground }]}>
+            Review Answers
+          </Text>
           <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
             {totalCount} medical question{totalCount !== 1 ? "s" : ""}
           </Text>
@@ -50,48 +65,113 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
       </View>
 
       {/* ── Summary strip ── */}
-      <View style={[styles.summaryStrip, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+      <View
+        style={[
+          styles.summaryStrip,
+          { backgroundColor: colors.card, borderBottomColor: colors.border },
+        ]}
+      >
         <View style={styles.summaryItem}>
-          <View style={[styles.summaryDot, { backgroundColor: colors.success }]} />
-          <Text style={[styles.summaryNum, { color: colors.success }]}>{correctCount}</Text>
-          <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Correct</Text>
+          <View
+            style={[styles.summaryDot, { backgroundColor: colors.success }]}
+          />
+          <Text style={[styles.summaryNum, { color: colors.success }]}>
+            {correctCount}
+          </Text>
+          <Text
+            style={[styles.summaryLabel, { color: colors.mutedForeground }]}
+          >
+            Correct
+          </Text>
         </View>
-        <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+        <View
+          style={[styles.summaryDivider, { backgroundColor: colors.border }]}
+        />
         <View style={styles.summaryItem}>
-          <View style={[styles.summaryDot, { backgroundColor: colors.destructive }]} />
-          <Text style={[styles.summaryNum, { color: colors.destructive }]}>{wrongCount}</Text>
-          <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Wrong</Text>
+          <View
+            style={[styles.summaryDot, { backgroundColor: colors.destructive }]}
+          />
+          <Text style={[styles.summaryNum, { color: colors.destructive }]}>
+            {wrongCount}
+          </Text>
+          <Text
+            style={[styles.summaryLabel, { color: colors.mutedForeground }]}
+          >
+            Wrong
+          </Text>
         </View>
-        <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+        <View
+          style={[styles.summaryDivider, { backgroundColor: colors.border }]}
+        />
         <View style={styles.summaryItem}>
-          <View style={[styles.summaryDot, { backgroundColor: colors.primary }]} />
-          <Text style={[styles.summaryNum, { color: colors.foreground }]}>{totalCount}</Text>
-          <Text style={[styles.summaryLabel, { color: colors.mutedForeground }]}>Total</Text>
+          <View
+            style={[styles.summaryDot, { backgroundColor: colors.primary }]}
+          />
+          <Text style={[styles.summaryNum, { color: colors.foreground }]}>
+            {totalCount}
+          </Text>
+          <Text
+            style={[styles.summaryLabel, { color: colors.mutedForeground }]}
+          >
+            Total
+          </Text>
         </View>
       </View>
 
       {/* ── Question cards ── */}
       <ScrollView
-        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 40 }]}
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: insets.bottom + 40 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {history.map((item, qi) => {
           const isCorrect = item.selected === item.correct;
           const accentColor = isCorrect ? colors.success : colors.destructive;
-          const accentBg = isCorrect ? colors.success + "12" : colors.destructive + "12";
-          const accentBorder = isCorrect ? colors.success + "4D" : colors.destructive + "4D";
+          const accentBg = isCorrect
+            ? colors.success + "12"
+            : colors.destructive + "12";
+          const accentBorder = isCorrect
+            ? colors.success + "4D"
+            : colors.destructive + "4D";
 
           return (
             <Animated.View
               key={qi}
-              entering={FadeInDown.delay(qi * 40).duration(350).springify()}
-              style={[styles.card, { backgroundColor: colors.card, borderColor: accentBorder }]}
+              entering={FadeInDown.delay(qi * 40)
+                .duration(350)
+                .springify()}
+              style={[
+                styles.card,
+                { backgroundColor: colors.card, borderColor: accentBorder },
+              ]}
             >
-              <View style={[styles.innerBorder, { borderColor: accentColor + "20" }]} />
+              <View
+                style={[
+                  styles.innerBorder,
+                  { borderColor: accentColor + "20" },
+                ]}
+              />
               {/* Card header */}
-              <View style={[styles.cardHeader, { backgroundColor: accentBg, borderBottomColor: accentBorder }]}>
-                <View style={[styles.qNumBadge, { backgroundColor: accentColor + "22" }]}>
-                  <Text style={[styles.qNumText, { color: accentColor }]}>Q{qi + 1}</Text>
+              <View
+                style={[
+                  styles.cardHeader,
+                  {
+                    backgroundColor: accentBg,
+                    borderBottomColor: accentBorder,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.qNumBadge,
+                    { backgroundColor: accentColor + "22" },
+                  ]}
+                >
+                  <Text style={[styles.qNumText, { color: accentColor }]}>
+                    Q{qi + 1}
+                  </Text>
                 </View>
                 <Text style={[styles.cardStatus, { color: accentColor }]}>
                   {isCorrect ? "Correctly Answered" : "Needs Review"}
@@ -105,7 +185,9 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
 
               <View style={styles.cardBody}>
                 {/* Question text */}
-                <Text style={[styles.questionText, { color: colors.foreground }]}>
+                <Text
+                  style={[styles.questionText, { color: colors.foreground }]}
+                >
                   {item.question.text}
                 </Text>
 
@@ -129,25 +211,62 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
                     let labelColor: string = colors.mutedForeground;
 
                     if (isCorrectOpt) {
-                      bg = colors.success + "12"; border = colors.success + "4D";
-                      textCol = colors.foreground; labelBg = colors.success; labelColor = "#fff";
+                      bg = colors.success + "12";
+                      border = colors.success + "4D";
+                      textCol = colors.foreground;
+                      labelBg = colors.success;
+                      labelColor = "#fff";
                     } else if (isSelectedOpt) {
-                      bg = colors.destructive + "12"; border = colors.destructive + "4D";
-                      textCol = colors.foreground; labelBg = colors.destructive; labelColor = "#fff";
+                      bg = colors.destructive + "12";
+                      border = colors.destructive + "4D";
+                      textCol = colors.foreground;
+                      labelBg = colors.destructive;
+                      labelColor = "#fff";
                     }
 
                     return (
-                      <View key={oi} style={[styles.optionRow, { backgroundColor: bg, borderColor: border }]}>
-                        <View style={[styles.optionBadge, { backgroundColor: labelBg }]}>
-                          <Text style={[styles.optionBadgeText, { color: labelColor }]}>
+                      <View
+                        key={oi}
+                        style={[
+                          styles.optionRow,
+                          { backgroundColor: bg, borderColor: border },
+                        ]}
+                      >
+                        <View
+                          style={[
+                            styles.optionBadge,
+                            { backgroundColor: labelBg },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.optionBadgeText,
+                              { color: labelColor },
+                            ]}
+                          >
                             {String.fromCharCode(65 + oi)}
                           </Text>
                         </View>
-                        <Text style={[styles.optionText, { color: textCol }]} numberOfLines={5}>
+                        <Text
+                          style={[styles.optionText, { color: textCol }]}
+                          numberOfLines={5}
+                        >
                           {opt}
                         </Text>
-                        {isCorrectOpt && <Feather name="check" size={14} color={colors.success} />}
-                        {isSelectedOpt && !isCorrectOpt && <Feather name="x" size={14} color={colors.destructive} />}
+                        {isCorrectOpt && (
+                          <Feather
+                            name="check"
+                            size={14}
+                            color={colors.success}
+                          />
+                        )}
+                        {isSelectedOpt && !isCorrectOpt && (
+                          <Feather
+                            name="x"
+                            size={14}
+                            color={colors.destructive}
+                          />
+                        )}
                       </View>
                     );
                   })}
@@ -155,14 +274,41 @@ export function QuizReviewScreen({ history, totalCount, topPad, onBack }: Props)
 
                 {/* Explanation */}
                 {!!item.explanation && (
-                  <View style={[styles.explanation, { backgroundColor: colors.primary + "0A", borderColor: colors.primary + "20" }]}>
-                    <View style={[styles.explanationStripe, { backgroundColor: colors.primary }]} />
+                  <View
+                    style={[
+                      styles.explanation,
+                      {
+                        backgroundColor: colors.primary + "0A",
+                        borderColor: colors.primary + "20",
+                      },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.explanationStripe,
+                        { backgroundColor: colors.primary },
+                      ]}
+                    />
                     <View style={styles.explanationContent}>
                       <View style={styles.explanationHeader}>
                         <Feather name="info" size={13} color={colors.primary} />
-                        <Text style={[styles.explanationLabel, { color: colors.primary }]}>EXPLANATION</Text>
+                        <Text
+                          style={[
+                            styles.explanationLabel,
+                            { color: colors.primary },
+                          ]}
+                        >
+                          EXPLANATION
+                        </Text>
                       </View>
-                      <Text style={[styles.explanationText, { color: colors.foreground }]}>{item.explanation}</Text>
+                      <Text
+                        style={[
+                          styles.explanationText,
+                          { color: colors.foreground },
+                        ]}
+                      >
+                        {item.explanation}
+                      </Text>
                     </View>
                   </View>
                 )}
@@ -194,7 +340,11 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   headerText: { flex: 1 },
-  headerTitle: { fontSize: 28, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.5 },
+  headerTitle: {
+    fontSize: 28,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -0.5,
+  },
   headerSub: { fontSize: 13, fontFamily: "Inter_400Regular", marginTop: 1 },
 
   // ── Summary strip ───────────────────────────────────────────────────────
@@ -207,7 +357,11 @@ const styles = StyleSheet.create({
   },
   summaryItem: { flex: 1, alignItems: "center", gap: 4 },
   summaryDot: { width: 8, height: 8, borderRadius: 4 },
-  summaryNum: { fontSize: 24, fontFamily: "Nunito_800ExtraBold", letterSpacing: -0.8 },
+  summaryNum: {
+    fontSize: 24,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -0.8,
+  },
   summaryLabel: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   summaryDivider: { width: 1, height: 38, marginHorizontal: 8 },
 
@@ -239,7 +393,11 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
   },
-  qNumText: { fontSize: 12, fontFamily: "Inter_800ExtraBold", letterSpacing: 0.2 },
+  qNumText: {
+    fontSize: 12,
+    fontFamily: "Inter_800ExtraBold",
+    letterSpacing: 0.2,
+  },
   cardStatus: { flex: 1, fontSize: 14, fontFamily: "Inter_700Bold" },
 
   cardBody: { padding: 18, gap: 14 },
@@ -273,7 +431,12 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   optionBadgeText: { fontSize: 12, fontFamily: "Inter_700Bold" },
-  optionText: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium", lineHeight: 20 },
+  optionText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+    lineHeight: 20,
+  },
 
   // ── Explanation ─────────────────────────────────────────────────────────
   explanation: {
@@ -308,4 +471,3 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
 });
-

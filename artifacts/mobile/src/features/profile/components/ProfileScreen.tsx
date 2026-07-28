@@ -55,15 +55,12 @@ export function ProfileScreen() {
           {
             paddingTop: topPad + 14,
             borderBottomColor: "transparent",
-            backgroundColor: colors.background,
+            backgroundColor: colors.headerBackground,
           },
         ]}
       >
-        <Text style={[styles.title, { color: colors.foreground }]}>
+        <Text style={[styles.title, { color: colors.headerForeground }]}>
           Profile
-        </Text>
-        <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-          Manage your medical account
         </Text>
       </View>
 
@@ -107,7 +104,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   header: {
     paddingHorizontal: 20,
-    paddingBottom: 10,
+    paddingBottom: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   title: {
@@ -115,7 +112,6 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito_800ExtraBold",
     letterSpacing: -0.5,
   },
-  subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", marginTop: -2 },
   content: { paddingTop: 12, paddingHorizontal: 20 },
   versionText: {
     textAlign: "center",

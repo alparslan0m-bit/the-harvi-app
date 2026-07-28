@@ -11,14 +11,11 @@ export function LearnHeader({ topPad }: { topPad: number }) {
         {
           paddingTop: topPad + 14,
           borderBottomColor: "transparent",
-          backgroundColor: colors.background,
+          backgroundColor: colors.headerBackground,
         },
       ]}
     >
-      <Text style={[styles.title, { color: colors.foreground }]}>Harvi</Text>
-      <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-        Questions you need
-      </Text>
+      <Text style={[styles.title, { color: colors.headerForeground }]}>Harvi</Text>
     </View>
   );
 }
@@ -26,7 +23,7 @@ export function LearnHeader({ topPad }: { topPad: number }) {
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
-    paddingBottom: 10,
+    paddingBottom: 14,
     borderBottomWidth: 1,
   },
   title: {
@@ -34,5 +31,4 @@ const styles = StyleSheet.create({
     fontFamily: "Nunito_800ExtraBold",
     letterSpacing: -0.5,
   },
-  subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", marginTop: -2 },
 });

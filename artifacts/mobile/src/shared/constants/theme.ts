@@ -22,6 +22,9 @@ export const COLORS = {
     successForeground: "#ffffff",
     warning: "#f59e0b",
     warningForeground: "#ffffff",
+    headerBackground: "#0ea5e9",
+    headerForeground: "#ffffff",
+    headerSubtitle: "rgba(255,255,255,0.72)",
   },
   dark: {
     text: "#F1F5F9",
@@ -46,6 +49,9 @@ export const COLORS = {
     successForeground: "#ffffff",
     warning: "#f59e0b",
     warningForeground: "#ffffff",
+    headerBackground: "#1e293b",
+    headerForeground: "#ffffff",
+    headerSubtitle: "rgba(56,189,248,0.8)",
   },
   pink: {
     text: "#27272a",
@@ -70,6 +76,9 @@ export const COLORS = {
     successForeground: "#ffffff",
     warning: "#f59e0b",
     warningForeground: "#ffffff",
+    headerBackground: "#db2777",
+    headerForeground: "#ffffff",
+    headerSubtitle: "rgba(255,255,255,0.72)",
   },
 } as const;
 
