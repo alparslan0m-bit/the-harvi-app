@@ -5,7 +5,7 @@ export const COLORS = {
     background: "#F4F0E6", // Warm beige from reference
     foreground: "#3E2723",
     card: "#ffffff",
-    cardForeground: "#3E2723", // Dark text for pastel cards
+    cardForeground: "#2D2319", // Unified warm dark for all card text
     primary: "#3E2723",
     primaryForeground: "#ffffff",
     secondary: "#EBE4D5",
@@ -13,7 +13,7 @@ export const COLORS = {
     muted: "#EBE4D5",
     mutedForeground: "#737373",
     accent: "#FF8A7A", // Coral
-    accentForeground: "#3E2723",
+    accentForeground: "#ffffff",
     destructive: "#FF6B57",
     destructiveForeground: "#ffffff",
     border: "#EBE4D5",
@@ -35,108 +35,108 @@ export const COLORS = {
     ],
   },
   pink: {
-    text: "#4C1D95", // Deep elegant purple text
+    text: "#3B1578", // Slightly darker purple for better contrast
     tint: "#db2777",
-    background: "#FFF0F5", // Soft lavender blush
-    foreground: "#4C1D95",
+    background: "#FDF2F8", // Slightly deeper, less washed-out
+    foreground: "#3B1578",
     card: "#ffffff",
-    cardForeground: "#4C1D95", // Dark elegant text on pastel cards
-    primary: "#4C1D95",
+    cardForeground: "#2D2319", // Unified warm dark for all card text
+    primary: "#3B1578",
     primaryForeground: "#ffffff",
-    secondary: "#F3E8EE",
-    secondaryForeground: "#4C1D95",
-    muted: "#F3E8EE",
-    mutedForeground: "#9D8BB0",
+    secondary: "#F5EDF2",
+    secondaryForeground: "#3B1578",
+    muted: "#F5EDF2",
+    mutedForeground: "#8B7FA0", // Less purple, more neutral
     accent: "#db2777",
     accentForeground: "#ffffff",
     destructive: "#ef4444",
     destructiveForeground: "#ffffff",
-    border: "#F3E8EE",
-    input: "#F3E8EE",
+    border: "#F5EDF2",
+    input: "#F5EDF2",
     success: "#10b981",
     successForeground: "#ffffff",
     warning: "#f59e0b",
     warningForeground: "#ffffff",
-    headerBackground: "#FFF0F5", // Blend with background
-    headerForeground: "#4C1D95",
-    headerSubtitle: "rgba(76,29,149,0.7)",
+    headerBackground: "#FDF2F8",
+    headerForeground: "#3B1578",
+    headerSubtitle: "rgba(59,21,120,0.7)",
     cardColors: [
-      "#FFB6C1", // Light Pink
-      "#FFC0CB", // Pink
-      "#E6E6FA", // Lavender
-      "#D8BFD8", // Thistle
-      "#FFDAB9", // Peach Puff
-      "#FFF0F5", // Lavender Blush
+      "#F9B4C4", // Rich Pink
+      "#FCBDD4", // Rose
+      "#DDD6F3", // Lavender
+      "#D4C4E6", // Thistle
+      "#FDDCC8", // Warm Peach
+      "#FDF2F8", // Blush
     ],
   },
   mint: {
-    text: "#1B5E20",
+    text: "#1A4D2E", // Slightly deeper, less saturated green
     tint: "#10b981",
-    background: "#E8F5E9",
-    foreground: "#1B5E20",
+    background: "#F0F7F4", // Desaturated — less clinical, more sophisticated
+    foreground: "#1A4D2E",
     card: "#ffffff",
-    cardForeground: "#1B5E20",
-    primary: "#1B5E20",
+    cardForeground: "#2D2319", // Unified warm dark for all card text
+    primary: "#1A4D2E",
     primaryForeground: "#ffffff",
-    secondary: "#C8E6C9",
-    secondaryForeground: "#1B5E20",
-    muted: "#C8E6C9",
-    mutedForeground: "#81C784",
-    accent: "#388E3C",
+    secondary: "#DAE8DC", // Desaturated
+    secondaryForeground: "#1A4D2E",
+    muted: "#DAE8DC",
+    mutedForeground: "#7A9E82", // Less saturated — not bright green
+    accent: "#2E9E5C", // Brighter emerald — less muddy
     accentForeground: "#ffffff",
     destructive: "#ef4444",
     destructiveForeground: "#ffffff",
-    border: "#C8E6C9",
-    input: "#C8E6C9",
+    border: "#DAE8DC",
+    input: "#DAE8DC",
     success: "#10b981",
     successForeground: "#ffffff",
     warning: "#f59e0b",
     warningForeground: "#ffffff",
-    headerBackground: "#E8F5E9",
-    headerForeground: "#1B5E20",
-    headerSubtitle: "rgba(27,94,32,0.7)",
+    headerBackground: "#F0F7F4",
+    headerForeground: "#1A4D2E",
+    headerSubtitle: "rgba(26,77,46,0.7)",
     cardColors: [
-      "#A5D6A7", // Light green
-      "#81C784", // Green
-      "#C8E6C9", // Very light green
-      "#B2DFDB", // Teal light
-      "#80CBC4", // Teal
-      "#E8F5E9", // Mint base
+      "#A8D5B5", // Sage green
+      "#8EC59F", // Soft green
+      "#CDDDD0", // Muted sage
+      "#B0D4CF", // Teal mist
+      "#8DBFB8", // Eucalyptus
+      "#F0F7F4", // Mint base
     ],
   },
   ocean: {
     text: "#0F172A",
     tint: "#0ea5e9",
-    background: "#E0F2FE", // Soft ice blue
+    background: "#EFF6FF", // Warmer/lighter blue, less icy
     foreground: "#0F172A",
     card: "#ffffff",
-    cardForeground: "#0F172A",
+    cardForeground: "#2D2319", // Unified warm dark for all card text
     primary: "#0F172A",
     primaryForeground: "#ffffff",
-    secondary: "#BAE6FD",
+    secondary: "#D6E8F5", // Desaturated, warmer
     secondaryForeground: "#0F172A",
-    muted: "#BAE6FD",
-    mutedForeground: "#7DD3FC",
+    muted: "#D6E8F5",
+    mutedForeground: "#7B97B0", // Desaturated — was sky blue, now readable
     accent: "#0284C7",
     accentForeground: "#ffffff",
     destructive: "#ef4444",
     destructiveForeground: "#ffffff",
-    border: "#BAE6FD",
-    input: "#BAE6FD",
+    border: "#D6E8F5",
+    input: "#D6E8F5",
     success: "#10b981",
     successForeground: "#ffffff",
     warning: "#f59e0b",
     warningForeground: "#ffffff",
-    headerBackground: "#E0F2FE",
+    headerBackground: "#EFF6FF",
     headerForeground: "#0F172A",
     headerSubtitle: "rgba(15,23,42,0.7)",
     cardColors: [
-      "#7DD3FC", // Light sky blue
-      "#38BDF8", // Sky blue
-      "#BAE6FD", // Soft cyan
-      "#A5F3FC", // Cyan
-      "#67E8F9", // Bright cyan
-      "#E0F2FE", // Ice base
+      "#93C5E8", // Soft sky
+      "#6BAED6", // Steel blue
+      "#BDDAF0", // Pale azure
+      "#AAE0F0", // Cyan mist
+      "#7DD4EB", // Bright cyan
+      "#EFF6FF", // Ice base
     ],
   },
 } as const;

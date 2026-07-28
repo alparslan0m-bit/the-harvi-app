@@ -24,7 +24,7 @@ export function StatsMetricsGrid({ totalQuizzes, totalQuestions, averageScore, b
         <StatCard
           label="Quizzes"
           value={totalQuizzes}
-          icon={<Feather name="check-square" size={18} color={colors.primary} />}
+          icon={<Feather name="check-square" size={18} color={colors.accentForeground} />}
           accent
         />
         <StatCard

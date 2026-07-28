@@ -19,20 +19,20 @@ export function StatCard({ label, value, icon, accent }: Props) {
       style={[
         styles.card,
         {
-          backgroundColor: accent ? colors.primary : colors.card,
-          borderColor: accent ? colors.primary : colors.border,
+          backgroundColor: accent ? colors.accent : colors.card,
+          borderColor: accent ? colors.accent : colors.border,
         },
       ]}
     >
       <View style={[styles.headerRow]}>
-        <View style={[styles.iconWrap, { backgroundColor: accent ? "rgba(255,255,255,0.2)" : colors.primary + "10" }]}>
+        <View style={[styles.iconWrap, { backgroundColor: accent ? "rgba(255,255,255,0.2)" : colors.accent + "10" }]}>
           {icon}
         </View>
       </View>
       
       <View style={styles.content}>
-        <Text style={[styles.value, { color: accent ? colors.primaryForeground : colors.foreground }]}>{value}</Text>
-        <Text style={[styles.label, { color: accent ? colors.primaryForeground : colors.mutedForeground }]}>
+        <Text style={[styles.value, { color: accent ? colors.accentForeground : colors.foreground }]}>{value}</Text>
+        <Text style={[styles.label, { color: accent ? colors.accentForeground : colors.mutedForeground }]}>
           {label}
         </Text>
       </View>
