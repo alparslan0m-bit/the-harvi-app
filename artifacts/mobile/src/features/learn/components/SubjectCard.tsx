@@ -7,7 +7,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-import { THEME } from "@/src/shared/constants/theme";
+import { useColors } from "@/src/shared/hooks/useColors";
 import { Subject } from "@/src/shared/types";
 
 interface Props {
@@ -30,7 +30,8 @@ export function SubjectCard({
   onPress,
 }: Props) {
   const scale = useSharedValue(1);
-  const color = THEME.cardColors[index % THEME.cardColors.length];
+  const colors = useColors();
+  const color = colors.cardColors[index % colors.cardColors.length];
 
   const total = subject.lectures.length;
   const progress = total > 0 ? completedCount / total : 0;

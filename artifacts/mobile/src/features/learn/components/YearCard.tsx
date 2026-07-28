@@ -7,7 +7,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-import { THEME } from "@/src/shared/constants/theme";
+import { useColors } from "@/src/shared/hooks/useColors";
 import { Year } from "@/src/shared/types";
 
 interface Props {
@@ -20,7 +20,8 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export function YearCard({ year, index, onPress }: Props) {
   const scale = useSharedValue(1);
-  const color = THEME.cardColors[index % THEME.cardColors.length];
+  const colors = useColors();
+  const color = colors.cardColors[index % colors.cardColors.length];
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

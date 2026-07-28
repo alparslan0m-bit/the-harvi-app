@@ -7,7 +7,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-import { COLORS as colors, THEME } from "@/src/shared/constants/theme";
+import { useColors } from "@/src/shared/hooks/useColors";
 import { Module } from "@/src/shared/types";
 
 interface Props {
@@ -22,7 +22,8 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export function ModuleCard({ module, index, onPress, hasAccess, isFree }: Props) {
   const scale = useSharedValue(1);
-  const color = THEME.cardColors[index % THEME.cardColors.length] ?? THEME.cardColors[0];
+  const colors = useColors();
+  const color = colors.cardColors[index % colors.cardColors.length] ?? colors.cardColors[0];
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
