@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 import { AVATARS, AvatarId } from "./DoctorAvatars";
 
 interface Props {
@@ -144,16 +145,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    borderTopLeftRadius: THEME.radius,
+    borderTopRightRadius: THEME.radius,
     paddingHorizontal: 20,
     paddingTop: 12,
     maxHeight: "72%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 20,
   },
   handle: {
     width: 40,

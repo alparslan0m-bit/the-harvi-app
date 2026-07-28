@@ -12,9 +12,9 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 import { SupabaseSetupHelper } from "@/src/shared/components";
 import { useColors } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 import { useAuthForm } from "@/src/features/auth/hooks/useAuthForm";
 
 function GoogleIcon() {
@@ -191,9 +191,9 @@ export function AuthScreen() {
             disabled={loading || googleLoading}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={colors.primaryForeground} />
             ) : (
-              <Text style={styles.btnText}>
+              <Text style={[styles.btnText, { color: colors.primaryForeground }]}>
                 {mode === "login" ? "Sign In" : "Create Account"}
               </Text>
             )}
@@ -223,15 +223,10 @@ const styles = StyleSheet.create({
   logoMark: {
     width: 72,
     height: 72,
-    borderRadius: 22,
+    borderRadius: THEME.radius,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
-    shadowColor: "#0ea5e9",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
   },
   appName: { fontSize: 34, fontFamily: "Inter_700Bold", letterSpacing: -1.2, marginBottom: 6 },
   tagline: { fontSize: 15, fontFamily: "Inter_400Regular", letterSpacing: -0.2 },
@@ -242,13 +237,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 10,
     paddingVertical: 15,
-    borderRadius: 14,
+    borderRadius: THEME.radius,
     borderWidth: 1.5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 1,
   },
   googleBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold", letterSpacing: -0.2 },
   divider: {
@@ -263,7 +253,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 14,
     gap: 12,
@@ -280,16 +270,11 @@ const styles = StyleSheet.create({
   errorText: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular" },
   btn: {
     paddingVertical: 16,
-    borderRadius: 14,
+    borderRadius: THEME.radius,
     alignItems: "center",
     marginTop: 4,
-    shadowColor: "#0ea5e9",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
   },
-  btnText: { color: "#fff", fontSize: 16, fontFamily: "Inter_600SemiBold", letterSpacing: -0.3 },
+  btnText: { fontSize: 16, fontFamily: "Inter_600SemiBold", letterSpacing: -0.3 },
   switchRow: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
   switchText: { fontSize: 14, fontFamily: "Inter_400Regular" },
   switchLink: { fontSize: 14, fontFamily: "Inter_600SemiBold" },

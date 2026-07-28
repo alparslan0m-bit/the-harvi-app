@@ -8,6 +8,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { useColors } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 import { Year } from "@/src/shared/types";
 
 interface Props {
@@ -40,7 +41,7 @@ export function YearCard({ year, index, onPress }: Props) {
       activeOpacity={0.9}
     >
       <View style={styles.content}>
-        <Text style={styles.title}>{year.name}</Text>
+        <Text style={[styles.title, { color: colors.cardForeground }]}>{year.name}</Text>
       </View>
     </AnimatedTouchable>
   );
@@ -50,19 +51,13 @@ const styles = StyleSheet.create({
   card: {
     marginHorizontal: 20,
     marginBottom: 16,
-    borderRadius: 24,
+    borderRadius: THEME.radius,
     padding: 24,
     minHeight: 100,
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
   },
   content: { zIndex: 2 },
   title: {
-    color: "#fff",
     fontSize: 24,
     fontFamily: "Nunito_800ExtraBold",
     letterSpacing: -0.5,

@@ -5,6 +5,7 @@ import Animated, { FadeIn } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import { AnsweredState } from "@/src/shared/types";
 import { ThemeColors } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 import { EdgeInsets } from "react-native-safe-area-context";
 
 interface QuizNextButtonProps {
@@ -69,16 +70,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: THEME.radius,
     gap: 8,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   nextBtnText: {
     color: "#fff",

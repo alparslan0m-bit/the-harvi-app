@@ -15,6 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { useColors } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 
 const TIPS = [
   "Spaced repetition boosts long-term retention by 200%",
@@ -142,14 +143,9 @@ const styles = StyleSheet.create({
   iconBox: {
     width: 76,
     height: 76,
-    borderRadius: 24,
+    borderRadius: THEME.radius,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#0ea5e9",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 8,
   },
   textGroup: { alignItems: "center", gap: 6 },
   title: { fontSize: 26, fontFamily: "Inter_700Bold", letterSpacing: -0.7 },

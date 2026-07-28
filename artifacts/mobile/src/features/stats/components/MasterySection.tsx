@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { MasteryBar } from "./MasteryBar";
 import { useColors } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 import { UserStats } from "@/src/shared/types";
 
 export function MasterySection({ masteryData }: { masteryData: UserStats["subject_mastery"] }) {
@@ -68,13 +69,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 16,
     padding: 20,
-    borderRadius: 24,
+    borderRadius: THEME.radius,
     borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 1,
   },
   sectionHeader: {
     flexDirection: "row",
@@ -104,7 +100,7 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 12,
     paddingVertical: 12,
-    borderRadius: 14,
+    borderRadius: THEME.radius,
     borderWidth: 1,
   },
   moreBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },

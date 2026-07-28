@@ -74,8 +74,8 @@ export const SuccessState = React.memo(function SuccessState({
             end={{ x: 1, y: 0.5 }}
             style={sharedStyles.ctaInner}
           >
-            <Feather name="check-circle" size={18} color="#fff" />
-            <Text style={sharedStyles.ctaText}>Done</Text>
+            <Feather name="check-circle" size={18} color={colors.primaryForeground} />
+            <Text style={[sharedStyles.ctaText, { color: colors.primaryForeground }]}>Done</Text>
           </LinearGradient>
         </AnimatedTouchable>
       </Animated.View>
@@ -92,14 +92,9 @@ const styles = StyleSheet.create({
   successOrb: {
     width: 72,
     height: 72,
-    borderRadius: 28,
+    borderRadius: 36,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
   },
   successText: {
     fontSize: 17,

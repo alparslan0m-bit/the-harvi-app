@@ -12,6 +12,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import type { ThemeColors } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 
 export const HeroIcon = React.memo(function HeroIcon({
   colors,
@@ -76,19 +77,14 @@ const styles = StyleSheet.create({
   heroOrb: {
     width: 88,
     height: 88,
-    borderRadius: 32,
+    borderRadius: THEME.radius,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
   },
   heroInnerBorder: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 32,
+    borderRadius: THEME.radius,
     borderWidth: 1.5,
     borderColor: "rgba(255,255,255,0.25)",
     zIndex: 1,

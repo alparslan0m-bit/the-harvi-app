@@ -9,6 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { useColors } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 
 interface Props {
   isOnline: boolean;
@@ -83,14 +84,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 20,
+    borderRadius: THEME.radius,
     borderWidth: 1.5,
     gap: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
   },
   indicator: {
     width: 6,

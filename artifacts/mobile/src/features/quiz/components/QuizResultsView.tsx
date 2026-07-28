@@ -11,6 +11,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 import { useQuizResultsAnimation } from "@/src/features/quiz/hooks/useQuizResultsAnimation";
 import { ScoreRing } from "./ScoreRing";
 import { StatPill } from "./StatPill";
@@ -105,8 +106,7 @@ export function ResultsView({
           <TouchableOpacity
             style={[
               styles.btn,
-              styles.primaryBtn,
-              { backgroundColor: colors.primary, shadowColor: colors.primary },
+              { backgroundColor: colors.primary },
             ]}
             onPress={onRetry}
             activeOpacity={0.88}
@@ -191,14 +191,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 10,
     paddingVertical: 18,
-    borderRadius: 24,
+    borderRadius: THEME.radius,
   },
-  primaryBtn: {
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    elevation: 4,
-  },
+
   btnText: {
     fontSize: 17,
     fontFamily: "Nunito_800ExtraBold",

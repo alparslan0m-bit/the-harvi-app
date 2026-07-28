@@ -72,13 +72,7 @@ function AnimatedBar({
           style={[
             styles.bar,
             barStyle,
-            {
-              backgroundColor: barColor,
-              shadowColor: item.isToday ? colors.primary : "transparent",
-              shadowOffset: { width: 0, height: -2 },
-              shadowOpacity: item.isToday ? 0.3 : 0,
-              shadowRadius: 6,
-            },
+            { backgroundColor: barColor },
           ]}
         />
       </View>

@@ -8,6 +8,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { useColors } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 import { Subject } from "@/src/shared/types";
 
 interface Props {
@@ -55,13 +56,13 @@ export function SubjectCard({
     >
       {/* Title row */}
       <View style={styles.row}>
-        <Text style={styles.title} numberOfLines={2}>
+        <Text style={[styles.title, { color: colors.cardForeground }]} numberOfLines={2}>
           {subject.name}
         </Text>
         {/* Completion badge */}
-        <View style={[styles.badge, allDone && styles.badgeDone]}>
+        <View style={[styles.badge, { backgroundColor: colors.cardForeground + "15" }, allDone && { backgroundColor: colors.cardForeground + "30" }]}>
           <View style={styles.flexRow}>
-            <Text style={styles.badgeText}>
+            <Text style={[styles.badgeText, { color: colors.cardForeground }]}>
               {allDone ? "✓" : `${completedCount}/${total}`}
             </Text>
           </View>
@@ -70,11 +71,14 @@ export function SubjectCard({
 
       {/* Progress bar */}
       {total > 0 && (
-        <View style={styles.barTrack}>
+        <View style={[styles.barTrack, { backgroundColor: colors.cardForeground + "20" }]}>
           <View
             style={[
               styles.barFill,
-              { width: `${Math.round(progress * 100)}%` as `${number}%` },
+              { 
+                width: `${Math.round(progress * 100)}%` as `${number}%`,
+                backgroundColor: colors.cardForeground 
+              },
             ]}
           />
         </View>
@@ -87,16 +91,11 @@ const styles = StyleSheet.create({
   card: {
     marginHorizontal: 20,
     marginBottom: 16,
-    borderRadius: 24,
+    borderRadius: THEME.radius,
     padding: 24,
     paddingBottom: 20,
     minHeight: 110,
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
   },
   row: {
     flexDirection: "row",
@@ -108,23 +107,17 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
-    color: "#fff",
     fontSize: 22,
     fontFamily: "Nunito_800ExtraBold",
     letterSpacing: -0.5,
   },
   badge: {
-    backgroundColor: "rgba(255,255,255,0.2)",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 100,
     alignSelf: "center",
   },
-  badgeDone: {
-    backgroundColor: "rgba(255,255,255,0.4)",
-  },
   badgeText: {
-    color: "#fff",
     fontSize: 12,
     fontFamily: "Inter_700Bold",
   },
@@ -135,13 +128,11 @@ const styles = StyleSheet.create({
   barTrack: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: "rgba(255,255,255,0.2)",
     overflow: "hidden",
     zIndex: 2,
   },
   barFill: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#fff",
   },
 });

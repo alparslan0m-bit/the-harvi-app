@@ -1,111 +1,146 @@
 export const COLORS = {
   light: {
-    text: "#0a0a0a",
+    text: "#3E2723",
     tint: "#0ea5e9",
-    background: "#f8fafc", // Softer white
-    foreground: "#0a0a0a",
+    background: "#F4F0E6", // Warm beige from reference
+    foreground: "#3E2723",
     card: "#ffffff",
-    cardForeground: "#0a0a0a",
-    primary: "#0284c7",
+    cardForeground: "#3E2723", // Dark text for pastel cards
+    primary: "#3E2723",
     primaryForeground: "#ffffff",
-    secondary: "#f1f5f9",
-    secondaryForeground: "#1a1a1a",
-    muted: "#f1f5f9",
-    mutedForeground: "#64748b",
-    accent: "#0ea5e9",
-    accentForeground: "#ffffff",
-    destructive: "#ef4444",
+    secondary: "#EBE4D5",
+    secondaryForeground: "#3E2723",
+    muted: "#EBE4D5",
+    mutedForeground: "#737373",
+    accent: "#FF8A7A", // Coral
+    accentForeground: "#3E2723",
+    destructive: "#FF6B57",
     destructiveForeground: "#ffffff",
-    border: "#e2e8f0",
-    input: "#e2e8f0",
-    success: "#10b981",
-    successForeground: "#ffffff",
-    warning: "#f59e0b",
-    warningForeground: "#ffffff",
-    headerBackground: "#0284c7", // Deeper sky blue for comfort
-    headerForeground: "#ffffff",
-    headerSubtitle: "rgba(255,255,255,0.72)",
+    border: "#EBE4D5",
+    input: "#EBE4D5",
+    success: "#8CD6C1",
+    successForeground: "#3E2723",
+    warning: "#F5E16E",
+    warningForeground: "#3E2723",
+    headerBackground: "#F4F0E6", // Blend with background
+    headerForeground: "#3E2723",
+    headerSubtitle: "rgba(62,39,35,0.7)",
     cardColors: [
-      "#2563eb", // Blue 600
-      "#0d9488", // Teal 600
-      "#7c3aed", // Violet 600
-      "#d97706", // Amber 600
-      "#e11d48", // Rose 600
-      "#059669", // Emerald 600
-    ],
-  },
-  dark: {
-    text: "#F1F5F9",
-    tint: "#38bdf8",
-    background: "#0f172a", // Midnight Slate
-    foreground: "#FFFFFF",
-    card: "#1e293b", // Slate card
-    cardForeground: "#FFFFFF",
-    primary: "#38bdf8",
-    primaryForeground: "#ffffff",
-    secondary: "#334155",
-    secondaryForeground: "#F1F5F9",
-    muted: "#1e293b",
-    mutedForeground: "#94a3b8",
-    accent: "#38bdf8",
-    accentForeground: "#0f172a",
-    destructive: "#f43f5e",
-    destructiveForeground: "#ffffff",
-    border: "#334155",
-    input: "#334155",
-    success: "#10b981",
-    successForeground: "#ffffff",
-    warning: "#f59e0b",
-    warningForeground: "#ffffff",
-    headerBackground: "#1e293b",
-    headerForeground: "#ffffff",
-    headerSubtitle: "rgba(56,189,248,0.8)",
-    cardColors: [
-      "#1d4ed8", // Blue 700
-      "#0f766e", // Teal 700
-      "#6d28d9", // Violet 700
-      "#b45309", // Amber 700
-      "#be123c", // Rose 700
-      "#047857", // Emerald 700
+      "#99C7FF", // Soft Blue
+      "#FF8A7A", // Coral
+      "#F5E16E", // Pastel Mustard Yellow
+      "#8CD6C1", // Mint Green
+      "#B4CBFF", // Periwinkle
+      "#FFB86B", // Soft Orange
     ],
   },
   pink: {
-    text: "#27272a",
+    text: "#4C1D95", // Deep elegant purple text
     tint: "#db2777",
-    background: "#fff1f2",
-    foreground: "#831843",
+    background: "#FFF0F5", // Soft lavender blush
+    foreground: "#4C1D95",
     card: "#ffffff",
-    cardForeground: "#27272a",
-    primary: "#be185d",
+    cardForeground: "#4C1D95", // Dark elegant text on pastel cards
+    primary: "#4C1D95",
     primaryForeground: "#ffffff",
-    secondary: "#fce7f3",
-    secondaryForeground: "#be185d",
-    muted: "#fdf2f8",
-    mutedForeground: "#be185d",
+    secondary: "#F3E8EE",
+    secondaryForeground: "#4C1D95",
+    muted: "#F3E8EE",
+    mutedForeground: "#9D8BB0",
     accent: "#db2777",
     accentForeground: "#ffffff",
     destructive: "#ef4444",
     destructiveForeground: "#ffffff",
-    border: "#fbcfe8",
-    input: "#fbcfe8",
+    border: "#F3E8EE",
+    input: "#F3E8EE",
     success: "#10b981",
     successForeground: "#ffffff",
     warning: "#f59e0b",
     warningForeground: "#ffffff",
-    headerBackground: "#be185d", // Deeper pink for comfort
-    headerForeground: "#ffffff",
-    headerSubtitle: "rgba(255,255,255,0.72)",
+    headerBackground: "#FFF0F5", // Blend with background
+    headerForeground: "#4C1D95",
+    headerSubtitle: "rgba(76,29,149,0.7)",
     cardColors: [
-      "#be185d", // Pink 700
-      "#9f1239", // Rose 700
-      "#86198f", // Fuchsia 800
-      "#6b21a8", // Purple 800
-      "#5b21b6", // Violet 800
-      "#3730a3", // Indigo 800
+      "#FFB6C1", // Light Pink
+      "#FFC0CB", // Pink
+      "#E6E6FA", // Lavender
+      "#D8BFD8", // Thistle
+      "#FFDAB9", // Peach Puff
+      "#FFF0F5", // Lavender Blush
+    ],
+  },
+  mint: {
+    text: "#1B5E20",
+    tint: "#10b981",
+    background: "#E8F5E9",
+    foreground: "#1B5E20",
+    card: "#ffffff",
+    cardForeground: "#1B5E20",
+    primary: "#1B5E20",
+    primaryForeground: "#ffffff",
+    secondary: "#C8E6C9",
+    secondaryForeground: "#1B5E20",
+    muted: "#C8E6C9",
+    mutedForeground: "#81C784",
+    accent: "#388E3C",
+    accentForeground: "#ffffff",
+    destructive: "#ef4444",
+    destructiveForeground: "#ffffff",
+    border: "#C8E6C9",
+    input: "#C8E6C9",
+    success: "#10b981",
+    successForeground: "#ffffff",
+    warning: "#f59e0b",
+    warningForeground: "#ffffff",
+    headerBackground: "#E8F5E9",
+    headerForeground: "#1B5E20",
+    headerSubtitle: "rgba(27,94,32,0.7)",
+    cardColors: [
+      "#A5D6A7", // Light green
+      "#81C784", // Green
+      "#C8E6C9", // Very light green
+      "#B2DFDB", // Teal light
+      "#80CBC4", // Teal
+      "#E8F5E9", // Mint base
+    ],
+  },
+  ocean: {
+    text: "#0F172A",
+    tint: "#0ea5e9",
+    background: "#E0F2FE", // Soft ice blue
+    foreground: "#0F172A",
+    card: "#ffffff",
+    cardForeground: "#0F172A",
+    primary: "#0F172A",
+    primaryForeground: "#ffffff",
+    secondary: "#BAE6FD",
+    secondaryForeground: "#0F172A",
+    muted: "#BAE6FD",
+    mutedForeground: "#7DD3FC",
+    accent: "#0284C7",
+    accentForeground: "#ffffff",
+    destructive: "#ef4444",
+    destructiveForeground: "#ffffff",
+    border: "#BAE6FD",
+    input: "#BAE6FD",
+    success: "#10b981",
+    successForeground: "#ffffff",
+    warning: "#f59e0b",
+    warningForeground: "#ffffff",
+    headerBackground: "#E0F2FE",
+    headerForeground: "#0F172A",
+    headerSubtitle: "rgba(15,23,42,0.7)",
+    cardColors: [
+      "#7DD3FC", // Light sky blue
+      "#38BDF8", // Sky blue
+      "#BAE6FD", // Soft cyan
+      "#A5F3FC", // Cyan
+      "#67E8F9", // Bright cyan
+      "#E0F2FE", // Ice base
     ],
   },
 } as const;
 
 export const THEME = {
-  radius: 24,
+  radius: 32,
 } as const;

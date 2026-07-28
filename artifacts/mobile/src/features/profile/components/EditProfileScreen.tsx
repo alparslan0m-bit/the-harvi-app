@@ -13,6 +13,7 @@ import { ProfileThemeSelector } from "./ProfileThemeSelector";
 import { useAuth } from "@/src/shared/store/authStore";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { useProfileEdit } from "@/src/features/profile/hooks/useProfileEdit";
+import { THEME } from "@/src/shared/constants/theme";
 
 /**
  * EditProfileScreen - Refactored for modularity.
@@ -114,13 +115,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 10,
     paddingVertical: 16,
-    borderRadius: 24,
+    borderRadius: THEME.radius,
     marginTop: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
   },
   saveBtnText: { fontSize: 17, fontFamily: "Nunito_800ExtraBold", color: "#fff" },
 });

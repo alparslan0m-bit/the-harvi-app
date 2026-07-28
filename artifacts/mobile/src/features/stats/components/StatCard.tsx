@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useColors } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 
 interface Props {
   label: string;
@@ -30,8 +31,8 @@ export function StatCard({ label, value, icon, accent }: Props) {
       </View>
       
       <View style={styles.content}>
-        <Text style={[styles.value, { color: accent ? "#fff" : colors.foreground }]}>{value}</Text>
-        <Text style={[styles.label, { color: accent ? "rgba(255,255,255,0.8)" : colors.mutedForeground }]}>
+        <Text style={[styles.value, { color: accent ? colors.primaryForeground : colors.foreground }]}>{value}</Text>
+        <Text style={[styles.label, { color: accent ? colors.primaryForeground : colors.mutedForeground }]}>
           {label}
         </Text>
       </View>
@@ -43,15 +44,10 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     padding: 18,
-    borderRadius: 24,
+    borderRadius: THEME.radius,
     borderWidth: 1,
     minHeight: 110,
     justifyContent: "space-between",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 2,
   },
   headerRow: {
     flexDirection: "row",

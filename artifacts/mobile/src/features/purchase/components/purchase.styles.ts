@@ -1,5 +1,6 @@
 // Shared styles for purchase components — extracted from PurchaseScreen.tsx
 import { StyleSheet } from "react-native";
+import { THEME } from "@/src/shared/constants/theme";
 
 export const sharedStyles = StyleSheet.create({
   // Used by BuyTab + CodeTab
@@ -21,13 +22,8 @@ export const sharedStyles = StyleSheet.create({
   // Used by PremiumButton + SuccessState
   ctaOuter: {
     width: "100%",
-    borderRadius: 16,
+    borderRadius: THEME.radius,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    elevation: 6,
   },
   ctaInner: {
     flexDirection: "row",
@@ -36,10 +32,9 @@ export const sharedStyles = StyleSheet.create({
     gap: 10,
     paddingVertical: 18,
     paddingHorizontal: 32,
-    borderRadius: 16,
+    borderRadius: THEME.radius,
   },
   ctaText: {
-    color: "#fff",
     fontSize: 17,
     fontFamily: "Inter_700Bold",
     letterSpacing: 0.3,
