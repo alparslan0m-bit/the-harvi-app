@@ -8,7 +8,7 @@ export type ThemeColors = {
 export function useColors(): ThemeColors {
   const theme = useTheme((s) => s.theme);
 
-  const activeTheme = (theme === "harvi" ? "light" : theme) as "light" | "pink" | "mint" | "ocean";
+  const activeTheme = (theme === "harvi" ? "light" : theme) as "light" | "pink";
   
   const palette = colors[activeTheme] || colors.light;
 

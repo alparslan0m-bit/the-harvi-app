@@ -3,7 +3,7 @@ import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Appearance } from "react-native";
 
-export type ThemeMode = "harvi" | "pink" | "mint" | "ocean";
+export type ThemeMode = "harvi" | "pink";
 
 interface ThemeState {
   theme: ThemeMode;
@@ -21,7 +21,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
   initTheme: async () => {
     try {
       const saved = await AsyncStorage.getItem("harvi:theme");
-      if (saved === "harvi" || saved === "pink" || saved === "mint" || saved === "ocean") {
+      if (saved === "harvi" || saved === "pink") {
         set({ theme: saved as ThemeMode });
         Appearance.setColorScheme("light");
       }

@@ -18,16 +18,12 @@ export function ProfileThemeSelector() {
         {([
           { id: "harvi", label: "Harvi", icon: "activity" },
           { id: "pink", label: "Pink", icon: "heart" },
-          { id: "mint", label: "Mint", icon: "feather" },
-          { id: "ocean", label: "Ocean", icon: "droplet" },
         ] as const).map((item) => {
           const active = theme === item.id;
-          const accent = item.id === "pink" ? "#db2777" : item.id === "mint" ? "#10b981" : item.id === "ocean" ? "#0ea5e9" : colors.primary;
+          const accent = item.id === "pink" ? "#db2777" : colors.primary;
           
           let bg = colors.primary + "1A";
           if (item.id === "pink") bg = "#db27771A";
-          if (item.id === "mint") bg = "#10b9811A";
-          if (item.id === "ocean") bg = "#0ea5e91A";
 
           return (
             <TouchableOpacity
