@@ -97,9 +97,7 @@ export function LectureCard({
           styles.indexBadge,
           {
             backgroundColor:
-              filledStars === 3
-                ? STAR_COLOR_FILLED + "1A"
-                : colors.muted,
+              filledStars === 3 ? STAR_COLOR_FILLED + "1A" : colors.muted,
           },
         ]}
       >
@@ -108,9 +106,7 @@ export function LectureCard({
             styles.indexText,
             {
               color:
-                filledStars === 3
-                  ? STAR_COLOR_FILLED
-                  : colors.mutedForeground,
+                filledStars === 3 ? STAR_COLOR_FILLED : colors.mutedForeground,
             },
           ]}
         >

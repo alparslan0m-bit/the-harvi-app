@@ -56,11 +56,20 @@ export function SubjectCard({
     >
       {/* Title row */}
       <View style={styles.row}>
-        <Text style={[styles.title, { color: colors.cardForeground }]} numberOfLines={2}>
+        <Text
+          style={[styles.title, { color: colors.cardForeground }]}
+          numberOfLines={2}
+        >
           {subject.name}
         </Text>
         {/* Completion badge */}
-        <View style={[styles.badge, { backgroundColor: colors.cardForeground + "15" }, allDone && { backgroundColor: colors.cardForeground + "30" }]}>
+        <View
+          style={[
+            styles.badge,
+            { backgroundColor: colors.cardForeground + "15" },
+            allDone && { backgroundColor: colors.cardForeground + "30" },
+          ]}
+        >
           <View style={styles.flexRow}>
             <Text style={[styles.badgeText, { color: colors.cardForeground }]}>
               {allDone ? "✓" : `${completedCount}/${total}`}
@@ -71,13 +80,18 @@ export function SubjectCard({
 
       {/* Progress bar */}
       {total > 0 && (
-        <View style={[styles.barTrack, { backgroundColor: colors.cardForeground + "20" }]}>
+        <View
+          style={[
+            styles.barTrack,
+            { backgroundColor: colors.cardForeground + "20" },
+          ]}
+        >
           <View
             style={[
               styles.barFill,
-              { 
+              {
                 width: `${Math.round(progress * 100)}%` as `${number}%`,
-                backgroundColor: colors.cardForeground 
+                backgroundColor: colors.cardForeground,
               },
             ]}
           />

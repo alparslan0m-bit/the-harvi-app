@@ -41,7 +41,9 @@ export function YearCard({ year, index, onPress }: Props) {
       activeOpacity={0.9}
     >
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.cardForeground }]}>{year.name}</Text>
+        <Text style={[styles.title, { color: colors.cardForeground }]}>
+          {year.name}
+        </Text>
       </View>
     </AnimatedTouchable>
   );

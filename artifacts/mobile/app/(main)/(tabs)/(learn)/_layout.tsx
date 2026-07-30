@@ -10,7 +10,8 @@ export default function LearnStack() {
       screenOptions={{
         headerShown: false,
         gestureEnabled: true,
-        animation: "slide_from_right",
+        animation: "fade",
+        animationDuration: 200,
       }}
     />
   );

@@ -21,10 +21,17 @@ interface Props {
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
-export function ModuleCard({ module, index, onPress, hasAccess, isFree }: Props) {
+export function ModuleCard({
+  module,
+  index,
+  onPress,
+  hasAccess,
+  isFree,
+}: Props) {
   const scale = useSharedValue(1);
   const colors = useColors();
-  const color = colors.cardColors[index % colors.cardColors.length] ?? colors.cardColors[0];
+  const color =
+    colors.cardColors[index % colors.cardColors.length] ?? colors.cardColors[0];
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -43,7 +50,9 @@ export function ModuleCard({ module, index, onPress, hasAccess, isFree }: Props)
       activeOpacity={0.9}
     >
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.cardForeground }]}>{module.name}</Text>
+        <Text style={[styles.title, { color: colors.cardForeground }]}>
+          {module.name}
+        </Text>
       </View>
     </AnimatedTouchable>
   );
