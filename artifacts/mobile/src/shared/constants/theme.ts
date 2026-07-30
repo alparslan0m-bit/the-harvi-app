@@ -33,6 +33,14 @@ export const COLORS = {
       "#B4CBFF", // Periwinkle
       "#FFB86B", // Soft Orange
     ],
+    // Stat card palettes: [Quizzes, Questions, Avg Score, Best Score]
+    statCardFamilies: [
+      { fill: "#FFDCCB", solid: "#FF8A5B", ink: "#7A3A1E" }, // Coral
+      { fill: "#CFE8FA", solid: "#5CB8F0", ink: "#134A6B" }, // Sky
+      { fill: "#E3DBFA", solid: "#A88BF0", ink: "#3E2E70" }, // Lavender
+      { fill: "#C9F0DE", solid: "#4FCB94", ink: "#0F5C3C" }, // Mint
+    ],
+    streakFamily: { fill: "#FFEFB0", solid: "#FFC93C", ink: "#6B4E00" }, // Sunshine
   },
   pink: {
     text: "#3B1578", // Slightly darker purple for better contrast
@@ -68,6 +76,14 @@ export const COLORS = {
       "#FDDCC8", // Warm Peach
       "#FDF2F8", // Blush
     ],
+    // Stat card palettes: [Quizzes, Questions, Avg Score, Best Score]
+    statCardFamilies: [
+      { fill: "#FDDCC8", solid: "#F0A07A", ink: "#6B3A1E" }, // Warm Peach
+      { fill: "#DDD6F3", solid: "#A88BEB", ink: "#3E2E70" }, // Lavender
+      { fill: "#F9B4C4", solid: "#E8738E", ink: "#6B1A35" }, // Rich Pink
+      { fill: "#D4C4E6", solid: "#9B7DC8", ink: "#3B1578" }, // Thistle
+    ],
+    streakFamily: { fill: "#FCBDD4", solid: "#E8738E", ink: "#6B1A35" }, // Rose
   },
 
 } as const;

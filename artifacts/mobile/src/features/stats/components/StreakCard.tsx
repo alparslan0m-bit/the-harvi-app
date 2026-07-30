@@ -13,13 +13,6 @@ import Animated, {
 
 import { useColors } from "@/src/shared/hooks/useColors";
 
-/** Candy Pastel Sunshine family */
-const SUNSHINE = {
-  fill: "#FFEFB0",
-  solid: "#FFC93C",
-  ink: "#6B4E00",
-} as const;
-
 /** Soft shadow for white cards — §3.1 */
 const SOFT_SHADOW = Platform.select({
   ios: {
@@ -64,13 +57,14 @@ export function StreakCard({ streak }: { streak: number }): React.ReactElement {
   }));
 
   const isActive = streak > 0;
+  const streak_ = colors.streakFamily;
 
-  // §1.2: active uses Sunshine fill, inactive uses white card with soft shadow
-  const cardBg = isActive ? SUNSHINE.fill : colors.card;
-  const iconBg = isActive ? SUNSHINE.solid + "22" : colors.muted;
-  const iconColor = isActive ? SUNSHINE.solid : colors.mutedForeground;
-  const numColor = isActive ? SUNSHINE.ink : colors.mutedForeground;
-  const textColor = isActive ? SUNSHINE.ink : colors.mutedForeground;
+  // §1.2: active uses streak family fill, inactive uses white card with soft shadow
+  const cardBg = isActive ? streak_.fill : colors.card;
+  const iconBg = isActive ? streak_.solid + "22" : colors.muted;
+  const iconColor = isActive ? streak_.solid : colors.mutedForeground;
+  const numColor = isActive ? streak_.ink : colors.mutedForeground;
+  const textColor = isActive ? streak_.ink : colors.mutedForeground;
 
   return (
     <View
@@ -83,7 +77,7 @@ export function StreakCard({ streak }: { streak: number }): React.ReactElement {
     >
       {isActive && (
         <LinearGradient
-          colors={[SUNSHINE.solid + "08", SUNSHINE.solid + "14"]}
+          colors={[streak_.solid + "08", streak_.solid + "14"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
