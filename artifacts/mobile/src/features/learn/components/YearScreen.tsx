@@ -44,7 +44,7 @@ export function YearScreen() {
       >
         <TouchableOpacity
           onPress={() => router.back()}
-          style={[styles.backBtn, { backgroundColor: "rgba(255,255,255,0.15)" }]}
+          style={[styles.backBtn, { backgroundColor: "white" }]}
           activeOpacity={0.7}
         >
           <Feather name="arrow-left" size={18} color={colors.headerForeground} />
@@ -116,6 +116,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   headerTitle: {
     flex: 1,

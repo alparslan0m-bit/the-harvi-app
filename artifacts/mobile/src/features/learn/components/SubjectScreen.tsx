@@ -65,7 +65,7 @@ export function SubjectScreen() {
       >
         <TouchableOpacity
           onPress={() => router.back()}
-          style={[styles.backBtn, { backgroundColor: "rgba(255,255,255,0.15)" }]}
+          style={[styles.backBtn, { backgroundColor: "white" }]}
           activeOpacity={0.7}
         >
           <Feather name="arrow-left" size={20} color={colors.headerForeground} />
@@ -216,9 +216,14 @@ const styles = StyleSheet.create({
   backBtn: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   titleWrapper: { flex: 1, alignItems: "center" },
   headerTitle: {

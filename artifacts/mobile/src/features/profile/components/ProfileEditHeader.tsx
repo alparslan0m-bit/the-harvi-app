@@ -25,7 +25,7 @@ export function ProfileEditHeader({
         ]}
       >
       <TouchableOpacity
-        style={[styles.backBtn, { backgroundColor: colors.muted }]}
+        style={[styles.backBtn, { backgroundColor: "white" }]}
         onPress={onCancel}
         activeOpacity={0.75}
       >
@@ -68,6 +68,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   headerTitle: {
     fontSize: 24,
