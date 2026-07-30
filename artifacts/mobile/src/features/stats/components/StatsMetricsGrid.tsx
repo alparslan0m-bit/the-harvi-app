@@ -11,7 +11,7 @@ const ICON_COLORS = {
   coral:    "#FF8A5B",
   sky:      "#5CB8F0",
   lavender: "#A88BF0",
-  sunshine: "#FFC93C",
+  mint:     "#4FCB94",
 } as const;
 
 interface StatsMetricsGridProps {
@@ -52,8 +52,8 @@ export function StatsMetricsGrid({ totalQuizzes, totalQuestions, averageScore, b
         <StatCard
           label="Best Score"
           value={`${Math.round(bestScore)}%`}
-          icon={<Feather name="award" size={18} color={ICON_COLORS.sunshine} />}
-          colorFamily="sunshine"
+          icon={<Feather name="award" size={18} color={ICON_COLORS.mint} />}
+          colorFamily="mint"
         />
       </View>
     </View>
