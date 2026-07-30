@@ -79,11 +79,11 @@ export const COLORS = {
     // Stat card palettes: [Quizzes, Questions, Avg Score, Best Score]
     statCardFamilies: [
       { fill: "#FDDCC8", solid: "#F0A07A", ink: "#6B3A1E" }, // Warm Peach
-      { fill: "#DDD6F3", solid: "#A88BEB", ink: "#3E2E70" }, // Lavender
-      { fill: "#F9B4C4", solid: "#E8738E", ink: "#6B1A35" }, // Rich Pink
-      { fill: "#D4C4E6", solid: "#9B7DC8", ink: "#3B1578" }, // Thistle
+      { fill: "#FFF3D6", solid: "#E0B05A", ink: "#5C4210" }, // Soft Gold — breaks the pink-purple monotony
+      { fill: "#C9E8DE", solid: "#5DBCA3", ink: "#1A5C4A" }, // Soft Mint — complements pink, pops on pink bg
+      { fill: "#D4C4E6", solid: "#9B7DC8", ink: "#3B1578" }, // Thistle — deeper purple anchor
     ],
-    streakFamily: { fill: "#FCBDD4", solid: "#E8738E", ink: "#6B1A35" }, // Rose
+    streakFamily: { fill: "#E8D6EF", solid: "#B07CC8", ink: "#4A1D6B" }, // Soft Mauve
   },
 
 } as const;
