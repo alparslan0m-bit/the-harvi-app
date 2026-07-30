@@ -24,15 +24,19 @@ export function ProfileHeroCard({
 }: Props) {
   const colors = useColors();
 
+  // Pick a distinct pastel color for the Hero Card (e.g. Lavender/Periwinkle)
+  const heroBg = colors.cardColors[4] || "#E3DBFA";
+  const heroInk = "#1A1A1A"; // Candy Pastel high-contrast ink
+
   return (
-    <View style={[styles.card, { backgroundColor: colors.card }]}>
+    <View style={[styles.card, { backgroundColor: heroBg, elevation: 0, shadowOpacity: 0 }]}>
       <View style={styles.topSection}>
         {/* Avatar */}
         <View style={styles.avatarWrap}>
           <View
             style={[
               styles.avatarRing,
-              { backgroundColor: colors.primary + "0A" },
+              { backgroundColor: "rgba(255, 255, 255, 0.4)" }, // Soft contrast against pastel background
             ]}
           >
             {avatarId ? (
@@ -58,7 +62,8 @@ export function ProfileHeroCard({
             style={[
               displayName ? styles.heroName : styles.heroNamePlaceholder,
               {
-                color: displayName ? colors.foreground : colors.mutedForeground,
+                color: heroInk,
+                opacity: displayName ? 1 : 0.6,
               },
             ]}
             numberOfLines={1}
@@ -67,7 +72,7 @@ export function ProfileHeroCard({
           </Text>
 
           <Text
-            style={[styles.heroEmail, { color: colors.mutedForeground }]}
+            style={[styles.heroEmail, { color: heroInk, opacity: 0.7 }]}
             numberOfLines={1}
           >
             {email}
@@ -76,21 +81,21 @@ export function ProfileHeroCard({
 
         {/* Edit button */}
         <TouchableOpacity
-          style={[styles.editBtn, { backgroundColor: colors.primary + "15" }]}
+          style={[styles.editBtn, { backgroundColor: heroInk }]}
           onPress={() => router.push("/profile/edit")}
           activeOpacity={0.7}
         >
-          <Feather name="edit-3" size={16} color={colors.primary} />
+          <Feather name="edit-3" size={18} color="#ffffff" />
         </TouchableOpacity>
       </View>
 
       {memberSince && (
         <View style={styles.footer}>
-          <Feather name="calendar" size={12} color={colors.mutedForeground} />
-          <Text style={[styles.memberText, { color: colors.mutedForeground }]}>
+          <Feather name="calendar" size={12} color={heroInk} style={{ opacity: 0.7 }} />
+          <Text style={[styles.memberText, { color: heroInk, opacity: 0.7 }]}>
             Joined at{" "}
             <Text
-              style={{ color: colors.primary, fontFamily: "Inter_600SemiBold" }}
+              style={{ color: heroInk, fontFamily: "Inter_600SemiBold", opacity: 1 }}
             >
               {memberSince}
             </Text>
@@ -103,7 +108,7 @@ export function ProfileHeroCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 20,
+    borderRadius: 28, // Candy Pastel 'lg' radius
     marginBottom: 24,
     overflow: "hidden",
   },
@@ -173,9 +178,9 @@ const styles = StyleSheet.create({
   memberText: { fontSize: 11, fontFamily: "Inter_500Medium" },
 
   editBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 999, // fully pill-shaped
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",

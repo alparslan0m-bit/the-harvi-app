@@ -1,3 +1,4 @@
+import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -5,13 +6,26 @@ import { RecentResultCard } from "./RecentResultCard";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { UserStats } from "@/src/shared/types";
 
-export function RecentResultsSection({ results }: { results: UserStats["recent_results"] }) {
+/** Candy Pastel Lavender for the section icon badge */
+const LAVENDER = {
+  fill: "#E3DBFA",
+  solid: "#A88BF0",
+} as const;
+
+export function RecentResultsSection({ results }: { results: UserStats["recent_results"] }): React.ReactElement {
   const colors = useColors();
   return (
     <View style={styles.recentSection}>
-      <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-        Recent Results
-      </Text>
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionTitleRow}>
+          <View style={[styles.sectionIcon, { backgroundColor: LAVENDER.fill }]}>
+            <Feather name="clock" size={14} color={LAVENDER.solid} />
+          </View>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+            Recent Results
+          </Text>
+        </View>
+      </View>
       {results.slice(0, 10).map((result, i) => (
         <RecentResultCard key={i} result={result} />
       ))}
@@ -20,7 +34,21 @@ export function RecentResultsSection({ results }: { results: UserStats["recent_r
 }
 
 const styles = StyleSheet.create({
-  recentSection: { paddingHorizontal: 20, marginBottom: 16 },
+  recentSection: { paddingHorizontal: 20, marginTop: 4, marginBottom: 16 },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  sectionTitleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  sectionIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 12, // §6.3 sm
+    alignItems: "center",
+    justifyContent: "center",
+  },
   sectionTitle: {
     fontSize: 16,
     fontFamily: "Nunito_800ExtraBold",

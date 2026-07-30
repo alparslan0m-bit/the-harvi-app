@@ -55,12 +55,7 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
             styles.textarea,
             {
               color: colors.foreground,
-              borderColor: feedbackError
-                ? colors.destructive + "4D"
-                : isFocused
-                  ? colors.primary
-                  : colors.border,
-              backgroundColor: colors.background,
+              backgroundColor: colors.muted, // Soft fill instead of border
             },
           ]}
           placeholder="Share your thoughts, report a bug, or suggest a feature…"
@@ -99,7 +94,6 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
             styles.alertBox,
             {
               backgroundColor: colors.success + "1A",
-              borderColor: colors.success + "33",
             },
           ]}
         >
@@ -116,7 +110,6 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
             styles.alertBox,
             {
               backgroundColor: colors.destructive + "1A",
-              borderColor: colors.destructive + "33",
             },
           ]}
         >
@@ -170,7 +163,7 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 24, padding: 20, marginBottom: 24, gap: 16 },
+  card: { borderRadius: 28, padding: 20, marginBottom: 24, gap: 16 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -180,7 +173,7 @@ const styles = StyleSheet.create({
   headerIconWrap: {
     width: 28,
     height: 28,
-    borderRadius: 8,
+    borderRadius: 999, // Pill shape
     alignItems: "center",
     justifyContent: "center",
   },
@@ -191,8 +184,7 @@ const styles = StyleSheet.create({
   },
   inputArea: { position: "relative" },
   textarea: {
-    borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: 20, // Candy Pastel soft shape
     padding: 16,
     paddingBottom: 32,
     fontSize: 16,
@@ -211,14 +203,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
+    padding: 16,
+    borderRadius: 20,
   },
   alertText: { fontSize: 13, fontFamily: "Inter_500Medium" },
   submitBtn: {
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 999, // Pill shape
     alignItems: "center",
     justifyContent: "center",
   },

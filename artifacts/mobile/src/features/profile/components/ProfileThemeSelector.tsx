@@ -35,8 +35,7 @@ export function ProfileThemeSelector() {
               style={[
                 styles.themeBtn,
                 { 
-                  backgroundColor: active ? bg : colors.card,
-                  borderColor: active ? accent : colors.border,
+                  backgroundColor: active ? bg : colors.muted,
                 }
               ]}
               onPress={() => {
@@ -86,8 +85,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingVertical: 14,
-    borderRadius: 16,
-    borderWidth: 1.5,
+    borderRadius: 999, // Pill shape
   },
   themeBtnText: {
     fontSize: 14,

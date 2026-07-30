@@ -1,20 +1,38 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 
 import { WeeklyChart } from "./WeeklyChart";
 import { useColors } from "@/src/shared/hooks/useColors";
-import { THEME } from "@/src/shared/constants/theme";
 import { UserStats } from "@/src/shared/types";
 
-export function WeeklyActivitySection({ weekData }: { weekData: UserStats["weekly_activity"] }) {
+/** Candy Pastel Sky family — for the calendar icon badge */
+const SKY = {
+  fill: "#CFE8FA",
+  solid: "#5CB8F0",
+} as const;
+
+/** Soft shadow for white cards — §3.1 */
+const SOFT_SHADOW = Platform.select({
+  ios: {
+    shadowColor: "#1A1A1A",
+    shadowOpacity: 0.07,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+  },
+  android: { elevation: 3 },
+  default: {},
+});
+
+export function WeeklyActivitySection({ weekData }: { weekData: UserStats["weekly_activity"] }): React.ReactElement {
   const colors = useColors();
   const total = weekData.reduce((s, d) => s + d.count, 0);
   return (
     <View
       style={[
         styles.section,
-        { backgroundColor: colors.card, borderColor: colors.border },
+        { backgroundColor: colors.card },
+        SOFT_SHADOW,
       ]}
     >
       <View style={styles.sectionHeader}>
@@ -22,10 +40,10 @@ export function WeeklyActivitySection({ weekData }: { weekData: UserStats["weekl
           <View
             style={[
               styles.sectionIcon,
-              { backgroundColor: colors.primary + "1A" },
+              { backgroundColor: SKY.fill },
             ]}
           >
-            <Feather name="calendar" size={14} color={colors.primary} />
+            <Feather name="calendar" size={14} color={SKY.solid} />
           </View>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
             Weekly Activity
@@ -47,8 +65,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 16,
     padding: 20,
-    borderRadius: THEME.radius,
-    borderWidth: 1,
+    borderRadius: 28, // §6.3 lg
+    // No borderWidth — §2.3
   },
   sectionHeader: {
     flexDirection: "row",
@@ -60,7 +78,7 @@ const styles = StyleSheet.create({
   sectionIcon: {
     width: 28,
     height: 28,
-    borderRadius: 8,
+    borderRadius: 12, // §6.3 sm
     alignItems: "center",
     justifyContent: "center",
   },

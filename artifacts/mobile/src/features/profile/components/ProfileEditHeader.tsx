@@ -15,16 +15,15 @@ export function ProfileEditHeader({
 }) {
   const colors = useColors();
   return (
-    <View
-      style={[
-        styles.header,
-        {
-          paddingTop: topPad + 14,
-          borderBottomColor: "transparent",
-          backgroundColor: colors.background,
-        },
-      ]}
-    >
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: topPad + 14,
+            backgroundColor: colors.background,
+          },
+        ]}
+      >
       <TouchableOpacity
         style={[styles.backBtn, { backgroundColor: colors.muted }]}
         onPress={onCancel}
@@ -55,18 +54,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingBottom: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   headerBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 999, // Pill shape
   },
   headerBtnText: { fontSize: 14, fontFamily: "Nunito_800ExtraBold" },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 999, // Perfectly circular
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,

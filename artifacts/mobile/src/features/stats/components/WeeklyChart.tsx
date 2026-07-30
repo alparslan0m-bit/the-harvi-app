@@ -10,6 +10,12 @@ import Animated, {
 
 import { useColors } from "@/src/shared/hooks/useColors";
 
+/** Candy Pastel Coral for warm bar coloring */
+const CORAL = {
+  fill: "#FFDCCB",
+  solid: "#FF8A5B",
+} as const;
+
 interface DayData {
   day: string;
   count: number;
@@ -30,7 +36,7 @@ function AnimatedBar({
   item: DayData;
   index: number;
   maxCount: number;
-}) {
+}): React.ReactElement {
   const colors = useColors();
   const progress = useSharedValue(0);
 
@@ -49,10 +55,11 @@ function AnimatedBar({
   }));
 
   const isActive = item.count > 0;
+  // §1.2: Coral solid for today, Coral fill-tinted for other active bars
   const barColor = item.isToday
-    ? colors.primary
+    ? CORAL.solid
     : isActive
-    ? colors.primary + "bb"
+    ? CORAL.solid + "99"
     : colors.muted;
 
   return (
@@ -60,14 +67,14 @@ function AnimatedBar({
       {/* Count label above bar */}
       <View style={styles.labelWrap}>
         {isActive && (
-          <Text style={[styles.countLabel, { color: item.isToday ? colors.primary : colors.mutedForeground }]}>
+          <Text style={[styles.countLabel, { color: item.isToday ? CORAL.solid : colors.mutedForeground }]}>
             {item.count}
           </Text>
         )}
       </View>
 
-      {/* Bar track */}
-      <View style={[styles.track, { backgroundColor: colors.muted }]}>
+      {/* Bar track — uses Coral fill for warmth */}
+      <View style={[styles.track, { backgroundColor: CORAL.fill + "66" }]}>
         <Animated.View
           style={[
             styles.bar,
@@ -82,7 +89,7 @@ function AnimatedBar({
         style={[
           styles.dayLabel,
           {
-            color: item.isToday ? colors.primary : colors.mutedForeground,
+            color: item.isToday ? CORAL.solid : colors.mutedForeground,
             fontFamily: item.isToday ? "Inter_700Bold" : "Inter_500Medium",
           },
         ]}
@@ -92,13 +99,13 @@ function AnimatedBar({
 
       {/* Today dot */}
       {item.isToday && (
-        <View style={[styles.todayDot, { backgroundColor: colors.primary }]} />
+        <View style={[styles.todayDot, { backgroundColor: CORAL.solid }]} />
       )}
     </View>
   );
 }
 
-export function WeeklyChart({ data }: Props) {
+export function WeeklyChart({ data }: Props): React.ReactElement {
   const maxCount = Math.max(...data.map((d) => d.count), 1);
 
   return (
@@ -137,13 +144,13 @@ const styles = StyleSheet.create({
   track: {
     width: "62%",
     height: BAR_MAX_H,
-    borderRadius: 8,
+    borderRadius: 12, // §6.3 sm
     justifyContent: "flex-end",
     overflow: "hidden",
   },
   bar: {
     width: "100%",
-    borderRadius: 8,
+    borderRadius: 12, // §6.3 sm
   },
   dayLabel: {
     fontSize: 11,

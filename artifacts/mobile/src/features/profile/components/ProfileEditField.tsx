@@ -26,11 +26,9 @@ export function ProfileEditField({
       <View style={[
         styles.fieldBox, 
         { 
-          backgroundColor: readOnly ? colors.muted + "80" : colors.card, 
-          borderColor: colors.border 
+          backgroundColor: readOnly ? colors.muted + "60" : colors.muted, // Soft fill instead of card background with border
         }
       ]}>
-        {!readOnly && <View style={[styles.innerBorder, { borderColor: "rgba(255,255,255,0.1)" }]} />}
         <Feather name={icon} size={16} color={colors.mutedForeground} style={styles.fieldIcon} />
         
         {readOnly ? (
@@ -75,19 +73,12 @@ const styles = StyleSheet.create({
   fieldBox: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1.5,
-    borderRadius: 20,
-    paddingHorizontal: 16,
+    borderRadius: 999, // Pill shape
+    paddingHorizontal: 20,
     paddingVertical: 14,
     gap: 12,
     position: "relative",
     overflow: "hidden",
-  },
-  innerBorder: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    zIndex: 1,
   },
   fieldIcon: { flexShrink: 0, zIndex: 2 },
   fieldInput: {

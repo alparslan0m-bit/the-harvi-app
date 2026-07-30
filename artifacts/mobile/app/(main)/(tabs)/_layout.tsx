@@ -110,7 +110,8 @@ function ClassicTabLayout() {
               style={{
                 width: 48,
                 height: 48,
-                borderRadius: 24,
+                borderRadius: 999,
+                overflow: "hidden",
                 justifyContent: "center",
                 alignItems: "center",
                 backgroundColor: focused ? colors.accent : "transparent",
@@ -136,7 +137,8 @@ function ClassicTabLayout() {
               style={{
                 width: 48,
                 height: 48,
-                borderRadius: 24,
+                borderRadius: 999,
+                overflow: "hidden",
                 justifyContent: "center",
                 alignItems: "center",
                 backgroundColor: focused ? colors.accent : "transparent",
@@ -162,7 +164,8 @@ function ClassicTabLayout() {
               style={{
                 width: 48,
                 height: 48,
-                borderRadius: 24,
+                borderRadius: 999,
+                overflow: "hidden",
                 justifyContent: "center",
                 alignItems: "center",
                 backgroundColor: focused ? colors.accent : "transparent",

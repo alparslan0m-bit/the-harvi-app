@@ -53,8 +53,7 @@ export function ProfileScreen() {
         style={[
           styles.header,
           {
-            paddingTop: topPad + 14,
-            borderBottomColor: "transparent",
+            paddingTop: topPad + 16,
             backgroundColor: colors.headerBackground,
           },
         ]}
@@ -103,16 +102,16 @@ export function ProfileScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   header: {
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 24, // Candy Pastel spacing
+    paddingBottom: 16,
+    // border removed
   },
   title: {
     fontSize: 38,
     fontFamily: "Nunito_800ExtraBold",
     letterSpacing: -0.5,
   },
-  content: { paddingTop: 12, paddingHorizontal: 20 },
+  content: { paddingTop: 16, paddingHorizontal: 24 }, // spacing multiple of 4
   versionText: {
     textAlign: "center",
     fontSize: 12,

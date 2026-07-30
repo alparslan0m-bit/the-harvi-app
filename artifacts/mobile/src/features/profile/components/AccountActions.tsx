@@ -127,8 +127,6 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
         bgColor={colors.destructive + "1A"}
       />
 
-      <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
       <ActionRow
         icon="download-cloud"
         label="Clear Downloaded Lectures"
@@ -136,8 +134,6 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
         color={colors.warning}
         bgColor={colors.warning + "1A"}
       />
-
-      <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
       <ActionRow
         icon="log-out"
@@ -177,10 +173,10 @@ function ActionRow({ icon, label, onPress, color, bgColor }: ActionRowProps) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 24,
+    borderRadius: 28, // Candy Pastel 'lg' radius
     padding: 20,
     marginBottom: 24,
-    gap: 0,
+    gap: 4, // Increase gap between rows
   },
   header: {
     flexDirection: "row",
@@ -192,7 +188,7 @@ const styles = StyleSheet.create({
   headerIconWrap: {
     width: 28,
     height: 28,
-    borderRadius: 8,
+    borderRadius: 999, // Pill shape
     alignItems: "center",
     justifyContent: "center",
   },
@@ -211,10 +207,10 @@ const styles = StyleSheet.create({
   actionIconWrap: {
     width: 38,
     height: 38,
-    borderRadius: 12,
+    borderRadius: 999, // Pill shape
     alignItems: "center",
     justifyContent: "center",
   },
   actionLabel: { flex: 1, fontSize: 15, fontFamily: "Inter_600SemiBold" },
-  divider: { height: StyleSheet.hairlineWidth, marginHorizontal: 4 },
+  // divider removed
 });
