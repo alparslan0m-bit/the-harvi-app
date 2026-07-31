@@ -49,7 +49,13 @@ export function QuizScreen() {
 
   // ── Loading ───────────────────────────────────────────────────────────────
 
-  if (!cacheChecked || (isLoading && !questions)) {
+  if (!cacheChecked) {
+    // Render a blank screen for a few milliseconds while checking local cache.
+    // This avoids flashing the "Warming Engines" screen if data is already downloaded.
+    return <View style={{ flex: 1, backgroundColor: colors.background }} />;
+  }
+
+  if (!questions && !error) {
     return <QuizLoadingScreen lectureName={lectureName} />;
   }
 

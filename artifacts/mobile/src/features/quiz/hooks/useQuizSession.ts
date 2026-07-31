@@ -35,7 +35,7 @@ export function useQuizSession(lectureId: string) {
     mountedRef.current = true;
     loadQuestionsFromCache(lectureId).then((hit) => {
       if (!mountedRef.current) return;
-      if (hit?.questions.length) setCachedQuestions(hit.questions);
+      if (hit?.questions) setCachedQuestions(hit.questions);
       setCacheChecked(true);
     });
     return () => {
@@ -44,10 +44,12 @@ export function useQuizSession(lectureId: string) {
   }, [lectureId]);
 
   const {
-    data: remoteQuestions,
+    data: queryQuestions,
     isLoading,
     error,
   } = useQuizQuestions(lectureId, cachedQuestions);
+
+  const remoteQuestions = queryQuestions || cachedQuestions;
 
   // ── Quiz session state ────────────────────────────────────────────────────
   const [questions, setQuestions] = useState<Question[] | null>(null);
@@ -55,12 +57,10 @@ export function useQuizSession(lectureId: string) {
   // Lock in the questions once they arrive (either from cache or remote)
   // This prevents the "switcheroo" bug where background refreshes shuffle
   // the questions while the user is mid-quiz.
-  useEffect(() => {
-    if (!questions && remoteQuestions) {
-      // Shuffle the order of questions locally on mount or retry
-      setQuestions([...remoteQuestions].sort(() => Math.random() - 0.5));
-    }
-  }, [remoteQuestions, questions]);
+  if (!questions && remoteQuestions) {
+    // Render phase state update: runs synchronously before committing to screen
+    setQuestions([...remoteQuestions].sort(() => Math.random() - 0.5));
+  }
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answered, setAnswered] = useState<AnsweredState | null>(null);
