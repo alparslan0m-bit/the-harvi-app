@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   signInWithGoogle: async () => {
     try {
-      const redirectTo = Linking.createURL("callback"); // no leading slash → harvi://callback not harvi:///callback
+      const redirectTo = Linking.createURL("callback");
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
