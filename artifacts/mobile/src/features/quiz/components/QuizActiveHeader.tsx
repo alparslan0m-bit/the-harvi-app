@@ -26,38 +26,23 @@ export function QuizActiveHeader({
       {/* Close button */}
       <TouchableOpacity
         onPress={onClose}
-        style={[styles.iconBtn, { backgroundColor: colors.muted }]}
+        style={[styles.iconBtn, { backgroundColor: colors.card }]}
         activeOpacity={0.75}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Feather name="x" size={18} color={colors.foreground} />
+        <Feather name="x" size={20} color={colors.foreground} />
       </TouchableOpacity>
 
       {/* Lecture name */}
       <Text
-        style={[styles.lectureName, { color: colors.mutedForeground }]}
+        style={[styles.lectureName, { color: colors.foreground }]}
         numberOfLines={1}
       >
         {lectureName}
       </Text>
 
-      {/* Question counter chip */}
-      <View
-        style={[
-          styles.counterChip,
-          {
-            backgroundColor: colors.muted + "80",
-            borderColor: colors.border,
-          },
-        ]}
-      >
-        <Text style={[styles.counterCurrent, { color: colors.foreground }]}>
-          {currentIndex + 1}
-        </Text>
-        <Text style={[styles.counterTotal, { color: colors.mutedForeground }]}>
-          /{totalQuestions}
-        </Text>
-      </View>
+      {/* Empty placeholder to balance the close button */}
+      <View style={{ width: 44, height: 44 }} />
     </View>
   );
 }
@@ -67,37 +52,60 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingBottom: 12,
-    gap: 10,
+    paddingBottom: 16,
+    gap: 12,
   },
   iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
   },
   lectureName: {
     flex: 1,
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
     letterSpacing: -0.2,
     textAlign: "center",
   },
+  focusPill: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
+    justifyContent: "center",
+    alignItems: "flex-start",
+  },
+  focusLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  focusTitle: {
+    fontSize: 14,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: -0.2,
+  },
   counterChip: {
     flexDirection: "row",
-    alignItems: "baseline",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    height: 44,
+    paddingHorizontal: 16,
+    borderRadius: 999,
     flexShrink: 0,
   },
   counterCurrent: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: "Inter_800ExtraBold",
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
   },
-  counterTotal: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  counterTotal: { 
+    fontSize: 14, 
+    fontFamily: "Inter_600SemiBold",
+  },
 });

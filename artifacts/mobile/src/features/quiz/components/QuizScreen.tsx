@@ -22,7 +22,8 @@ export function QuizScreen() {
     lectureId: string;
     lectureName: string;
   }>();
-  if (!lectureId || typeof lectureId !== "string") return <Redirect href="/+not-found" />;
+  if (!lectureId || typeof lectureId !== "string")
+    return <Redirect href="/+not-found" />;
 
   const {
     questions,
@@ -62,7 +63,9 @@ export function QuizScreen() {
   // ── Error / empty ─────────────────────────────────────────────────────────
 
   if (error || !questions || questions.length === 0) {
-    return <QuizErrorScreen error={error as Error | null} lectureId={lectureId} />;
+    return (
+      <QuizErrorScreen error={error as Error | null} lectureId={lectureId} />
+    );
   }
 
   // ── Review screen ─────────────────────────────────────────────────────────
@@ -127,6 +130,7 @@ export function QuizScreen() {
       <QuizQuestionContent
         question={question}
         currentIndex={currentIndex}
+        totalQuestions={questions.length}
         answered={answered}
         isCorrectAnswer={isCorrectAnswer}
         colors={colors}

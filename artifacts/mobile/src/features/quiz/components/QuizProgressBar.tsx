@@ -24,6 +24,6 @@ export function QuizProgressBar({ progressStyle, colors }: QuizProgressBarProps)
 }
 
 const styles = StyleSheet.create({
-  progressTrack: { height: 5, width: "100%" },
-  progressFill: { height: "100%", borderRadius: 3 },
+  progressTrack: { height: 8, width: "100%", borderRadius: 999 },
+  progressFill: { height: "100%", borderRadius: 999 },
 });

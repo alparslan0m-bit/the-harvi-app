@@ -116,14 +116,10 @@ export function ResultsView({
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[
-              styles.btn,
-              {
-                backgroundColor: colors.card,
-                borderWidth: 1.5,
-                borderColor: colors.border,
-              },
-            ]}
+              style={[
+                styles.btn,
+                { backgroundColor: colors.card, borderWidth: 0 },
+              ]}
             onPress={onReview}
             activeOpacity={0.88}
           >
@@ -191,7 +187,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 10,
     paddingVertical: 18,
-    borderRadius: THEME.radius,
+    borderRadius: 999,
   },
 
   btnText: {

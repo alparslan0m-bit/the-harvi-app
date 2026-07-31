@@ -28,6 +28,7 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
 
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }, { translateX: translateX.value }],
+    opacity: withTiming(isDimmed ? 0.45 : 1, { duration: 300 }),
   }));
 
   // Celebrate correct / shake wrong when answer is revealed
@@ -56,31 +57,34 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
 
   let bgColor: string = colors.card;
   let borderColor: string = colors.border;
-  let textColor: string = colors.foreground;
+  let textColor: string = (colors as any).cardForeground || colors.foreground;
+
+  let labelBg = colors.muted;
+  let labelColor = colors.foreground;
+  let iconColor = colors.foreground;
+
+  const mintFamily = { fill: "#C9F0DE", solid: "#4FCB94", ink: "#0F5C3C" };
+  const coralFamily = { fill: "#FFDCCB", solid: "#FF8A5B", ink: "#7A3A1E" };
 
   if (isCorrect) {
-    bgColor = colors.success + "12";
-    borderColor = colors.success + "66";
-  } else if (isWrong) {
-    bgColor = colors.destructive + "12";
-    borderColor = colors.destructive + "66";
-  } else if (isDimmed) {
-    bgColor = colors.muted + "40";
+    bgColor = mintFamily.fill;
     borderColor = "transparent";
-    textColor = colors.mutedForeground;
+    textColor = mintFamily.ink;
+    labelBg = mintFamily.solid;
+    labelColor = "#ffffff";
+    iconColor = mintFamily.solid;
+  } else if (isWrong) {
+    bgColor = coralFamily.fill;
+    borderColor = "transparent";
+    textColor = coralFamily.ink;
+    labelBg = coralFamily.solid;
+    labelColor = "#ffffff";
+    iconColor = coralFamily.solid;
   }
 
+  const shadowStyle = {}; // Removed muddy shadow
+
   const label = String.fromCharCode(65 + index);
-
-  const labelBg = isCorrect
-    ? colors.success
-    : isWrong
-      ? colors.destructive
-      : isDimmed
-        ? colors.border
-        : colors.muted;
-
-  const labelColor = isCorrect || isWrong ? "#fff" : textColor;
 
   return (
     <Animated.View
@@ -90,7 +94,7 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
     >
       <Animated.View style={animStyle}>
         <TouchableOpacity
-          style={[styles.option, { backgroundColor: bgColor, borderColor }]}
+          style={[styles.option, { backgroundColor: bgColor, borderColor }, shadowStyle]}
           onPress={() => {
             if (answered) return;
             scale.value = withSequence(
@@ -102,19 +106,6 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
           activeOpacity={0.88}
           disabled={!!answered}
         >
-          <View
-            style={[
-              styles.innerGlow,
-              {
-                borderColor: isCorrect
-                  ? colors.success + "33"
-                  : isWrong
-                    ? colors.destructive + "33"
-                    : "rgba(255,255,255,0.1)",
-              },
-            ]}
-          />
-
           <View style={[styles.badge, { backgroundColor: labelBg }]}>
             <Text style={[styles.badgeText, { color: labelColor }]}>
               {label}
@@ -129,10 +120,10 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
           </Text>
 
           {isCorrect && (
-            <Feather name="check-circle" size={20} color={colors.success} />
+            <Feather name="check-circle" size={20} color={iconColor} />
           )}
           {isWrong && (
-            <Feather name="x-circle" size={20} color={colors.destructive} />
+            <Feather name="x-circle" size={20} color={iconColor} />
           )}
         </TouchableOpacity>
       </Animated.View>
@@ -144,24 +135,17 @@ const styles = StyleSheet.create({
   option: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 22,
+    borderRadius: 24,
     borderWidth: 1.5,
-    gap: 14,
-    overflow: "hidden",
+    gap: 12,
     position: "relative",
-  },
-  innerGlow: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: 22,
-    borderWidth: 1.5,
-    zIndex: 1,
   },
   badge: {
     width: 34,
     height: 34,
-    borderRadius: 12,
+    borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
