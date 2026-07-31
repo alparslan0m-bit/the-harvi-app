@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { StyleSheet, Text, View, ScrollView } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
@@ -29,8 +29,15 @@ export function QuizQuestionContent({
   onSelect,
   insets,
 }: QuizQuestionContentProps) {
+  const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [currentIndex]);
+
   return (
     <ScrollView
+      ref={scrollRef}
       contentContainerStyle={[
         styles.scroll,
         { paddingBottom: insets.bottom + 130 },
@@ -137,14 +144,14 @@ export function QuizQuestionContent({
 
 const styles = StyleSheet.create({
   scroll: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingTop: 16,
   },
   card: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 24,
-    borderRadius: 36,
+    borderRadius: 32,
     borderWidth: 1.5,
   },
 
@@ -162,10 +169,10 @@ const styles = StyleSheet.create({
   },
 
   questionText: {
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: "Nunito_800ExtraBold",
-    letterSpacing: -0.6,
-    lineHeight: 32,
+    letterSpacing: -0.5,
+    lineHeight: 30,
     marginBottom: 24,
   },
 
