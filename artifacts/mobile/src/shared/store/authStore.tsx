@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   signInWithGoogle: async () => {
     try {
-      const redirectTo = Linking.createURL("/callback");
+      const redirectTo = Linking.createURL("callback"); // no leading slash → harvi://callback not harvi:///callback
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -74,6 +74,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       return { error: e instanceof Error ? e.message : "Unknown error" };
     }
   },
+
   signOut: async () => {
     await supabase.auth.signOut();
     useCacheStore.getState().clearAll();
