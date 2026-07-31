@@ -124,13 +124,14 @@ export function useSubjectCache(subject: Subject | undefined): SubjectCacheState
 
       const lec = subject.lectures[i];
       if (!lec) continue;
+      
       try {
         const questions = await fetchQuestions(lec.id);
         await saveQuestionsToCache(lec.id, questions);
       } catch {
         // Continue — one failed lecture shouldn't abort the whole download
       }
-      
+
       if (isMounted.current) {
         setProgress({ done: i + 1, total: subject.lectures.length });
       }

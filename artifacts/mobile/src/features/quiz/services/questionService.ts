@@ -24,12 +24,16 @@ const LECTURE_FK_CANDIDATES = [
   "parent_id",
 ];
 
+let knownFkCol: string | null = null;
+
 /**
  * Exported so useSubjectCache can call it directly to pre-populate the
  * question cache for all lectures in a subject ("Download for offline").
  */
 export async function fetchQuestions(lectureId: string): Promise<Question[]> {
-  for (const fkCol of LECTURE_FK_CANDIDATES) {
+  const candidates = knownFkCol ? [knownFkCol] : LECTURE_FK_CANDIDATES;
+
+  for (const fkCol of candidates) {
     const { data, error } = await supabase
       .from("questions")
       .select("*")
@@ -42,8 +46,12 @@ export async function fetchQuestions(lectureId: string): Promise<Question[]> {
       );
     }
 
-    if (data && data.length > 0) {
+    // If we reach here without an error, we found the correct column!
+    if (!knownFkCol) {
+      knownFkCol = fkCol;
+    }
 
+    if (data && data.length > 0) {
       const raw: Question[] = data.map(
         (row: Record<string, unknown>, i: number) => {
           const options = parseOptions(pick(row, OPTIONS_CANDIDATES));
@@ -83,6 +91,10 @@ export async function fetchQuestions(lectureId: string): Promise<Question[]> {
         };
       });
     }
+
+    // If data is empty but there's no error, the column exists but this lecture has 0 questions.
+    // We return immediately instead of trying the other 6 fallback columns!
+    return [];
   }
 
   return [];
