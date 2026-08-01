@@ -1,22 +1,39 @@
 import * as Haptics from "expo-haptics";
 import React from "react";
-import { Pressable, PressableProps, StyleProp, ViewStyle } from "react-native";
+import {
+  GestureResponderEvent,
+  Platform,
+  Pressable,
+  PressableProps,
+  StyleProp,
+  ViewStyle,
+} from "react-native";
 import Animated, {
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 
 const AnimatedPressableBase = Animated.createAnimatedComponent(Pressable);
 
+const PRESS_IN_DURATION = 120;
+const PRESS_OUT_DURATION = 150;
+const SCALE_ACTIVE = 0.96;
+const OPACITY_ACTIVE = 0.85;
+
+export type HapticFeedbackType = "none" | "light" | "medium" | "success" | "error";
+
 export interface AnimatedPressableProps extends Omit<PressableProps, "style"> {
   feedback?: "scale" | "opacity" | "none";
-  style?: StyleProp<ViewStyle> | any;
+  haptics?: HapticFeedbackType;
+  style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
 }
 
 export function AnimatedPressable({
   feedback = "opacity",
+  haptics = "none",
   style,
   onPressIn,
   onPressOut,
@@ -24,17 +41,24 @@ export function AnimatedPressable({
   disabled,
   ...rest
 }: AnimatedPressableProps) {
-  const isActive = useSharedValue(0);
+  const isReducedMotion = useReducedMotion();
+
+  // Determine actual feedback (if reduced motion, never use scale)
+  const activeFeedback = isReducedMotion && feedback === "scale" ? "opacity" : feedback;
+
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
 
   const animStyle = useAnimatedStyle(() => {
-    if (feedback === "scale") {
+    if (activeFeedback === "scale") {
       return {
-        transform: [{ scale: withTiming(isActive.value ? 0.96 : 1, { duration: isActive.value ? 120 : 150 }) }],
+        transform: [{ scale: scale.value }],
+        opacity: disabled ? 0.5 : 1,
       };
     }
-    if (feedback === "opacity") {
+    if (activeFeedback === "opacity") {
       return {
-        opacity: withTiming(isActive.value ? 0.7 : (disabled ? 0.5 : 1), { duration: isActive.value ? 120 : 150 }),
+        opacity: disabled ? 0.5 : opacity.value,
       };
     }
     return {
@@ -42,16 +66,46 @@ export function AnimatedPressable({
     };
   });
 
-  const handlePressIn = (e: any) => {
+  const triggerHaptic = (type: HapticFeedbackType) => {
+    if (Platform.OS === "web" || type === "none") return;
+
+    const promise =
+      type === "light"
+        ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+        : type === "medium"
+        ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+        : type === "success"
+        ? Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+        : Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
+    void promise.catch((err) => {
+      if (__DEV__) {
+        console.warn("[AnimatedPressable] Haptics failed:", err);
+      }
+    });
+  };
+
+  const handlePressIn = (e: GestureResponderEvent) => {
     if (!disabled) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      isActive.value = 1;
+      triggerHaptic(haptics);
+
+      if (activeFeedback === "scale") {
+        scale.value = withTiming(SCALE_ACTIVE, { duration: PRESS_IN_DURATION });
+      } else if (activeFeedback === "opacity") {
+        opacity.value = withTiming(OPACITY_ACTIVE, { duration: PRESS_IN_DURATION });
+      }
     }
     onPressIn?.(e);
   };
 
-  const handlePressOut = (e: any) => {
-    isActive.value = 0;
+  const handlePressOut = (e: GestureResponderEvent) => {
+    if (!disabled) {
+      if (activeFeedback === "scale") {
+        scale.value = withTiming(1, { duration: PRESS_OUT_DURATION });
+      } else if (activeFeedback === "opacity") {
+        opacity.value = withTiming(1, { duration: PRESS_OUT_DURATION });
+      }
+    }
     onPressOut?.(e);
   };
 
