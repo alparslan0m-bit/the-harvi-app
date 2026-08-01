@@ -36,16 +36,16 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
     if (!answered) return;
     if (index === answered.correct) {
       scale.value = withSequence(
-        withSpring(1.05, { damping: 10, stiffness: 220 }),
-        withSpring(1, { damping: 15 }),
+        withTiming(1.03, { duration: 150 }),
+        withTiming(1, { duration: 150 }),
       );
     } else if (index === answered.selected && index !== answered.correct) {
       translateX.value = withSequence(
-        withTiming(-9, { duration: 55 }),
-        withTiming(9, { duration: 55 }),
-        withTiming(-6, { duration: 55 }),
-        withTiming(6, { duration: 55 }),
-        withTiming(0, { duration: 55 }),
+        withTiming(-6, { duration: 40 }),
+        withTiming(6, { duration: 40 }),
+        withTiming(-4, { duration: 40 }),
+        withTiming(4, { duration: 40 }),
+        withTiming(0, { duration: 40 }),
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,19 +88,21 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
 
   return (
     <Animated.View
-      entering={FadeInDown.delay(index * 65)
-        .duration(380)
-        .springify()}
+      entering={FadeInDown.delay(index * 30).duration(200)}
     >
       <Animated.View style={animStyle}>
         <TouchableOpacity
           style={[styles.option, { backgroundColor: bgColor, borderColor }, shadowStyle]}
+          onPressIn={() => {
+            if (answered) return;
+            scale.value = withTiming(0.96, { duration: 120 });
+          }}
+          onPressOut={() => {
+            if (answered) return;
+            scale.value = withTiming(1, { duration: 150 });
+          }}
           onPress={() => {
             if (answered) return;
-            scale.value = withSequence(
-              withSpring(0.96, { damping: 20 }),
-              withSpring(1, { damping: 20 }),
-            );
             onSelect(index);
           }}
           activeOpacity={0.88}

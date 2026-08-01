@@ -4,7 +4,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from "react-native-reanimated";
 
 import { useColors } from "@/src/shared/hooks/useColors";
@@ -47,10 +47,10 @@ export function SubjectCard({
       style={[styles.card, animStyle, { backgroundColor: color }]}
       onPress={onPress}
       onPressIn={() => {
-        scale.value = withSpring(0.98, { damping: 15, stiffness: 200 });
+        scale.value = withTiming(0.96, { duration: 120 });
       }}
       onPressOut={() => {
-        scale.value = withSpring(1, { damping: 15, stiffness: 200 });
+        scale.value = withTiming(1, { duration: 150 });
       }}
       activeOpacity={0.9}
     >

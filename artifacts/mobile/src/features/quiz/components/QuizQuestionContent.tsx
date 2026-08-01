@@ -47,7 +47,7 @@ export function QuizQuestionContent({
     >
       <Animated.View
         key={currentIndex}
-        entering={FadeInDown.duration(320).springify()}
+        entering={FadeInDown.duration(200)}
         style={[
           styles.card,
           { backgroundColor: colors.card, borderColor: colors.border },
@@ -103,7 +103,7 @@ export function QuizQuestionContent({
 
             return (
               <Animated.View
-                entering={FadeInUp.duration(320).springify()}
+                entering={FadeInUp.duration(200)}
                 style={[
                   styles.explanationBox,
                   { backgroundColor: boxFamily.fill },

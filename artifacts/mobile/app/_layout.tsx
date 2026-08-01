@@ -46,7 +46,7 @@ function RootLayoutNav({ fontsLoaded, fontError }: { fontsLoaded: boolean; fontE
   if (loading) return null;
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, animation: "fade", animationDuration: 200 }}>
       <Stack.Screen name="(main)/(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
       <Stack.Screen name="(main)/quiz/[lectureId]" options={{ headerShown: false }} />
