@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { QuizImage } from "./QuizImage";
@@ -34,7 +34,7 @@ export function QuizReviewScreen({
   const wrongCount = totalCount - correctCount;
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <Animated.View entering={FadeIn.duration(200)} style={{ flex: 1, backgroundColor: colors.background }}>
       {/* ── Header ── */}
       <View
         style={[
@@ -315,7 +315,7 @@ export function QuizReviewScreen({
           );
         })}
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 }
 
