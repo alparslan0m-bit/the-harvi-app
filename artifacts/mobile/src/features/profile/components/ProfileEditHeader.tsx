@@ -3,6 +3,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { useColors } from "@/src/shared/hooks/useColors";
+import { AnimatedPressable } from "@/src/shared/components";
 
 export function ProfileEditHeader({
   topPad,
@@ -24,25 +25,25 @@ export function ProfileEditHeader({
           },
         ]}
       >
-      <TouchableOpacity
+      <AnimatedPressable feedback="opacity"
         style={[styles.backBtn, { backgroundColor: "white" }]}
         onPress={onCancel}
-        activeOpacity={0.75}
+        
       >
         <Feather name="arrow-left" size={18} color={colors.foreground} />
-      </TouchableOpacity>
+      </AnimatedPressable>
 
       <Text style={[styles.headerTitle, { color: colors.foreground }]}>
         Edit Profile
       </Text>
 
-      <TouchableOpacity
+      <AnimatedPressable feedback="opacity"
         style={[styles.headerBtn, { backgroundColor: colors.primary }]}
         onPress={onSave}
-        activeOpacity={0.88}
+        
       >
         <Text style={[styles.headerBtnText, { color: "#fff" }]}>Save</Text>
-      </TouchableOpacity>
+      </AnimatedPressable>
     </View>
   );
 }

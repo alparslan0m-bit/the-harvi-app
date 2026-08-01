@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { AvatarById, AvatarId } from "./DoctorAvatars";
 import { useColors } from "@/src/shared/hooks/useColors";
+import { AnimatedPressable } from "@/src/shared/components";
 
 export function ProfileAvatarSection({ 
   avatarId, 
@@ -13,9 +14,9 @@ export function ProfileAvatarSection({
   const colors = useColors();
   return (
     <View style={styles.avatarSection}>
-      <TouchableOpacity
+      <AnimatedPressable feedback="opacity"
         onPress={onPress}
-        activeOpacity={0.8}
+        
         style={styles.avatarWrap}
       >
         <View style={[styles.avatarRing, { borderColor: colors.primary }]}>
@@ -32,7 +33,7 @@ export function ProfileAvatarSection({
         <View style={[styles.editBadge, { backgroundColor: colors.primary, borderColor: colors.background }]}>
           <Feather name="camera" size={14} color="#fff" />
         </View>
-      </TouchableOpacity>
+      </AnimatedPressable>
       <Text style={[styles.avatarHint, { color: colors.mutedForeground }]}>
         Tap to change medical avatar
       </Text>

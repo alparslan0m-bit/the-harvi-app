@@ -6,6 +6,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 
 import { AvatarById, AvatarId } from "./DoctorAvatars";
 import { useColors } from "@/src/shared/hooks/useColors";
+import { AnimatedPressable } from "@/src/shared/components";
 
 interface Props {
   avatarId: AvatarId | null;
@@ -80,13 +81,13 @@ export function ProfileHeroCard({
         </View>
 
         {/* Edit button */}
-        <TouchableOpacity
+        <AnimatedPressable feedback="opacity"
           style={[styles.editBtn, { backgroundColor: heroInk }]}
           onPress={() => router.push("/profile/edit")}
           activeOpacity={0.7}
         >
           <Feather name="edit-3" size={18} color="#ffffff" />
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
 
       {memberSince && (

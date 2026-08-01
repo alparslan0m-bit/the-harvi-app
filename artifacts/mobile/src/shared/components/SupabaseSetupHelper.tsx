@@ -5,6 +5,7 @@ import { Alert, StyleSheet, Text, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 
 import { useColors } from "@/src/shared/hooks/useColors";
+import { AnimatedPressable } from "@/src/shared/components";
 
 interface SupabaseSetupHelperProps {
   showSetup: boolean;
@@ -17,7 +18,7 @@ export function SupabaseSetupHelper({ showSetup, onToggle }: SupabaseSetupHelper
 
   return (
     <>
-      <TouchableOpacity
+      <AnimatedPressable feedback="opacity"
         style={[
           styles.setupToggle,
           {
@@ -40,7 +41,7 @@ export function SupabaseSetupHelper({ showSetup, onToggle }: SupabaseSetupHelper
         >
           {showSetup ? "Hide Supabase setup" : "Google not working? Tap to see setup"}
         </Text>
-      </TouchableOpacity>
+      </AnimatedPressable>
 
       {showSetup && (
         <View style={[styles.setupBox, { backgroundColor: colors.primary + "1A", borderColor: colors.primary + "33" }]}>
@@ -49,7 +50,7 @@ export function SupabaseSetupHelper({ showSetup, onToggle }: SupabaseSetupHelper
           </Text>
 
           {/* Selectable URL box */}
-          <TouchableOpacity
+          <AnimatedPressable feedback="opacity"
             style={styles.urlBox}
             onLongPress={() => {
               Alert.alert(
@@ -70,7 +71,7 @@ export function SupabaseSetupHelper({ showSetup, onToggle }: SupabaseSetupHelper
               {redirectUrl}
             </Text>
             <Feather name="copy" size={14} color="#1d4ed8" />
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           <Text style={styles.setupNote}>
             Also add:{"\n"}

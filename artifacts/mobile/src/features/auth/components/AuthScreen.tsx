@@ -1,21 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SupabaseSetupHelper } from "@/src/shared/components";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { THEME } from "@/src/shared/constants/theme";
 import { useAuthForm } from "@/src/features/auth/hooks/useAuthForm";
+import { AnimatedPressable } from "@/src/shared/components";
 
 function GoogleIcon() {
   return (
@@ -81,14 +72,14 @@ export function AuthScreen() {
 
         <View style={styles.form}>
           {/* Google Sign-In */}
-          <TouchableOpacity
+          <AnimatedPressable feedback="scale"
             style={[
               styles.googleBtn,
               { borderColor: colors.border, backgroundColor: colors.background },
             ]}
             onPress={handleGoogleSignIn}
             disabled={googleLoading || loading}
-            activeOpacity={0.85}
+            
           >
             {googleLoading ? (
               <ActivityIndicator color={colors.mutedForeground} size="small" />
@@ -100,7 +91,7 @@ export function AuthScreen() {
                 </Text>
               </>
             )}
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           {/* Setup helper */}
           <SupabaseSetupHelper
@@ -164,13 +155,13 @@ export function AuthScreen() {
               onFocus={() => setFocusedField("password")}
               onBlur={() => setFocusedField(null)}
             />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+            <AnimatedPressable feedback="scale" onPress={() => setShowPassword(!showPassword)}>
               <Feather
                 name={showPassword ? "eye-off" : "eye"}
                 size={18}
                 color={focusedField === "password" ? colors.primary : colors.mutedForeground}
               />
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
 
           {error && (
@@ -185,7 +176,7 @@ export function AuthScreen() {
             </View>
           )}
 
-          <TouchableOpacity
+          <AnimatedPressable feedback="scale"
             style={[styles.btn, { backgroundColor: colors.primary }]}
             onPress={handleSubmit}
             disabled={loading || googleLoading}
@@ -197,9 +188,9 @@ export function AuthScreen() {
                 {mode === "login" ? "Sign In" : "Create Account"}
               </Text>
             )}
-          </TouchableOpacity>
+          </AnimatedPressable>
 
-          <TouchableOpacity
+          <AnimatedPressable feedback="scale"
             onPress={toggleMode}
             style={styles.switchRow}
           >
@@ -209,7 +200,7 @@ export function AuthScreen() {
             <Text style={[styles.switchLink, { color: colors.primary }]}>
               {mode === "login" ? "Sign Up" : "Sign In"}
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

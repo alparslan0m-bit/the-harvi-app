@@ -12,6 +12,7 @@ import Animated, {
 
 import type { ThemeColors } from "@/src/shared/hooks/useColors";
 import { SPRING_CONFIG } from "./purchase.constants";
+import { AnimatedPressable } from "@/src/shared/components";
 
 export type Tab = "buy" | "code";
 
@@ -62,7 +63,7 @@ export const TabSwitcher = React.memo(function TabSwitcher({
           />
         )}
 
-        <TouchableOpacity
+        <AnimatedPressable feedback="opacity"
           style={styles.tab}
           onPress={() => onTabChange("buy")}
           activeOpacity={0.7}
@@ -80,9 +81,9 @@ export const TabSwitcher = React.memo(function TabSwitcher({
           >
             Buy
           </Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
 
-        <TouchableOpacity
+        <AnimatedPressable feedback="opacity"
           style={styles.tab}
           onPress={() => onTabChange("code")}
           activeOpacity={0.7}
@@ -100,7 +101,7 @@ export const TabSwitcher = React.memo(function TabSwitcher({
           >
             Access Code
           </Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
     </Animated.View>
   );

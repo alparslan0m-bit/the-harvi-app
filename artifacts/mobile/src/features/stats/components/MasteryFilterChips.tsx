@@ -1,8 +1,9 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { FilterKey } from "@/src/features/learn/hooks/useMasteryFilter";
+import { AnimatedPressable } from "@/src/shared/components";
 
 const FILTERS: { key: FilterKey; label: string; icon: keyof typeof Feather.glyphMap }[] = [
   { key: "all",       label: "All",        icon: "layers" },
@@ -37,7 +38,7 @@ export function MasteryFilterChips({
           f.key === "improving" ? counts.improving :
           counts.weak;
         return (
-          <Pressable
+          <AnimatedPressable feedback="opacity"
             key={f.key}
             onPress={() => setFilter(f.key)}
             style={[
@@ -61,7 +62,7 @@ export function MasteryFilterChips({
                 {cnt}
               </Text>
             </View>
-          </Pressable>
+          </AnimatedPressable>
         );
       })}
     </ScrollView>

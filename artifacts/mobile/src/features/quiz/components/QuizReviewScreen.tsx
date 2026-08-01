@@ -1,18 +1,13 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { QuizImage } from "./QuizImage";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { HistoryItem } from "@/src/shared/types";
+import { AnimatedPressable } from "@/src/shared/components";
 
 interface Props {
   history: HistoryItem[];
@@ -46,13 +41,13 @@ export function QuizReviewScreen({
           },
         ]}
       >
-        <TouchableOpacity
+        <AnimatedPressable feedback="opacity"
           onPress={onBack}
           style={[styles.backBtn, { backgroundColor: colors.muted }]}
-          activeOpacity={0.75}
+          
         >
           <Feather name="arrow-left" size={18} color={colors.foreground} />
-        </TouchableOpacity>
+        </AnimatedPressable>
 
         <View style={styles.headerText}>
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>

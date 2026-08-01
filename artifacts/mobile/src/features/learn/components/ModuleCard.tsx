@@ -10,6 +10,7 @@ import Animated, {
 import { useColors } from "@/src/shared/hooks/useColors";
 import { THEME } from "@/src/shared/constants/theme";
 import { Module } from "@/src/shared/types";
+import { AnimatedPressable } from "@/src/shared/components";
 
 interface Props {
   module: Module;

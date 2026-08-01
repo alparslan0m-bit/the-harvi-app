@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { useTheme } from "@/src/shared/store/themeStore";
 import { useColors } from "@/src/shared/hooks/useColors";
+import { AnimatedPressable } from "@/src/shared/components";
 
 export function ProfileThemeSelector() {
   const theme = useTheme((s) => s.theme);
@@ -26,7 +27,7 @@ export function ProfileThemeSelector() {
           if (item.id === "pink") bg = "#db27771A";
 
           return (
-            <TouchableOpacity
+            <AnimatedPressable feedback="scale"
               key={item.id}
               style={[
                 styles.themeBtn,
@@ -51,7 +52,7 @@ export function ProfileThemeSelector() {
               ]}>
                 {item.label}
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           );
         })}
       </View>

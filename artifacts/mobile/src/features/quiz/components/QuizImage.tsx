@@ -20,22 +20,13 @@
 import { Feather } from "@expo/vector-icons";
 import { Image, ImageSource } from "expo-image";
 import React, { useEffect, useRef, useState, useMemo } from "react";
-import {
-  Dimensions,
-  Modal,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Dimensions, Modal, Platform, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 import { supabase } from "@/src/shared/services/supabase";
 import { useColors, type ThemeColors } from "@/src/shared/hooks/useColors";
 import { useWindowDimensions } from "react-native";
+import { AnimatedPressable } from "@/src/shared/components";
 
 const SUPABASE_URL = (process.env["EXPO_PUBLIC_SUPABASE_URL"] ?? "").replace(/\/$/, "");
 const SUPABASE_ANON_KEY = process.env["EXPO_PUBLIC_SUPABASE_ANON_KEY"] ?? "";
@@ -141,7 +132,7 @@ function QuizImageComponent({ uri, caption }: Props) {
   return (
     <>
       {/* ── Thumbnail ────────────────────────────────────────────────────── */}
-      <TouchableOpacity
+      <AnimatedPressable feedback="opacity"
         style={styles.thumbWrap}
         onPress={() => !error && source && setOpen(true)}
         activeOpacity={0.88}
@@ -186,7 +177,7 @@ function QuizImageComponent({ uri, caption }: Props) {
             <Feather name="maximize-2" size={12} color="#fff" />
           </View>
         )}
-      </TouchableOpacity>
+      </AnimatedPressable>
 
       {caption ? <Text style={styles.caption}>{caption}</Text> : null}
 
@@ -201,7 +192,7 @@ function QuizImageComponent({ uri, caption }: Props) {
         <View style={styles.modalBg}>
           <StatusBar hidden />
 
-          <TouchableOpacity
+          <AnimatedPressable feedback="opacity"
             style={styles.closeBtn}
             onPress={() => {
               scrollRef.current?.scrollTo({ x: 0, y: 0, animated: false });
@@ -210,7 +201,7 @@ function QuizImageComponent({ uri, caption }: Props) {
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
             <Feather name="x" size={20} color="#fff" />
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           {/* Pinch-to-zoom — native scroll zoom on iOS, pan on Android */}
           <ScrollView

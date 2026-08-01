@@ -1,15 +1,9 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-} from "react-native";
+import { View, Text, TextInput, ActivityIndicator, StyleSheet } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useFeedback } from "@/src/shared/hooks/useFeedback";
 import { useColors } from "@/src/shared/hooks/useColors";
+import { AnimatedPressable } from "@/src/shared/components";
 
 interface FeedbackFormProps {
   userId?: string;
@@ -123,7 +117,7 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
         </View>
       )}
 
-      <TouchableOpacity
+      <AnimatedPressable feedback="opacity"
         style={[
           styles.submitBtn,
           {
@@ -134,7 +128,7 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
         ]}
         onPress={handleSubmit}
         disabled={isDisabled || isTooShort}
-        activeOpacity={0.85}
+        
       >
         {submitting ? (
           <ActivityIndicator color="#fff" size="small" />
@@ -157,7 +151,7 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
             Submit Feedback
           </Text>
         )}
-      </TouchableOpacity>
+      </AnimatedPressable>
     </View>
   );
 }

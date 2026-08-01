@@ -3,6 +3,7 @@ import React from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { useColors } from "@/src/shared/hooks/useColors";
+import { AnimatedPressable } from "@/src/shared/components";
 
 export function LearnErrorState({ error, onRetry }: { error: Error | null | undefined; onRetry: () => void }) {
   const colors = useColors();
@@ -43,10 +44,10 @@ export function LearnErrorState({ error, onRetry }: { error: Error | null | unde
         </View>
       )}
 
-      <TouchableOpacity style={[styles.retryBtn, { backgroundColor: colors.primary }]} onPress={onRetry}>
+      <AnimatedPressable feedback="scale" style={[styles.retryBtn, { backgroundColor: colors.primary }]} onPress={onRetry}>
         <Feather name="refresh-cw" size={16} color="#fff" />
         <Text style={styles.retryText}>Try Again</Text>
-      </TouchableOpacity>
+      </AnimatedPressable>
     </ScrollView>
   );
 }

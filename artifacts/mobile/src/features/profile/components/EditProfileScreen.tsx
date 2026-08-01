@@ -14,6 +14,7 @@ import { useAuth } from "@/src/shared/store/authStore";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { useProfileEdit } from "@/src/features/profile/hooks/useProfileEdit";
 import { THEME } from "@/src/shared/constants/theme";
+import { AnimatedPressable } from "@/src/shared/components";
 
 /**
  * EditProfileScreen - Refactored for modularity.
@@ -84,14 +85,14 @@ export function EditProfileScreen() {
         <ProfileThemeSelector />
 
         {/* ── Primary Save Button ── */}
-        <TouchableOpacity
+        <AnimatedPressable feedback="opacity"
           style={[styles.saveBtn, { backgroundColor: colors.primary }]}
           onPress={handleSave}
-          activeOpacity={0.88}
+          
         >
           <Feather name="check" size={18} color="#fff" />
           <Text style={styles.saveBtnText}>Save Changes</Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
 
       </ScrollView>
 

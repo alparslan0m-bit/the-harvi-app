@@ -1,17 +1,13 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, Text } from "react-native";
 import Animated, {
   FadeIn,
 } from "react-native-reanimated";
 
 import { useColors } from "@/src/shared/hooks/useColors";
 import { SubjectCacheStatus } from "@/src/features/learn/hooks/useSubjectCache";
+import { AnimatedPressable } from "@/src/shared/components";
 
 interface Props {
   status: SubjectCacheStatus;
@@ -61,9 +57,9 @@ export function SubjectDownloadButton({
 
   if (status === "stale") {
     return (
-      <TouchableOpacity
+      <AnimatedPressable feedback="opacity"
         onPress={onPress}
-        activeOpacity={0.8}
+        
         style={[
           styles.pill,
           {
@@ -79,15 +75,15 @@ export function SubjectDownloadButton({
             ? `${newQuestionCount} new question${newQuestionCount !== 1 ? "s" : ""}`
             : "Update available"}
         </Text>
-      </TouchableOpacity>
+      </AnimatedPressable>
     );
   }
 
   // "none" or "partial"
   return (
-    <TouchableOpacity
+    <AnimatedPressable feedback="opacity"
       onPress={onPress}
-      activeOpacity={0.8}
+      
       style={[
         styles.pill,
         {
@@ -101,7 +97,7 @@ export function SubjectDownloadButton({
       <Text style={[styles.label, { color: colors.primary }]}>
         {status === "partial" ? "Resume download" : "Download offline"}
       </Text>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

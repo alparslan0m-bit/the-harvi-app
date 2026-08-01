@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 
 import { useColors } from "@/src/shared/hooks/useColors";
+import { AnimatedPressable } from "@/src/shared/components";
 
 interface QuizErrorScreenProps {
   error: Error | null;
@@ -52,12 +53,12 @@ export function QuizErrorScreen({ error, lectureId }: QuizErrorScreenProps) {
             ? error.message
             : `No questions are linked to this lecture.\n\nLecture ID: ${lectureId}`}
       </Text>
-      <TouchableOpacity
+      <AnimatedPressable feedback="scale"
         onPress={() => router.back()}
         style={[styles.errorBtn, { backgroundColor: colors.primary }]}
       >
         <Text style={styles.errorBtnText}>Go back</Text>
-      </TouchableOpacity>
+      </AnimatedPressable>
     </View>
   );
 }

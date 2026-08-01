@@ -1,12 +1,13 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { MasteryBar } from "./MasteryBar";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { THEME } from "@/src/shared/constants/theme";
 import { UserStats } from "@/src/shared/types";
+import { AnimatedPressable } from "@/src/shared/components";
 
 export function MasterySection({ masteryData }: { masteryData: UserStats["subject_mastery"] }) {
   const colors = useColors();
@@ -17,7 +18,7 @@ export function MasterySection({ masteryData }: { masteryData: UserStats["subjec
         { backgroundColor: colors.card, borderColor: colors.border },
       ]}
     >
-      <Pressable
+      <AnimatedPressable feedback="opacity"
         style={styles.sectionHeader}
         onPress={() => router.push("/stats/mastery")}
       >
@@ -40,14 +41,14 @@ export function MasterySection({ masteryData }: { masteryData: UserStats["subjec
           </Text>
           <Feather name="chevron-right" size={15} color={colors.primary} />
         </View>
-      </Pressable>
+      </AnimatedPressable>
       <View style={{ marginTop: 20 }}>
         {masteryData.slice(0, 3).map((item, i) => (
           <MasteryBar key={i} subject={item.subject} mastery={item.mastery} />
         ))}
       </View>
       {masteryData.length > 3 && (
-        <Pressable
+        <AnimatedPressable feedback="opacity"
           style={[
             styles.moreBtn,
             { borderColor: colors.border, backgroundColor: colors.background },
@@ -58,7 +59,7 @@ export function MasterySection({ masteryData }: { masteryData: UserStats["subjec
             +{masteryData.length - 3} more subjects
           </Text>
           <Feather name="arrow-right" size={14} color={colors.primary} />
-        </Pressable>
+        </AnimatedPressable>
       )}
     </View>
   );

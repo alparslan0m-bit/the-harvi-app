@@ -12,6 +12,7 @@ import { clearBestScoreCache } from "@/src/features/learn/services/bestScoreServ
 import { supabase } from "@/src/shared/services/supabase";
 import { clearAllLectureCache } from "@/src/features/quiz/services/questionCache";
 import { clearQueueForUser } from "@/src/shared/services/offlineQueue";
+import { AnimatedPressable } from "@/src/shared/components";
 
 interface AccountActionsProps {
   userId?: string;
@@ -157,17 +158,17 @@ interface ActionRowProps {
 function ActionRow({ icon, label, onPress, color, bgColor }: ActionRowProps) {
   const colors = useColors();
   return (
-    <TouchableOpacity
+    <AnimatedPressable feedback="opacity"
       style={styles.actionRow}
       onPress={onPress}
-      activeOpacity={0.7}
+      
     >
       <View style={[styles.actionIconWrap, { backgroundColor: bgColor }]}>
         <Feather name={icon} size={15} color={color} />
       </View>
       <Text style={[styles.actionLabel, { color }]}>{label}</Text>
       <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

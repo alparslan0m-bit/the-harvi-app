@@ -7,6 +7,7 @@ import { AnsweredState } from "@/src/shared/types";
 import { ThemeColors } from "@/src/shared/hooks/useColors";
 import { THEME } from "@/src/shared/constants/theme";
 import { EdgeInsets } from "react-native-safe-area-context";
+import { AnimatedPressable } from "@/src/shared/components";
 
 interface QuizNextButtonProps {
   answered?: AnsweredState | null;
@@ -37,10 +38,10 @@ export function QuizNextButton({
         },
       ]}
     >
-      <TouchableOpacity
+      <AnimatedPressable feedback="scale"
         style={[styles.nextBtn, { backgroundColor: colors.primary }]}
         onPress={onNext}
-        activeOpacity={0.88}
+        
       >
         <Text style={styles.nextBtnText}>
           {isLast ? "See Results" : "Next Question"}
@@ -50,7 +51,7 @@ export function QuizNextButton({
           size={18}
           color="#fff"
         />
-      </TouchableOpacity>
+      </AnimatedPressable>
     </Animated.View>
   );
 }

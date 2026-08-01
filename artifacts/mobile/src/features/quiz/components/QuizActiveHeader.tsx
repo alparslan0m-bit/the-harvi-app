@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { Feather } from "@expo/vector-icons";
 import { ThemeColors } from "@/src/shared/hooks/useColors";
+import { AnimatedPressable } from "@/src/shared/components";
 
 interface QuizActiveHeaderProps {
   lectureName: string;
@@ -24,14 +25,14 @@ export function QuizActiveHeader({
   return (
     <View style={[styles.header, { paddingTop: topPad + 10 }]}>
       {/* Close button */}
-      <TouchableOpacity
+      <AnimatedPressable feedback="opacity"
         onPress={onClose}
         style={[styles.iconBtn, { backgroundColor: colors.card }]}
-        activeOpacity={0.75}
+        
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
         <Feather name="x" size={20} color={colors.foreground} />
-      </TouchableOpacity>
+      </AnimatedPressable>
 
       {/* Lecture name */}
       <Text

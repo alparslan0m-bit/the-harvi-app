@@ -1,19 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/src/shared/hooks/useColors";
 import { THEME } from "@/src/shared/constants/theme";
 import { AVATARS, AvatarId } from "./DoctorAvatars";
+import { AnimatedPressable } from "@/src/shared/components";
 
 interface Props {
   visible: boolean;
@@ -37,7 +30,7 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
       onRequestClose={onClose}
     >
       {/* Dim backdrop */}
-      <Pressable style={styles.backdrop} onPress={onClose} />
+      <AnimatedPressable feedback="scale" style={styles.backdrop} onPress={onClose} />
 
       {/* Sheet */}
       <View style={[styles.sheet, {
@@ -52,9 +45,9 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
           <Text style={[styles.sheetTitle, { color: colors.foreground }]}>
             Choose your avatar
           </Text>
-          <TouchableOpacity onPress={onClose} hitSlop={12}>
+          <AnimatedPressable feedback="scale" onPress={onClose} hitSlop={12}>
             <Feather name="x" size={20} color={colors.mutedForeground} />
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -67,7 +60,7 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
               const selected = current === avatar.id;
               const C = avatar.component;
               return (
-                <TouchableOpacity
+                <AnimatedPressable feedback="scale"
                   key={avatar.id}
                   style={[
                     styles.avatarCell,
@@ -89,7 +82,7 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
                       <Feather name="check" size={10} color="#fff" />
                     </View>
                   )}
-                </TouchableOpacity>
+                </AnimatedPressable>
               );
             })}
           </View>
@@ -103,7 +96,7 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
               const selected = current === avatar.id;
               const C = avatar.component;
               return (
-                <TouchableOpacity
+                <AnimatedPressable feedback="scale"
                   key={avatar.id}
                   style={[
                     styles.avatarCell,
@@ -125,7 +118,7 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
                       <Feather name="check" size={10} color="#fff" />
                     </View>
                   )}
-                </TouchableOpacity>
+                </AnimatedPressable>
               );
             })}
           </View>

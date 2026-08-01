@@ -3,6 +3,7 @@ import React from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { useColors } from "@/src/shared/hooks/useColors";
+import { AnimatedPressable } from "@/src/shared/components";
 
 interface Props {
   label: string;
@@ -51,9 +52,9 @@ export function ProfileEditField({
 
         {readOnly && <Feather name="lock" size={13} color={colors.mutedForeground} />}
         {!readOnly && value.length > 0 && onClear && (
-          <TouchableOpacity onPress={onClear} activeOpacity={0.7}>
+          <AnimatedPressable feedback="opacity" onPress={onClear} >
             <Feather name="x-circle" size={16} color={colors.mutedForeground} />
-          </TouchableOpacity>
+          </AnimatedPressable>
         )}
       </View>
       {note && <Text style={[styles.fieldNote, { color: colors.mutedForeground }]}>{note}</Text>}

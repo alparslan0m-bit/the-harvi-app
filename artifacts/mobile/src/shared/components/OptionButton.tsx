@@ -13,6 +13,7 @@ import Animated, {
 
 import { useColors } from "@/src/shared/hooks/useColors";
 import { AnsweredState } from "@/src/shared/types";
+import { AnimatedPressable } from "@/src/shared/components";
 
 interface Props {
   text: string;
@@ -91,7 +92,7 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
       entering={FadeInDown.delay(index * 30).duration(200)}
     >
       <Animated.View style={animStyle}>
-        <TouchableOpacity
+        <AnimatedPressable feedback="scale"
           style={[styles.option, { backgroundColor: bgColor, borderColor }, shadowStyle]}
           onPressIn={() => {
             if (answered) return;
@@ -127,7 +128,7 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
           {isWrong && (
             <Feather name="x-circle" size={20} color={iconColor} />
           )}
-        </TouchableOpacity>
+        </AnimatedPressable>
       </Animated.View>
     </Animated.View>
   );

@@ -4,13 +4,13 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
-import Animated, { FadeInDown, useSharedValue, useAnimatedStyle, withTiming } from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/src/shared/hooks/useColors";
+import { AnimatedPressable } from "@/src/shared/components";
 import { THEME } from "@/src/shared/constants/theme";
 import { useQuizResultsAnimation } from "@/src/features/quiz/hooks/useQuizResultsAnimation";
 import { ScoreRing } from "./ScoreRing";
@@ -28,25 +28,6 @@ export interface ResultsViewProps {
   onReview: () => void;
   onHome: () => void;
 }
-
-function ScaleButton({ onPress, style, children, activeOpacity = 0.9 }: any) {
-  const scale = useSharedValue(1);
-  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-  return (
-    <Animated.View style={animStyle}>
-      <TouchableOpacity
-        style={style}
-        onPressIn={() => { scale.value = withTiming(0.96, { duration: 120 }); }}
-        onPressOut={() => { scale.value = withTiming(1, { duration: 150 }); }}
-        onPress={onPress}
-        activeOpacity={activeOpacity}
-      >
-        {children}
-      </TouchableOpacity>
-    </Animated.View>
-  );
-}
-
 
 export function ResultsView({
   score,
@@ -122,45 +103,45 @@ export function ResultsView({
           entering={FadeInDown.delay(150).duration(200)}
           style={styles.btnGroup}
         >
-          <ScaleButton
+          <AnimatedPressable
+            feedback="scale"
             style={[
               styles.btn,
               { backgroundColor: colors.primary },
             ]}
             onPress={onRetry}
-            activeOpacity={0.88}
           >
             <Feather name="refresh-cw" size={18} color="#fff" />
             <Text style={[styles.btnText, { color: "#fff" }]}>Retry Quiz</Text>
-          </ScaleButton>
+          </AnimatedPressable>
 
-          <ScaleButton
-              style={[
-                styles.btn,
-                { backgroundColor: colors.card, borderWidth: 0 },
-              ]}
+          <AnimatedPressable
+            feedback="scale"
+            style={[
+              styles.btn,
+              { backgroundColor: colors.card, borderWidth: 0 },
+            ]}
             onPress={onReview}
-            activeOpacity={0.88}
           >
             <Feather name="list" size={18} color={colors.foreground} />
             <Text style={[styles.btnText, { color: colors.foreground }]}>
               Review Answers
             </Text>
-          </ScaleButton>
+          </AnimatedPressable>
 
-          <ScaleButton
+          <AnimatedPressable
+            feedback="scale"
             style={[
               styles.btn,
               { backgroundColor: "transparent", marginTop: 4 },
             ]}
             onPress={onHome}
-            activeOpacity={0.7}
           >
             <Feather name="home" size={18} color={colors.mutedForeground} />
             <Text style={[styles.btnText, { color: colors.mutedForeground }]}>
               Go Home
             </Text>
-          </ScaleButton>
+          </AnimatedPressable>
         </Animated.View>
       </ScrollView>
     </View>

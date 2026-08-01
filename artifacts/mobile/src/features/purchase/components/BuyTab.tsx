@@ -9,6 +9,7 @@ import type { ThemeColors } from "@/src/shared/hooks/useColors";
 import type { PurchaseStatus } from "@/src/features/purchase/hooks/usePurchase";
 import { PremiumButton } from "./PremiumButton";
 import { sharedStyles } from "./purchase.styles";
+import { AnimatedPressable } from "@/src/shared/components";
 
 export const BuyTab = React.memo(function BuyTab({
   productId,
@@ -141,16 +142,16 @@ export const BuyTab = React.memo(function BuyTab({
 
       {Platform.OS !== "web" && productId && (
         <Animated.View entering={FadeInDown.duration(300).delay(350)}>
-          <TouchableOpacity
+          <AnimatedPressable feedback="opacity"
             style={styles.restoreBtn}
             onPress={handleRestore}
             disabled={isLoading}
-            activeOpacity={0.7}
+            
           >
             <Text style={[styles.restoreBtnText, { color: colors.primary }]}>
               Restore Purchases
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </Animated.View>
       )}
     </Animated.View>

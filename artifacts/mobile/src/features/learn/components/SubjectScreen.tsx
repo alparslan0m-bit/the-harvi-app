@@ -1,14 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import { router, useLocalSearchParams, Redirect } from "expo-router";
 import React from "react";
-import {
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LectureCard } from "./LectureCard";
@@ -18,6 +11,7 @@ import { useHierarchy } from "@/src/features/learn/hooks/useHierarchy";
 import { useLectureBestScores } from "@/src/features/learn/hooks/useLectureBestScores";
 import { useSubjectCache } from "@/src/features/learn/hooks/useSubjectCache";
 import { useModuleAccess } from "@/src/features/learn/hooks/useModuleAccess";
+import { AnimatedPressable } from "@/src/shared/components";
 
 export function SubjectScreen() {
   const colors = useColors();
@@ -63,13 +57,13 @@ export function SubjectScreen() {
           },
         ]}
       >
-        <TouchableOpacity
+        <AnimatedPressable feedback="opacity"
           onPress={() => router.back()}
           style={[styles.backBtn, { backgroundColor: "white" }]}
           activeOpacity={0.7}
         >
           <Feather name="arrow-left" size={20} color={colors.headerForeground} />
-        </TouchableOpacity>
+        </AnimatedPressable>
 
         <View style={styles.titleWrapper}>
           <Text
