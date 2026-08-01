@@ -139,9 +139,7 @@ export function QuizReviewScreen({
           return (
             <Animated.View
               key={qi}
-              entering={FadeInDown.delay(qi * 40)
-                .duration(350)
-                .springify()}
+              entering={FadeInDown.delay(qi * 40).duration(200)}
               style={[
                 styles.card,
                 { backgroundColor: colors.card, borderColor: accentBorder },

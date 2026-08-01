@@ -64,7 +64,7 @@ export function ResultsView({
         />
 
         <Animated.View
-          entering={FadeInDown.delay(200).duration(400).springify()}
+          entering={FadeInDown.delay(50).duration(200)}
           style={styles.titleGroup}
         >
           <View style={styles.titleRow}>
@@ -76,7 +76,7 @@ export function ResultsView({
         </Animated.View>
 
         <Animated.View
-          entering={FadeInDown.delay(300).duration(400).springify()}
+          entering={FadeInDown.delay(100).duration(200)}
           style={styles.pills}
         >
           <StatPill
@@ -100,7 +100,7 @@ export function ResultsView({
         </Animated.View>
 
         <Animated.View
-          entering={FadeInDown.delay(500).duration(400).springify()}
+          entering={FadeInDown.delay(150).duration(200)}
           style={styles.btnGroup}
         >
           <TouchableOpacity

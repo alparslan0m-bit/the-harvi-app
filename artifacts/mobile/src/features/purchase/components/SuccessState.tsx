@@ -31,7 +31,7 @@ export const SuccessState = React.memo(function SuccessState({
 
   return (
     <Animated.View
-      entering={FadeInDown.springify().damping(14)}
+      entering={FadeInDown.duration(200)}
       style={styles.successBox}
     >
       {/* Success gradient orb */}

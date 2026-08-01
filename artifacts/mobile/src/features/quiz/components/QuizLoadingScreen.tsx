@@ -117,7 +117,7 @@ export function QuizLoadingScreen({ lectureName }: { lectureName?: string }) {
 
       <Animated.View
         key={tipIndex}
-        entering={FadeInDown.duration(400).springify()}
+        entering={FadeInDown.duration(200)}
         exiting={FadeOut.duration(200)}
         style={[styles.tipCard, { backgroundColor: colors.muted, borderColor: colors.border }]}
       >
