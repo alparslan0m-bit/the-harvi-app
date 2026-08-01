@@ -75,7 +75,6 @@ export function LectureCard({
       onPressOut={() => {
         scale.value = withTiming(1, { duration: 150 });
       }}
-      activeOpacity={1}
     >
       {/* Vertical Accent Stripe */}
       <View

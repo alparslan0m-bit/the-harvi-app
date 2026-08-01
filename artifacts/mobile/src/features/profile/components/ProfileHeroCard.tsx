@@ -84,7 +84,6 @@ export function ProfileHeroCard({
         <AnimatedPressable feedback="opacity"
           style={[styles.editBtn, { backgroundColor: heroInk }]}
           onPress={() => router.push("/profile/edit")}
-          activeOpacity={0.7}
         >
           <Feather name="edit-3" size={18} color="#ffffff" />
         </AnimatedPressable>

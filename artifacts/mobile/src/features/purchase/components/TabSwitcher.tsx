@@ -66,7 +66,6 @@ export const TabSwitcher = React.memo(function TabSwitcher({
         <AnimatedPressable feedback="opacity"
           style={styles.tab}
           onPress={() => onTabChange("buy")}
-          activeOpacity={0.7}
         >
           <Feather
             name="shopping-bag"
@@ -86,7 +85,6 @@ export const TabSwitcher = React.memo(function TabSwitcher({
         <AnimatedPressable feedback="opacity"
           style={styles.tab}
           onPress={() => onTabChange("code")}
-          activeOpacity={0.7}
         >
           <Feather
             name="key"

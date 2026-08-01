@@ -135,7 +135,6 @@ function QuizImageComponent({ uri, caption }: Props) {
       <AnimatedPressable feedback="opacity"
         style={styles.thumbWrap}
         onPress={() => !error && source && setOpen(true)}
-        activeOpacity={0.88}
       >
         {/* Skeleton shown while source is being resolved / image loading */}
         {(!source || !loaded) && !error && (

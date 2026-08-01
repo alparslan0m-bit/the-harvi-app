@@ -66,7 +66,6 @@ export const SuccessState = React.memo(function SuccessState({
           onPressOut={() => {
             scale.value = withSpring(1, SPRING_CONFIG);
           }}
-          activeOpacity={1}
         >
           <LinearGradient
             colors={[colors.success, colors.success + "CC"]}

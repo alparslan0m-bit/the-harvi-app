@@ -39,7 +39,6 @@ export function ProfileThemeSelector() {
                 setTheme(item.id);
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               }}
-              activeOpacity={0.75}
             >
               <Feather 
                 name={item.icon} 

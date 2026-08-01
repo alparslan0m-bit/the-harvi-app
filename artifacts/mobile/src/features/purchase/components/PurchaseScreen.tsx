@@ -76,7 +76,6 @@ export function PurchaseScreen() {
           <AnimatedTouchable
             onPress={() => router.back()}
             style={[styles.backBtn, { backgroundColor: colors.muted }]}
-            activeOpacity={0.7}
           >
             <Feather name="x" size={18} color={colors.foreground} />
           </AnimatedTouchable>

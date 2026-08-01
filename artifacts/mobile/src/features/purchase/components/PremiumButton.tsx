@@ -41,7 +41,6 @@ export const PremiumButton = React.memo(function PremiumButton({
         scale.value = withSpring(1, SPRING_CONFIG);
       }}
       disabled={disabled || loading}
-      activeOpacity={1}
     >
       {disabled ? (
         <View

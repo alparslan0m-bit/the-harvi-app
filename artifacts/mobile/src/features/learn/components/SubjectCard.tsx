@@ -53,7 +53,6 @@ export function SubjectCard({
       onPressOut={() => {
         scale.value = withTiming(1, { duration: 150 });
       }}
-      activeOpacity={0.9}
     >
       {/* Title row */}
       <View style={styles.row}>

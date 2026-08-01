@@ -43,7 +43,6 @@ export function ModuleScreen() {
         <AnimatedPressable feedback="opacity"
           onPress={() => router.back()}
           style={[styles.backBtn, { backgroundColor: "white" }]}
-          activeOpacity={0.7}
         >
           <Feather name="arrow-left" size={18} color={colors.headerForeground} />
         </AnimatedPressable>

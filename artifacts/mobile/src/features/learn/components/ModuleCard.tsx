@@ -48,7 +48,6 @@ export function ModuleCard({
       onPressOut={() => {
         scale.value = withTiming(1, { duration: 150 });
       }}
-      activeOpacity={0.9}
     >
       <View style={styles.content}>
         <Text style={[styles.title, { color: colors.cardForeground }]}>

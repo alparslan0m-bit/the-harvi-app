@@ -74,7 +74,6 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
                     onSelect(avatar.id);
                     onClose();
                   }}
-                  activeOpacity={0.8}
                 >
                   <C size={72} />
                   {selected && (
@@ -110,7 +109,6 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
                     onSelect(avatar.id);
                     onClose();
                   }}
-                  activeOpacity={0.8}
                 >
                   <C size={72} />
                   {selected && (
