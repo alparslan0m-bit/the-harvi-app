@@ -1,11 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+
 
 import { useColors } from "@/src/shared/hooks/useColors";
 import { THEME } from "@/src/shared/constants/theme";
@@ -20,7 +15,7 @@ interface Props {
   isFree?: boolean;
 }
 
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
 
 export function ModuleCard({
   module,
@@ -29,32 +24,22 @@ export function ModuleCard({
   hasAccess,
   isFree,
 }: Props) {
-  const scale = useSharedValue(1);
   const colors = useColors();
   const color =
     colors.cardColors[index % colors.cardColors.length] ?? colors.cardColors[0];
 
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   return (
-    <AnimatedTouchable
-      style={[styles.card, animStyle, { backgroundColor: color }]}
+    <AnimatedPressable
+      feedback="scale"
+      style={[styles.card, { backgroundColor: color }]}
       onPress={onPress}
-      onPressIn={() => {
-        scale.value = withTiming(0.96, { duration: 120 });
-      }}
-      onPressOut={() => {
-        scale.value = withTiming(1, { duration: 150 });
-      }}
     >
       <View style={styles.content}>
         <Text style={[styles.title, { color: colors.cardForeground }]}>
           {module.name}
         </Text>
       </View>
-    </AnimatedTouchable>
+    </AnimatedPressable>
   );
 }
 

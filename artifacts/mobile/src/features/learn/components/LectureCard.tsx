@@ -1,12 +1,6 @@
 import { Feather, FontAwesome } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
 
 import { useColors } from "@/src/shared/hooks/useColors";
 import { Lecture } from "@/src/shared/types";
@@ -25,8 +19,6 @@ interface Props {
   isFree?: boolean | undefined;
   onPress: () => void;
 }
-
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 /** Maps a 0-100 percentage to 0/1/2/3 filled stars */
 function scoreToStars(percent: number): number {
@@ -49,32 +41,21 @@ export function LectureCard({
   onPress,
 }: Props) {
   const colors = useColors();
-  const scale = useSharedValue(1);
-
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
 
   const hasAttempted = bestScorePercent != null && bestScorePercent > 0;
   const filledStars = hasAttempted ? scoreToStars(bestScorePercent) : 0;
 
   return (
-    <AnimatedTouchable
+    <AnimatedPressable
+      feedback="scale"
       style={[
         styles.card,
         {
           backgroundColor: colors.card,
           borderColor: colors.border,
         },
-        animStyle,
       ]}
       onPress={onPress}
-      onPressIn={() => {
-        scale.value = withTiming(0.96, { duration: 120 });
-      }}
-      onPressOut={() => {
-        scale.value = withTiming(1, { duration: 150 });
-      }}
     >
       {/* Vertical Accent Stripe */}
       <View
@@ -170,7 +151,7 @@ export function LectureCard({
           );
         })}
       </View>
-    </AnimatedTouchable>
+    </AnimatedPressable>
   );
 }
 
