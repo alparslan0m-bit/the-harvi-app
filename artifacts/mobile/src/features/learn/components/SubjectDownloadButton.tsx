@@ -8,6 +8,7 @@ import Animated, {
 import { useColors } from "@/src/shared/hooks/useColors";
 import { SubjectCacheStatus } from "@/src/features/learn/hooks/useSubjectCache";
 import { AnimatedPressable } from "@/src/shared/components";
+import { COLORS } from "@/src/shared/constants/theme";
 
 interface Props {
   status: SubjectCacheStatus;
@@ -40,9 +41,8 @@ export function SubjectDownloadButton({
       </Animated.View>
     );
   }
-
   if (status === "downloaded") {
-    const mint = colors.statCardFamilies[3]!;
+    const mint = COLORS.light.statCardFamilies[3];
     return (
       <Animated.View
         entering={FadeIn}
