@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/src/shared/hooks/useColors";
 import { AnimatedPressable } from "@/src/shared/components";
-import { THEME } from "@/src/shared/constants/theme";
+import { COLORS, THEME } from "@/src/shared/constants/theme";
 import { useQuizResultsAnimation } from "@/src/features/quiz/hooks/useQuizResultsAnimation";
 import { ScoreRing } from "./ScoreRing";
 import { StatPill } from "./StatPill";
@@ -82,19 +82,19 @@ export function ResultsView({
           <StatPill
             value={correctCount}
             label="Correct"
-            family={colors.statCardFamilies[3]} // Mint
+            family={COLORS.light.statCardFamilies[3]} // Mint
             icon="check-circle"
           />
           <StatPill
             value={wrongCount}
             label="Wrong"
-            family={colors.statCardFamilies[0]} // Coral
+            family={COLORS.light.statCardFamilies[0]} // Coral
             icon="x-circle"
           />
           <StatPill
             value={totalCount}
             label="Total"
-            family={colors.statCardFamilies[1]} // Sky (or a warm gray if defined)
+            family={COLORS.light.statCardFamilies[1]} // Sky (or a warm gray if defined)
             icon="help-circle"
           />
         </Animated.View>
