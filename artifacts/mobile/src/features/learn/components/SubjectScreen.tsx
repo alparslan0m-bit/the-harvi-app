@@ -58,18 +58,12 @@ export function SubjectScreen() {
         ]}
       >
         <BackButton onPress={() => router.back()} color={colors.headerForeground} />
-
-        <View style={styles.titleWrapper}>
-          <Text
-            style={[styles.headerTitle, { color: colors.headerForeground }]}
-            numberOfLines={2}
-          >
-            {subject.name}
-          </Text>
-        </View>
-
-        {/* Placeholder for balance */}
-        <View style={styles.spacer} />
+        <Text
+          style={[styles.headerTitle, { color: colors.headerForeground }]}
+          numberOfLines={2}
+        >
+          {subject.name}
+        </Text>
       </View>
 
       {/* ── Download row ─────────────────────────────────────────────────── */}
@@ -193,22 +187,20 @@ export function SubjectScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  spacer: { width: 40 },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
+    gap: 14,
+    paddingHorizontal: 20,
     paddingBottom: 16,
-    gap: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
 
-  titleWrapper: { flex: 1, alignItems: "center" },
   headerTitle: {
-    fontSize: 24,
+    flex: 1,
+    fontSize: 36,
     fontFamily: "Nunito_800ExtraBold",
-    textAlign: "center",
-    letterSpacing: -0.8,
-    lineHeight: 28,
+    letterSpacing: -0.5,
   },
   downloadRow: {
     flexDirection: "row",
@@ -249,4 +241,3 @@ const styles = StyleSheet.create({
   empty: { alignItems: "center", paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular" },
 });
-
