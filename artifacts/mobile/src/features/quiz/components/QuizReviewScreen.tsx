@@ -41,7 +41,7 @@ export function QuizReviewScreen({
           },
         ]}
       >
-        <BackButton onPress={onBack} size={18} />
+        <BackButton onPress={onBack} />
 
         <View style={styles.headerText}>
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>

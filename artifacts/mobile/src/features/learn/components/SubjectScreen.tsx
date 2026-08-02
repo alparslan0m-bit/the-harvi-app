@@ -57,7 +57,7 @@ export function SubjectScreen() {
           },
         ]}
       >
-        <BackButton onPress={() => router.back()} size={20} color={colors.headerForeground} />
+        <BackButton onPress={() => router.back()} color={colors.headerForeground} />
 
         <View style={styles.titleWrapper}>
           <Text

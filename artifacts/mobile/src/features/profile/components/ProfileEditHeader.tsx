@@ -23,7 +23,7 @@ export function ProfileEditHeader({
           },
         ]}
       >
-      <BackButton onPress={onCancel} size={18} />
+      <BackButton onPress={onCancel} />
 
       <Text style={[styles.headerTitle, { color: colors.foreground }]}>
         Edit Profile

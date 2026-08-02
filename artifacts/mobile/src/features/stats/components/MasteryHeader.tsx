@@ -25,7 +25,7 @@ export function MasteryHeader({
         },
       ]}
     >
-      <BackButton onPress={() => router.back()} size={22} />
+      <BackButton onPress={() => router.back()} />
       <View style={{ flex: 1 }}>
         <Text style={[styles.headerTitle, { color: colors.foreground }]}>
           Lecture Mastery

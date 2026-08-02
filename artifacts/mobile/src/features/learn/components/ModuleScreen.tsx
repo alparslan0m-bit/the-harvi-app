@@ -40,7 +40,7 @@ export function ModuleScreen() {
           },
         ]}
       >
-        <BackButton onPress={() => router.back()} size={18} color={colors.headerForeground} />
+        <BackButton onPress={() => router.back()} color={colors.headerForeground} />
         <Text
           style={[styles.headerTitle, { color: colors.headerForeground }]}
           numberOfLines={2}
