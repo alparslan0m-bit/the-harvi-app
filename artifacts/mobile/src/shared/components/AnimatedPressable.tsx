@@ -29,6 +29,7 @@ export interface AnimatedPressableProps extends Omit<PressableProps, "style"> {
   haptics?: HapticFeedbackType;
   style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
+  disabledOpacity?: number;
 }
 
 export function AnimatedPressable({
@@ -39,6 +40,7 @@ export function AnimatedPressable({
   onPressOut,
   children,
   disabled,
+  disabledOpacity = 0.5,
   ...rest
 }: AnimatedPressableProps) {
   const isReducedMotion = useReducedMotion();
@@ -53,16 +55,16 @@ export function AnimatedPressable({
     if (activeFeedback === "scale") {
       return {
         transform: [{ scale: scale.value }],
-        opacity: disabled ? 0.5 : 1,
+        opacity: disabled ? disabledOpacity : 1,
       };
     }
     if (activeFeedback === "opacity") {
       return {
-        opacity: disabled ? 0.5 : opacity.value,
+        opacity: disabled ? disabledOpacity : opacity.value,
       };
     }
     return {
-      opacity: disabled ? 0.5 : 1,
+      opacity: disabled ? disabledOpacity : 1,
     };
   });
 

@@ -107,6 +107,7 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
             onSelect(index);
           }}
           disabled={!!answered}
+          disabledOpacity={1}
         >
           <View style={[styles.badge, { backgroundColor: labelBg }]}>
             <Text style={[styles.badgeText, { color: labelColor }]}>
