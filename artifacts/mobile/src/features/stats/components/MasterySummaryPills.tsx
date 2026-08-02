@@ -19,13 +19,18 @@ const pillStyles = StyleSheet.create({
   label: { fontSize: 11, fontFamily: "Inter_500Medium" },
 });
 
+import { COLORS } from "@/src/shared/constants/theme";
+
 export function MasterySummaryPills({ counts }: { counts: { strong: number; improving: number; weak: number } }) {
-  const colors = useColors();
+  const mint = COLORS.light.statCardFamilies[3]; // Mint
+  const sunshine = COLORS.light.streakFamily;    // Sunshine
+  const coral = COLORS.light.statCardFamilies[0]; // Coral
+
   return (
     <View style={styles.pillRow}>
-      <SummaryPill count={counts.strong}    label="Strong"    bg={colors.success + "1A"} textColor={colors.success} />
-      <SummaryPill count={counts.improving} label="Improving" bg={colors.warning + "1A"} textColor={colors.warning} />
-      <SummaryPill count={counts.weak}      label="Needs Work" bg={colors.destructive + "1A"} textColor={colors.destructive} />
+      <SummaryPill count={counts.strong}    label="Strong"     bg={mint.fill}     textColor={mint.ink} />
+      <SummaryPill count={counts.improving} label="Improving"  bg={sunshine.fill} textColor={sunshine.ink} />
+      <SummaryPill count={counts.weak}      label="Needs Work" bg={coral.fill}    textColor={coral.ink} />
     </View>
   );
 }

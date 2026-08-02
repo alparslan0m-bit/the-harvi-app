@@ -9,16 +9,12 @@ import Animated, {
 
 import { useColors, ThemeColors } from "@/src/shared/hooks/useColors";
 
-function masteryColor(m: number, colors: ThemeColors) {
-  if (m >= 80) return colors.success;
-  if (m >= 50) return colors.warning;
-  return colors.destructive;
-}
+import { COLORS } from "@/src/shared/constants/theme";
 
-function masteryBg(m: number, colors: ThemeColors) {
-  if (m >= 80) return colors.success + "1A";
-  if (m >= 50) return colors.warning + "1A";
-  return colors.destructive + "1A";
+function getMasteryPalette(m: number) {
+  if (m >= 80) return COLORS.light.statCardFamilies[3]; // Mint
+  if (m >= 50) return COLORS.light.streakFamily;        // Sunshine
+  return COLORS.light.statCardFamilies[0];              // Coral
 }
 
 function ProgressBar({ mastery, color, delay = 0 }: { mastery: number; color: string; delay?: number }) {
@@ -49,15 +45,17 @@ export function MasteryLectureCard({
   subject, mastery, rank, attempts = 0,
 }: { subject: string; mastery: number; rank: number; attempts?: number }) {
   const colors = useColors();
-  const color = masteryColor(mastery, colors);
-  const bg    = masteryBg(mastery, colors);
+  const palette = getMasteryPalette(mastery);
+  const color = palette.solid;
+  const bg = palette.fill;
+  const ink = palette.ink;
 
   return (
     <View style={[
       cardStyles.card, 
       { 
         backgroundColor: colors.card, 
-        borderColor: color + "33"
+        borderColor: color + "4D"
       }
     ]}>
       <View style={[cardStyles.accent, { backgroundColor: color }]} />
@@ -75,12 +73,12 @@ export function MasteryLectureCard({
             </Text>
           </View>
           <View style={[cardStyles.badge, { backgroundColor: bg }]}>
-            <Text style={[cardStyles.badgeText, { color }]}>{mastery}%</Text>
+            <Text style={[cardStyles.badgeText, { color: ink }]}>{mastery}%</Text>
           </View>
         </View>
         <View style={cardStyles.barRow}>
           <ProgressBar mastery={mastery} color={color} delay={rank * 40} />
-          <Text style={[cardStyles.tierLabel, { color }]}>
+          <Text style={[cardStyles.tierLabel, { color: ink }]}>
             {mastery >= 80 ? "Strong" : mastery >= 50 ? "Improving" : "Needs Work"}
           </Text>
         </View>
