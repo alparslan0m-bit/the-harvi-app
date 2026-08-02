@@ -24,6 +24,7 @@ import { Dimensions, Modal, Platform, ScrollView, StatusBar, StyleSheet, Text, V
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 import { supabase } from "@/src/shared/services/supabase";
+import { useAuthStore } from "@/src/shared/store/authStore";
 import { useColors, type ThemeColors } from "@/src/shared/hooks/useColors";
 import { useWindowDimensions } from "react-native";
 import { AnimatedPressable } from "@/src/shared/components";
@@ -57,9 +58,9 @@ async function resolveSource(uri: string): Promise<ImageSource> {
     const headers: Record<string, string> = { apikey: SUPABASE_ANON_KEY };
 
     // Add the user's JWT so private-bucket URLs also work
-    const { data } = await supabase.auth.getSession();
-    if (data.session?.access_token) {
-      headers["Authorization"] = `Bearer ${data.session.access_token}`;
+    const session = useAuthStore.getState().session;
+    if (session?.access_token) {
+      headers["Authorization"] = `Bearer ${session.access_token}`;
     }
 
     if (__DEV__) {

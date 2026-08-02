@@ -3,11 +3,9 @@ import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import Animated, {
-  FadeInDown,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
 
@@ -24,23 +22,17 @@ interface Props {
 
 export function OptionButton({ text, index, answered, onSelect }: Props) {
   const colors = useColors();
-  const scale = useSharedValue(1);
   const translateX = useSharedValue(0);
 
   const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }, { translateX: translateX.value }],
-    opacity: withTiming(isDimmed ? 0.45 : 1, { duration: 300 }),
+    transform: [{ translateX: translateX.value }],
+    opacity: withTiming(isDimmed ? 0.45 : 1, { duration: 150 }),
   }));
 
-  // Celebrate correct / shake wrong when answer is revealed
+  // Shake wrong when answer is revealed
   useEffect(() => {
     if (!answered) return;
-    if (index === answered.correct) {
-      scale.value = withSequence(
-        withTiming(1.03, { duration: 150 }),
-        withTiming(1, { duration: 150 }),
-      );
-    } else if (index === answered.selected && index !== answered.correct) {
+    if (index === answered.selected && index !== answered.correct) {
       translateX.value = withSequence(
         withTiming(-6, { duration: 40 }),
         withTiming(6, { duration: 40 }),
@@ -88,27 +80,17 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
   const label = String.fromCharCode(65 + index);
 
   return (
-    <Animated.View
-      entering={FadeInDown.delay(index * 30).duration(200)}
-    >
-      <Animated.View style={animStyle}>
-        <AnimatedPressable feedback="scale"
-          style={[styles.option, { backgroundColor: bgColor, borderColor }, shadowStyle]}
-          onPressIn={() => {
-            if (answered) return;
-            scale.value = withTiming(0.96, { duration: 120 });
-          }}
-          onPressOut={() => {
-            if (answered) return;
-            scale.value = withTiming(1, { duration: 150 });
-          }}
-          onPress={() => {
-            if (answered) return;
-            onSelect(index);
-          }}
-          disabled={!!answered}
-          disabledOpacity={1}
-        >
+    <Animated.View style={animStyle}>
+      <AnimatedPressable 
+        feedback="opacity"
+        style={[styles.option, { backgroundColor: bgColor, borderColor }, shadowStyle]}
+        onPress={() => {
+          if (answered) return;
+          onSelect(index);
+        }}
+        disabled={!!answered}
+        disabledOpacity={1}
+      >
           <View style={[styles.badge, { backgroundColor: labelBg }]}>
             <Text style={[styles.badgeText, { color: labelColor }]}>
               {label}
@@ -128,8 +110,7 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
           {isWrong && (
             <Feather name="x-circle" size={20} color={iconColor} />
           )}
-        </AnimatedPressable>
-      </Animated.View>
+      </AnimatedPressable>
     </Animated.View>
   );
 }
