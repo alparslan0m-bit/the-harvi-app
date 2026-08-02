@@ -9,7 +9,7 @@ import { useColors } from "@/src/shared/hooks/useColors";
 import { useHierarchy } from "@/src/features/learn/hooks/useHierarchy";
 import { useProgress } from "@/src/features/learn/hooks/useProgress";
 import { useModuleAccess } from "@/src/features/learn/hooks/useModuleAccess";
-import { AnimatedPressable } from "@/src/shared/components";
+import { AnimatedPressable, BackButton } from "@/src/shared/components";
 
 export function ModuleScreen() {
   const colors = useColors();
@@ -40,12 +40,7 @@ export function ModuleScreen() {
           },
         ]}
       >
-        <AnimatedPressable feedback="opacity"
-          onPress={() => router.back()}
-          style={[styles.backBtn, { backgroundColor: "white" }]}
-        >
-          <Feather name="arrow-left" size={18} color={colors.headerForeground} />
-        </AnimatedPressable>
+        <BackButton onPress={() => router.back()} size={18} color={colors.headerForeground} />
         <Text
           style={[styles.headerTitle, { color: colors.headerForeground }]}
           numberOfLines={2}
@@ -115,19 +110,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
+
   headerTitle: {
     flex: 1,
     fontSize: 36,

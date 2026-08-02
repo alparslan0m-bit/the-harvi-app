@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { QuizImage } from "./QuizImage";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { HistoryItem } from "@/src/shared/types";
-import { AnimatedPressable } from "@/src/shared/components";
+import { AnimatedPressable, BackButton } from "@/src/shared/components";
 
 interface Props {
   history: HistoryItem[];
@@ -41,13 +41,7 @@ export function QuizReviewScreen({
           },
         ]}
       >
-        <AnimatedPressable feedback="opacity"
-          onPress={onBack}
-          style={[styles.backBtn, { backgroundColor: colors.muted }]}
-          
-        >
-          <Feather name="arrow-left" size={18} color={colors.foreground} />
-        </AnimatedPressable>
+        <BackButton onPress={onBack} size={18} />
 
         <View style={styles.headerText}>
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>
@@ -324,14 +318,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
+
   headerText: { flex: 1 },
   headerTitle: {
     fontSize: 28,

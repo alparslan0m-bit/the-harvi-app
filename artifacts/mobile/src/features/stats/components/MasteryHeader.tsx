@@ -1,9 +1,8 @@
-import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useColors } from "@/src/shared/hooks/useColors";
-import { AnimatedPressable } from "@/src/shared/components";
+import { BackButton } from "@/src/shared/components";
 
 export function MasteryHeader({
   topPad,
@@ -26,13 +25,7 @@ export function MasteryHeader({
         },
       ]}
     >
-      <AnimatedPressable feedback="opacity"
-        onPress={() => router.back()}
-        style={styles.backBtn}
-        hitSlop={12}
-      >
-        <Feather name="arrow-left" size={22} color={colors.foreground} />
-      </AnimatedPressable>
+      <BackButton onPress={() => router.back()} size={22} />
       <View style={{ flex: 1 }}>
         <Text style={[styles.headerTitle, { color: colors.foreground }]}>
           Lecture Mastery
@@ -62,12 +55,7 @@ const styles = StyleSheet.create({
     gap: 12,
     borderBottomWidth: 1,
   },
-  backBtn: {
-    width: 36,
-    height: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+
   headerTitle: {
     fontSize: 26,
     fontFamily: "Nunito_800ExtraBold",

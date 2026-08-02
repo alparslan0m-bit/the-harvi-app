@@ -1,4 +1,5 @@
 export * from "./AnimatedPressable";
+export * from "./BackButton";
 export * from "./ErrorBoundary";
 export * from "./ErrorFallback";
 export * from "./FeedbackForm";

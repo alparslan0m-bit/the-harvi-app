@@ -1,9 +1,7 @@
-import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { useColors } from "@/src/shared/hooks/useColors";
-import { AnimatedPressable } from "@/src/shared/components";
+import { AnimatedPressable, BackButton } from "@/src/shared/components";
 
 export function ProfileEditHeader({
   topPad,
@@ -25,13 +23,7 @@ export function ProfileEditHeader({
           },
         ]}
       >
-      <AnimatedPressable feedback="opacity"
-        style={[styles.backBtn, { backgroundColor: "white" }]}
-        onPress={onCancel}
-        
-      >
-        <Feather name="arrow-left" size={18} color={colors.foreground} />
-      </AnimatedPressable>
+      <BackButton onPress={onCancel} size={18} />
 
       <Text style={[styles.headerTitle, { color: colors.foreground }]}>
         Edit Profile
@@ -62,19 +54,7 @@ const styles = StyleSheet.create({
     borderRadius: 999, // Pill shape
   },
   headerBtnText: { fontSize: 14, fontFamily: "Nunito_800ExtraBold" },
-  backBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 999, // Perfectly circular
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
+
   headerTitle: {
     fontSize: 24,
     fontFamily: "Nunito_800ExtraBold",
