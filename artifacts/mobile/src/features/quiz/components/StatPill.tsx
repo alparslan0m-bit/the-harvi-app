@@ -1,29 +1,37 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useColors } from "@/src/shared/hooks/useColors";
+import { useColors, PaletteFamily } from "@/src/shared/hooks/useColors";
 
 interface StatPillProps {
   value: number;
   label: string;
-  color: string;
+  color?: string | undefined;
+  family?: PaletteFamily | undefined;
   icon: React.ComponentProps<typeof Feather>["name"];
 }
 
-export function StatPill({ value, label, color, icon }: StatPillProps) {
+export function StatPill({ value, label, color, family, icon }: StatPillProps) {
   const colors = useColors();
+  
+  const bg = family ? family.fill : (color ? color + "26" : colors.card);
+  const border = family ? "transparent" : (color ? color + "4D" : colors.border);
+  const iconColor = family ? family.solid : (color || colors.foreground);
+  const numColor = family ? family.ink : colors.foreground;
+  const labelColor = family ? family.ink : colors.mutedForeground;
+
   return (
     <View
       style={[
         styles.pill,
-        { backgroundColor: color + "14", borderColor: color + "35" },
+        { backgroundColor: bg, borderColor: border, borderWidth: family ? 0 : 1.5 },
       ]}
     >
-      <Feather name={icon} size={18} color={color} />
-      <Text style={[styles.pillNum, { color: colors.foreground }]}>
+      <Feather name={icon} size={22} color={iconColor} />
+      <Text style={[styles.pillNum, { color: numColor }]}>
         {value}
       </Text>
-      <Text style={[styles.pillLabel, { color: colors.mutedForeground }]}>
+      <Text style={[styles.pillLabel, { color: labelColor, opacity: family ? 0.85 : 1 }]}>
         {label}
       </Text>
     </View>
@@ -37,7 +45,6 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 6,
     borderRadius: 24,
-    borderWidth: 0,
     gap: 6,
     position: "relative",
     overflow: "hidden",

@@ -42,13 +42,14 @@ export function SubjectDownloadButton({
   }
 
   if (status === "downloaded") {
+    const mint = colors.statCardFamilies[3]!;
     return (
       <Animated.View
         entering={FadeIn}
-        style={[styles.pill, { backgroundColor: colors.success + "1A" }]}
+        style={[styles.pill, { backgroundColor: mint.fill }]}
       >
-        <Feather name="check-circle" size={14} color={colors.success} />
-        <Text style={[styles.label, { color: colors.success }]}>
+        <Feather name="check-circle" size={14} color={mint.solid} />
+        <Text style={[styles.label, { color: mint.ink }]}>
           Downloaded
         </Text>
       </Animated.View>

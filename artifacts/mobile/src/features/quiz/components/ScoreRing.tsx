@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View, StyleProp, ViewStyle } from "react-native";
 import Animated from "react-native-reanimated";
+import { useColors } from "@/src/shared/hooks/useColors";
 
 interface ScoreRingProps {
   displayScore: number;
@@ -15,9 +16,11 @@ export function ScoreRing({
   grade,
   ringAnimStyle,
 }: ScoreRingProps) {
+  const colors = useColors();
+  
   return (
     <Animated.View style={[styles.ringWrap, ringAnimStyle]}>
-      <View style={[styles.ringOuter, { borderColor: ringColor + "20" }]}>
+      <View style={[styles.ringOuter, { borderColor: ringColor + "33" }]}>
         <View style={[styles.ringInner, { borderColor: ringColor }]}>
           <View style={styles.scoreRow}>
             <Text style={[styles.scoreNum, { color: ringColor }]}>
@@ -25,12 +28,19 @@ export function ScoreRing({
             </Text>
             <Text style={[styles.scorePct, { color: ringColor }]}>%</Text>
           </View>
-          <Text style={[styles.gradeHint, { color: ringColor + "99" }]}>
+          <Text style={[styles.gradeHint, { color: ringColor, opacity: 0.8 }]}>
             out of 100
           </Text>
         </View>
       </View>
-      <View style={[styles.gradeBadge, { backgroundColor: ringColor }]}>
+      <View style={[
+        styles.gradeBadge, 
+        { 
+          backgroundColor: ringColor,
+          borderColor: colors.background,
+          borderWidth: 4
+        }
+      ]}>
         <Text style={styles.gradeText}>{grade}</Text>
       </View>
     </Animated.View>
@@ -78,21 +88,21 @@ const styles = StyleSheet.create({
   },
   gradeHint: {
     fontSize: 11,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Inter_600SemiBold",
     letterSpacing: 0.2,
   },
   gradeBadge: {
     position: "absolute",
-    bottom: 4,
-    right: 4,
-    width: 44,
-    height: 44,
-    borderRadius: 999,
+    bottom: -6,
+    right: -6,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: "center",
     justifyContent: "center",
   },
   gradeText: { 
-    fontSize: 19, 
+    fontSize: 20, 
     fontFamily: "Inter_800ExtraBold", 
     color: "#fff" 
   },

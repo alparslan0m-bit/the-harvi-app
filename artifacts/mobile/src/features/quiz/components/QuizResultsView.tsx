@@ -82,19 +82,19 @@ export function ResultsView({
           <StatPill
             value={correctCount}
             label="Correct"
-            color={colors.success}
+            family={colors.statCardFamilies[3]} // Mint
             icon="check-circle"
           />
           <StatPill
             value={wrongCount}
             label="Wrong"
-            color={colors.destructive}
+            family={colors.statCardFamilies[0]} // Coral
             icon="x-circle"
           />
           <StatPill
             value={totalCount}
             label="Total"
-            color={colors.primary}
+            family={colors.statCardFamilies[1]} // Sky (or a warm gray if defined)
             icon="help-circle"
           />
         </Animated.View>
