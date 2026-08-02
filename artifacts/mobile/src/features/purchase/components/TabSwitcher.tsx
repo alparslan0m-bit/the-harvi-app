@@ -1,7 +1,7 @@
 // Extracted from PurchaseScreen.tsx — Animated tab switcher (buy / code)
 import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, LayoutChangeEvent } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+
 import { Feather } from "@expo/vector-icons";
 import Animated, {
   FadeInDown,

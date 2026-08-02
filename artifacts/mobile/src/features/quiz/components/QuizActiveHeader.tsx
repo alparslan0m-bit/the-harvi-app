@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+
 import { Feather } from "@expo/vector-icons";
 import { ThemeColors } from "@/src/shared/hooks/useColors";
 import { AnimatedPressable } from "@/src/shared/components";

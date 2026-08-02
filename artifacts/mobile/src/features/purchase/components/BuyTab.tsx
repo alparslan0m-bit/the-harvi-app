@@ -1,7 +1,7 @@
 // Extracted from PurchaseScreen.tsx — IAP product loading + purchase flow tab
 import React, { useState, useEffect } from "react";
 import { Text, StyleSheet, ActivityIndicator, Platform } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+
 import Animated, { FadeInDown } from "react-native-reanimated";
 import Purchases, { type PurchasesPackage } from "react-native-purchases";
 

@@ -6,8 +6,9 @@ import { Feather } from "@expo/vector-icons";
 import { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
 import type { ThemeColors } from "@/src/shared/hooks/useColors";
-import { AnimatedTouchable, SPRING_CONFIG } from "./purchase.constants";
+import { SPRING_CONFIG } from "./purchase.constants";
 import { sharedStyles } from "./purchase.styles";
+import { AnimatedPressable } from "@/src/shared/components";
 
 export const PremiumButton = React.memo(function PremiumButton({
   onPress,
@@ -31,7 +32,7 @@ export const PremiumButton = React.memo(function PremiumButton({
   }));
 
   return (
-    <AnimatedTouchable
+    <AnimatedPressable feedback="scale"
       style={[sharedStyles.ctaOuter, animStyle]}
       onPress={onPress}
       onPressIn={() => {
@@ -69,6 +70,6 @@ export const PremiumButton = React.memo(function PremiumButton({
           )}
         </LinearGradient>
       )}
-    </AnimatedTouchable>
+    </AnimatedPressable>
   );
 });

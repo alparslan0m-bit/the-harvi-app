@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import { AnsweredState } from "@/src/shared/types";

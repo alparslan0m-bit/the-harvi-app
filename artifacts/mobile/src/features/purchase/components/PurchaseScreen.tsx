@@ -17,8 +17,8 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { usePurchase } from "@/src/features/purchase/hooks/usePurchase";
 import { useColors } from "@/src/shared/hooks/useColors";
+import { AnimatedPressable } from "@/src/shared/components";
 
-import { AnimatedTouchable } from "./purchase.constants";
 import { HeroIcon } from "./HeroIcon";
 import { TabSwitcher, type Tab } from "./TabSwitcher";
 import { BuyTab } from "./BuyTab";
@@ -73,12 +73,12 @@ export function PurchaseScreen() {
       >
         {/* Header */}
         <View style={[styles.header, { paddingTop: topPad + 16 }]}>
-          <AnimatedTouchable
+          <AnimatedPressable feedback="opacity"
             onPress={() => router.back()}
             style={[styles.backBtn, { backgroundColor: colors.muted }]}
           >
             <Feather name="x" size={18} color={colors.foreground} />
-          </AnimatedTouchable>
+          </AnimatedPressable>
         </View>
 
         <View style={styles.content}>

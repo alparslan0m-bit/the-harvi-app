@@ -11,8 +11,9 @@ import Animated, {
 } from "react-native-reanimated";
 
 import type { ThemeColors } from "@/src/shared/hooks/useColors";
-import { AnimatedTouchable, SPRING_CONFIG } from "./purchase.constants";
+import { SPRING_CONFIG } from "./purchase.constants";
 import { sharedStyles } from "./purchase.styles";
+import { AnimatedPressable } from "@/src/shared/components";
 
 export const SuccessState = React.memo(function SuccessState({
   message,
@@ -57,7 +58,7 @@ export const SuccessState = React.memo(function SuccessState({
         entering={FadeInDown.duration(400).delay(200)}
         style={{ width: "100%" }}
       >
-        <AnimatedTouchable
+        <AnimatedPressable feedback="scale"
           style={[sharedStyles.ctaOuter, animStyle]}
           onPress={onDone}
           onPressIn={() => {
@@ -76,7 +77,7 @@ export const SuccessState = React.memo(function SuccessState({
             <Feather name="check-circle" size={18} color={colors.primaryForeground} />
             <Text style={[sharedStyles.ctaText, { color: colors.primaryForeground }]}>Done</Text>
           </LinearGradient>
-        </AnimatedTouchable>
+        </AnimatedPressable>
       </Animated.View>
     </Animated.View>
   );

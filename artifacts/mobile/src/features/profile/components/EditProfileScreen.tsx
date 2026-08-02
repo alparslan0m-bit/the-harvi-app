@@ -1,7 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AvatarPicker } from "./AvatarPicker";
