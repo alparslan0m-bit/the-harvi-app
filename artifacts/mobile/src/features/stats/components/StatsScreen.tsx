@@ -45,12 +45,13 @@ export function StatsScreen() {
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
 
-  const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const DAYS = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
   const todayDow = new Date().getDay();
+  const todayIndex = (todayDow + 1) % 7;
   const ZERO_WEEK = DAYS.map((day, i) => ({
     day,
     count: 0,
-    isToday: i === todayDow,
+    isToday: i === todayIndex,
   }));
 
   const displayStats = stats ?? {
