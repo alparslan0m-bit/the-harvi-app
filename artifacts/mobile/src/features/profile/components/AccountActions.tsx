@@ -51,15 +51,17 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
 
             // 1. Delete remote data FIRST (so re-fetch cannot bring it back)
             try {
-              await Promise.all([
+              const deletePromise = Promise.all([
                 supabase.from("quiz_results").delete().eq("user_id", uid),
                 supabase.from("user_stats").delete().eq("user_id", uid),
               ]);
-            } catch (error) {
-              console.warn(
-                "[handleClearHistory] Remote delete failed (possibly offline):",
-                error,
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("timeout")), 10000)
               );
+              await Promise.race([deletePromise, timeoutPromise]);
+            } catch (error) {
+              Alert.alert("Network Error", "Could not reach the server to clear your history. Please check your connection and try again.");
+              return; // Stop execution so we don't desync local and remote state
             }
 
             // 2. Clear all local caches

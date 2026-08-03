@@ -128,10 +128,16 @@ export async function fetchBestScores(userId: string): Promise<BestScoreMap> {
   }
 
   try {
-    const { data, error } = await supabase
+    const queryPromise = supabase
       .from("quiz_results")
       .select("lecture_id, score")
       .eq("user_id", userId);
+      
+    const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), 10000)
+    );
+    
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
     if (error) throw error;
 

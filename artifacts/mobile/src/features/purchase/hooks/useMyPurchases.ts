@@ -45,14 +45,20 @@ async function fetchMyPurchases(userId: string): Promise<Purchase[]> {
   }
 
   try {
-    const { data, error } = await supabase
+    const queryPromise = supabase
       .from("purchases")
       .select("id, module_id, amount_cents, currency, status, created_at")
       .eq("status", "active")
       .order("created_at", { ascending: false });
+      
+    const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), 10000)
+    );
+
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
     if (error) throw error;
-    const list: Purchase[] = (data ?? []).map((r) => {
+    const list: Purchase[] = (data ?? []).map((r: unknown) => {
       const rec = typeof r === "object" && r !== null ? (r as Record<string, unknown>) : {};
       return {
         id: String(rec["id"] ?? ""),

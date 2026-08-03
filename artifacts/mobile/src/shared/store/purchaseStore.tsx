@@ -45,13 +45,19 @@ export function usePurchaseActions() {
       transactionId: string;
       store: "apple_iap" | "google_play";
     }) => {
-      const { data, error } = await supabase.functions.invoke("record-iap", {
+      const invokePromise = supabase.functions.invoke("record-iap", {
         body: {
           module_id: params.moduleId,
           transaction_id: params.transactionId,
           store: params.store,
         },
       });
+      
+      const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), 15000)
+      );
+
+      const { data, error } = await Promise.race([invokePromise, timeoutPromise]);
 
       if (error) throw new Error(error.message);
       return data;
@@ -86,7 +92,11 @@ export function usePurchaseActions() {
   const redeemCode = useCallback(
     async (code: string) => {
       try {
-        const { data, error } = await supabase.rpc("redeem_access_code", { p_code: code });
+        const rpcPromise = supabase.rpc("redeem_access_code", { p_code: code });
+        const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
+          setTimeout(() => reject(new Error("timeout")), 15000)
+        );
+        const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);
         if (error) return { success: false, error: error.message };
         if (!data || typeof data !== "object") return { success: false, error: "Invalid response from server" };
         

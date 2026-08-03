@@ -49,17 +49,23 @@ async function writeCachedHierarchy(data: Year[]): Promise<void> {
 }
 
 async function buildHierarchyFromRemote(): Promise<Year[]> {
-  const [
-    { data: years, error: yearsErr },
-    { data: modules, error: modulesErr },
-    { data: subjects, error: subjectsErr },
-    { data: lectures, error: lecturesErr },
-  ] = await Promise.all([
+  const queries = Promise.all([
     supabase.from("years").select("*"),
     supabase.from("modules").select("*"),
     supabase.from("subjects").select("*"),
     supabase.from("lectures").select("*"),
   ]);
+
+  const timeoutPromise = new Promise<any>((_, reject) =>
+    setTimeout(() => reject(new Error("timeout")), 10000)
+  );
+
+  const [
+    { data: years, error: yearsErr },
+    { data: modules, error: modulesErr },
+    { data: subjects, error: subjectsErr },
+    { data: lectures, error: lecturesErr },
+  ] = await Promise.race([queries, timeoutPromise]);
 
   if (yearsErr) throw new Error(`years: ${yearsErr.message} (${yearsErr.code})`);
   if (modulesErr) throw new Error(`modules: ${modulesErr.message} (${modulesErr.code})`);

@@ -7,6 +7,7 @@ import { getQueue } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { UserStats, UserStatsSchema } from "@/src/shared/types/schemas";
 import { useCacheStore } from "@/src/shared/store/cacheStore";
+import { fetchHierarchy } from "@/src/features/learn/services/hierarchyService";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -278,6 +279,19 @@ async function serveFromCache(userId: string): Promise<UserStats> {
 
   const localMap = new Map<string, string>();
   base.recent_results?.forEach((r) => localMap.set(r.lecture_id, r.lecture_name));
+
+  try {
+    const hierarchy = await fetchHierarchy();
+    hierarchy.forEach((year) =>
+      year.modules.forEach((mod) =>
+        mod.subjects.forEach((sub) =>
+          sub.lectures.forEach((lec) => localMap.set(lec.id, lec.name))
+        )
+      )
+    );
+  } catch (e) {
+    // Ignore if hierarchy cache is missing
+  }
 
   return applyPendingStats(base, pending, localMap);
 }

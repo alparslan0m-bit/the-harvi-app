@@ -47,7 +47,12 @@ export async function fetchContentAccess(userId: string): Promise<Map<string, Co
   }
 
   try {
-    const { data, error } = await supabase.rpc("get_content_access_map");
+    const rpcPromise = supabase.rpc("get_content_access_map");
+    const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), 10000)
+    );
+    
+    const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);
     if (error) throw error;
 
     const map = new Map<string, ContentAccessEntry>();
