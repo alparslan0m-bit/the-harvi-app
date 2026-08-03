@@ -83,7 +83,20 @@ export async function warmMemCache(userId: string): Promise<void> {
 // ── Lecture name map ─────────────────────────────────────────────────────────
 
 async function buildLectureNameMap(): Promise<Map<string, string>> {
-  const { data, error } = await supabase.from("lectures").select("id, name");
+  const queryPromise = supabase.from("lectures").select("id, name");
+  const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
+    setTimeout(() => reject(new Error("timeout")), 10000)
+  );
+
+  let data, error;
+  try {
+    const result = await Promise.race([queryPromise, timeoutPromise]);
+    data = result.data;
+    error = result.error;
+  } catch (e) {
+    error = e;
+  }
+
   const map = new Map<string, string>();
   if (error || !data) return map;
   for (const row of data) {
@@ -283,14 +296,22 @@ export async function fetchStats(userId: string): Promise<UserStats> {
   let rpcData: any = null;
 
   try {
-    const [statsRes, rpcRes] = await Promise.all([
-      supabase
-        .from("user_stats")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle(),
-      supabase
-        .rpc("get_user_stats_overview", { p_user_id: userId })
+    const statsQuery = supabase
+      .from("user_stats")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+      
+    const rpcQuery = supabase
+      .rpc("get_user_stats_overview", { p_user_id: userId });
+
+    const timeoutPromise = new Promise<any>((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), 10000)
+    );
+
+    const [statsRes, rpcRes] = await Promise.race([
+      Promise.all([statsQuery, rpcQuery]),
+      timeoutPromise
     ]);
 
     if (rpcRes.error) throw rpcRes.error;

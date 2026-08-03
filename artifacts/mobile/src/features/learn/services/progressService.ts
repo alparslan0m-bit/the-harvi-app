@@ -107,13 +107,27 @@ export async function fetchCompletedLectures(userId: string): Promise<Set<string
 
   try {
     for (const col of FK_CANDIDATES) {
-      const { data, error } = await supabase
+      const queryPromise = supabase
         .from("quiz_results")
         .select(col)
         .eq("user_id", userId);
 
+      const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), 10000)
+      );
+
+      let data, error;
+      try {
+        const result = await Promise.race([queryPromise, timeoutPromise]);
+        data = result.data;
+        error = result.error;
+      } catch (e) {
+        error = e;
+      }
+
       if (error) {
         if (error.code === "42703") continue; // column doesn't exist → try next
+        if (error instanceof Error && error.message === "timeout") throw error; // break the loop on timeout
         throw error;                           // real error → fall through to catch
       }
 
