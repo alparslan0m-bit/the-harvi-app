@@ -1,5 +1,7 @@
 // Extracted from hooks/useQuiz.ts — Supabase fetch logic and question mapping.
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 import { supabase } from "@/src/shared/services/supabase";
 import { Question } from "@/src/shared/types/schemas";
 import {
@@ -25,19 +27,40 @@ const LECTURE_FK_CANDIDATES = [
 ];
 
 let knownFkCol: string | null = null;
+AsyncStorage.getItem("harvi:quiz:fkcol").then((val) => {
+  if (val) knownFkCol = val;
+});
 
 /**
  * Exported so useSubjectCache can call it directly to pre-populate the
  * question cache for all lectures in a subject ("Download for offline").
  */
 export async function fetchQuestions(lectureId: string): Promise<Question[]> {
+  const net = await NetInfo.fetch();
+  if (net.isConnected === false || net.isInternetReachable === false) {
+    throw new Error("You are offline.");
+  }
+
   const candidates = knownFkCol ? [knownFkCol] : LECTURE_FK_CANDIDATES;
 
   for (const fkCol of candidates) {
-    const { data, error } = await supabase
+    const queryPromise = supabase
       .from("questions")
       .select("*")
       .eq(fkCol, lectureId);
+
+    const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), 10000)
+    );
+
+    let data, error;
+    try {
+      const result = await Promise.race([queryPromise, timeoutPromise]);
+      data = result.data;
+      error = result.error;
+    } catch (e) {
+      error = e;
+    }
 
     if (error) {
       if (error.code === "42703" || error.code === "22P02") continue;
@@ -49,6 +72,7 @@ export async function fetchQuestions(lectureId: string): Promise<Question[]> {
     // If we reach here without an error, we found the correct column!
     if (!knownFkCol) {
       knownFkCol = fkCol;
+      AsyncStorage.setItem("harvi:quiz:fkcol", fkCol).catch(() => {});
     }
 
     if (data && data.length > 0) {

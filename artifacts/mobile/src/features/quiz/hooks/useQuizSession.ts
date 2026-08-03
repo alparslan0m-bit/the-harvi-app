@@ -137,7 +137,7 @@ export function useQuizSession(lectureId: string) {
           setSavedOffline(true);
           refreshCount();
         } else {
-          const { error: insertErr } = await supabase
+          const insertPromise = supabase
             .from("quiz_results")
             .insert({
               user_id: user?.id,
@@ -147,6 +147,18 @@ export function useQuizSession(lectureId: string) {
               correct_answers: correctCount,
               created_at: now,
             });
+
+          const timeoutPromise = new Promise<{ error: any }>((_, reject) =>
+            setTimeout(() => reject(new Error("timeout")), 8000)
+          );
+
+          let insertErr: any = null;
+          try {
+            const result = await Promise.race([insertPromise, timeoutPromise]);
+            insertErr = result.error;
+          } catch (e) {
+            insertErr = e;
+          }
 
           if (insertErr) {
             if (__DEV__) {

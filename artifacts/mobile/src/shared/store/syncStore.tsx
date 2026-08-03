@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback, useRef } from "react";
 import { create } from "zustand";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, onlineManager } from "@tanstack/react-query";
+import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
 import { useAuth } from "./authStore";
 import { getQueue, pendingCount as getPendingCount, removeSynced } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
@@ -29,6 +30,7 @@ export function useSyncActions() {
   const setPendingCount = useSyncStore(s => s.setPendingCount);
   const setIsSyncing = useSyncStore(s => s.setIsSyncing);
   const flushing = useRef(false);
+  const lastFlushTime = useRef<number>(0);
 
   const refreshCount = useCallback(async () => {
     const n = await getPendingCount(user?.id);
@@ -38,6 +40,10 @@ export function useSyncActions() {
   const flush = useCallback(async () => {
     if (flushing.current || !user) return;
     
+    // Basic backoff: skip if we failed a flush in the last 30 seconds
+    const now = Date.now();
+    if (now - lastFlushTime.current < 30000) return;
+
     const fullQueue = await getQueue();
     const queue = fullQueue.filter((item) => item.userId === user.id);
     if (queue.length === 0) {
@@ -53,7 +59,7 @@ export function useSyncActions() {
 
     try {
       for (const item of queue) {
-        const { error } = await supabase.from("quiz_results").insert({
+        const insertPromise = supabase.from("quiz_results").insert({
           user_id: item.userId,
           lecture_id: item.lectureId,
           score: item.score,
@@ -62,6 +68,13 @@ export function useSyncActions() {
           created_at: item.createdAt,
         });
 
+        // 10s timeout
+        const timeoutPromise = new Promise<{ error: any }>((_, reject) => 
+          setTimeout(() => reject(new Error("timeout")), 10000)
+        );
+
+        const { error } = await Promise.race([insertPromise, timeoutPromise]);
+
         if (!error) {
           syncedIds.push(item.localId);
           anySynced = true;
@@ -69,6 +82,10 @@ export function useSyncActions() {
           if (__DEV__) console.error(`[useSyncSession] flush insert FAILED for item ${item.localId}:`, error);
           if (error.code && (error.code.startsWith("23") || error.code.startsWith("42") || error.code.startsWith("22"))) {
             syncedIds.push(item.localId);
+          } else {
+            // Network error or timeout. Bail out of loop.
+            lastFlushTime.current = Date.now();
+            break;
           }
         }
       }
@@ -78,6 +95,9 @@ export function useSyncActions() {
         queryClient.invalidateQueries({ queryKey: ["stats"] });
         queryClient.invalidateQueries({ queryKey: ["progress"] });
       }
+    } catch (err) {
+      // Catch timeouts from Promise.race
+      lastFlushTime.current = Date.now();
     } finally {
       await refreshCount();
       setIsSyncing(false);
@@ -90,8 +110,27 @@ export function useSyncActions() {
 
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const isOnline = useSyncStore((s) => s.isOnline);
+  const setIsOnline = useSyncStore((s) => s.setIsOnline);
   const user = useAuth((s) => s.user);
   const { refreshCount, flush } = useSyncActions();
+
+  useEffect(() => {
+    // Sync initial state
+    NetInfo.fetch().then((state: NetInfoState) => {
+      const online = state.isConnected !== false && state.isInternetReachable !== false;
+      setIsOnline(online);
+      onlineManager.setOnline(online);
+    });
+
+    // Subscribe to changes
+    const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
+      const online = state.isConnected !== false && state.isInternetReachable !== false;
+      setIsOnline(online);
+      onlineManager.setOnline(online);
+    });
+
+    return unsubscribe;
+  }, [setIsOnline]);
 
   useEffect(() => {
     refreshCount();

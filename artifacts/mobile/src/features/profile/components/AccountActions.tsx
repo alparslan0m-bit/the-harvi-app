@@ -5,6 +5,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router, Href } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSyncStore } from "@/src/shared/store/syncStore";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { clearStatsCache } from "@/src/features/stats/hooks/useStats";
 import { clearProgressCache } from "@/src/features/learn/hooks/useProgress";
@@ -27,8 +28,14 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
   const colors = useColors();
 
   const queryClient = useQueryClient();
+  const isOnline = useSyncStore((s) => s.isOnline);
 
   const handleClearHistory = () => {
+    if (!isOnline) {
+      Alert.alert("Offline", "You must be online to clear your history.");
+      return;
+    }
+
     Alert.alert(
       "Clear History",
       "This will delete all your quiz results. This cannot be undone.",

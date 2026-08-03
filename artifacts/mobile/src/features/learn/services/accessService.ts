@@ -43,7 +43,7 @@ export async function fetchContentAccess(userId: string): Promise<Map<string, Co
   if (!isOnline) {
     const cached = await readCachedAccess(userId);
     if (cached) return cached;
-    throw new Error("You are offline.");
+    return new Map();
   }
 
   try {
@@ -62,6 +62,6 @@ export async function fetchContentAccess(userId: string): Promise<Map<string, Co
   } catch (err) {
     const cached = await readCachedAccess(userId);
     if (cached) return cached;
-    throw err;
+    return new Map();
   }
 }

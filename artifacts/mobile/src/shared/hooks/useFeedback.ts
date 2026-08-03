@@ -1,5 +1,6 @@
 import * as Haptics from "expo-haptics";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import NetInfo from "@react-native-community/netinfo";
 
 import { supabase } from "@/src/shared/services/supabase";
 
@@ -21,6 +22,12 @@ export function useFeedback(userId: string | undefined) {
   const [feedbackError, setFeedbackError] = useState<string | null>(null);
   const [cooldownSecs, setCooldownSecs] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
+  }, []);
 
   const startCooldown = () => {
     setCooldownSecs(COOLDOWN_SECS);
@@ -54,6 +61,12 @@ export function useFeedback(userId: string | undefined) {
     if (cooldownSecs > 0) return;
     if (!userId) {
       setFeedbackError("You must be signed in to submit feedback.");
+      return;
+    }
+
+    const net = await NetInfo.fetch();
+    if (net.isConnected === false || net.isInternetReachable === false) {
+      setFeedbackError("You are offline. Feedback requires an internet connection.");
       return;
     }
 

@@ -1,6 +1,7 @@
 // Extracted from hooks/useHierarchy.ts — data fetching, FK detection, and caching.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 
 import { supabase } from "@/src/shared/services/supabase";
 import { Lecture, Module, Subject, Year, YearWithModulesSchema } from "@/src/shared/types/schemas";
@@ -146,6 +147,15 @@ async function buildHierarchyFromRemote(): Promise<Year[]> {
 }
 
 export async function fetchHierarchy(): Promise<Year[]> {
+  const net = await NetInfo.fetch();
+  const isOnline = (net.isConnected ?? false) && net.isInternetReachable !== false;
+
+  if (!isOnline) {
+    const cached = await readCachedHierarchy();
+    if (cached) return cached;
+    throw new Error("You are offline.");
+  }
+
   try {
     const data = await buildHierarchyFromRemote();
     // Persist fresh data for offline use
