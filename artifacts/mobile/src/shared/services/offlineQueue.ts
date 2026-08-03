@@ -10,6 +10,17 @@ import { z } from "zod";
 
 const QUEUE_KEY = "harvi:quiz_queue";
 
+export function generateUUID(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 async function readQueue(): Promise<PendingQuizResult[]> {
   const raw = await AsyncStorage.getItem(QUEUE_KEY);
   if (!raw) return [];
@@ -41,10 +52,11 @@ async function writeQueue(queue: PendingQuizResult[]): Promise<void> {
 }
 
 export async function enqueueQuizResult(
-  item: Omit<PendingQuizResult, "localId">
+  item: Omit<PendingQuizResult, "localId">,
+  providedLocalId?: string
 ): Promise<void> {
   const queue = await readQueue();
-  queue.push({ ...item, localId: `${Date.now()}-${Math.random()}` });
+  queue.push({ ...item, localId: providedLocalId ?? generateUUID() });
   await writeQueue(queue);
 }
 

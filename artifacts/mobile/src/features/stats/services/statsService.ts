@@ -340,7 +340,12 @@ export async function fetchStats(userId: string): Promise<UserStats> {
   const baseResult = mapRpcToUserStats(rpcData, dbStats);
 
   const queue = await getQueue();
-  const pending = queue.filter((q) => q.userId === userId);
+  let pending = queue.filter((q) => q.userId === userId);
+
+  // Prevent double-counting: if the server already processed this quiz (but the client timed out and queued it),
+  // it will be in the server's recent_results. We filter it out so we don't add its stats twice.
+  const serverIds = new Set(baseResult.recent_results?.map(r => r.id) ?? []);
+  pending = pending.filter(q => !serverIds.has(q.localId));
 
   let finalResult = baseResult;
   if (pending.length > 0) {

@@ -14,7 +14,7 @@ import { useQuizQuestions } from "@/src/features/quiz/hooks/useQuiz";
 import { optimisticallyMarkComplete } from "@/src/features/learn/hooks/useProgress";
 import { optimisticallyUpdateBestScore } from "@/src/features/learn/hooks/useLectureBestScores";
 import { loadQuestionsFromCache } from "@/src/features/quiz/services/questionCache";
-import { enqueueQuizResult } from "@/src/shared/services/offlineQueue";
+import { enqueueQuizResult, generateUUID } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { AnsweredState, HistoryItem, Question } from "@/src/shared/types";
 
@@ -119,6 +119,7 @@ export function useQuizSession(lectureId: string) {
 
       const score = Math.round((correctCount / questions.length) * 100);
       const now = new Date().toISOString();
+      const sessionId = generateUUID();
 
       try {
         if (!isOnline) {
@@ -129,7 +130,7 @@ export function useQuizSession(lectureId: string) {
             totalQuestions: questions.length,
             correctAnswers: correctCount,
             createdAt: now,
-          });
+          }, sessionId);
           if (user?.id && lectureId) {
             await optimisticallyMarkComplete(user.id, lectureId);
             await optimisticallyUpdateBestScore(user.id, lectureId, score);
@@ -140,6 +141,7 @@ export function useQuizSession(lectureId: string) {
           const insertPromise = supabase
             .from("quiz_results")
             .insert({
+              id: sessionId,
               user_id: user?.id,
               lecture_id: lectureId,
               score,
@@ -174,7 +176,7 @@ export function useQuizSession(lectureId: string) {
               totalQuestions: questions.length,
               correctAnswers: correctCount,
               createdAt: now,
-            });
+            }, sessionId);
             if (user?.id && lectureId) {
               await optimisticallyMarkComplete(user.id, lectureId);
               await optimisticallyUpdateBestScore(user.id, lectureId, score);
