@@ -50,7 +50,7 @@ export async function fetchQuestions(lectureId: string): Promise<Question[]> {
       .eq(fkCol, lectureId);
 
     const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-      setTimeout(() => reject(new Error("timeout")), 10000)
+      setTimeout(() => reject(new Error("timeout")), 6000)
     );
 
     let data, error;

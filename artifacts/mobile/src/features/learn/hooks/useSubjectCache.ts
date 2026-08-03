@@ -128,7 +128,22 @@ export function useSubjectCache(subject: Subject | undefined): SubjectCacheState
       try {
         const questions = await fetchQuestions(lec.id);
         await saveQuestionsToCache(lec.id, questions);
-      } catch {
+      } catch (err: any) {
+        const msg = err?.message?.toLowerCase() || "";
+        if (
+          msg.includes("timeout") ||
+          msg.includes("offline") ||
+          msg.includes("network") ||
+          msg.includes("fetch")
+        ) {
+          if (isMounted.current) {
+            Alert.alert(
+              "Connection Lost",
+              "The download timed out due to poor or no internet connection. Please check your network and try again."
+            );
+          }
+          break;
+        }
         // Continue — one failed lecture shouldn't abort the whole download
       }
 
