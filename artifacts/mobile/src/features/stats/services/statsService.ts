@@ -14,7 +14,7 @@ import { fetchHierarchy } from "@/src/features/learn/services/hierarchyService";
 const CACHE_KEY = (uid: string) => `harvi:stats:${uid}`;
 const DAYS = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
 
-const ZERO_STATS: UserStats = {
+export const ZERO_STATS: UserStats = {
   total_quizzes: 0,
   total_questions: 0,
   average_score: 0,

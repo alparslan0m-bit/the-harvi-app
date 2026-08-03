@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSyncStore } from "@/src/shared/store/syncStore";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { clearStatsCache } from "@/src/features/stats/hooks/useStats";
+import { ZERO_STATS } from "@/src/features/stats/services/statsService";
 import { clearProgressCache } from "@/src/features/learn/hooks/useProgress";
 import { clearBestScoreCache } from "@/src/features/learn/services/bestScoreService";
 import { supabase } from "@/src/shared/services/supabase";
@@ -73,12 +74,13 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
             ]);
 
             // 3. Zero out UI immediately, then re-fetch clean state
-            queryClient.setQueriesData({ queryKey: ["stats"] }, undefined);
-            queryClient.setQueriesData({ queryKey: ["progress"] }, undefined);
-            queryClient.setQueriesData({ queryKey: ["lectureBestScores"] }, undefined);
-            queryClient.removeQueries({ queryKey: ["stats"] });
-            queryClient.removeQueries({ queryKey: ["progress"] });
-            queryClient.removeQueries({ queryKey: ["lectureBestScores"] });
+            queryClient.setQueriesData({ queryKey: ["stats"] }, ZERO_STATS);
+            queryClient.setQueriesData({ queryKey: ["progress"] }, new Set());
+            queryClient.setQueriesData({ queryKey: ["lectureBestScores"] }, new Map());
+            // Invalidate to ensure any active observers refetch cleanly in the background
+            queryClient.invalidateQueries({ queryKey: ["stats"] });
+            queryClient.invalidateQueries({ queryKey: ["progress"] });
+            queryClient.invalidateQueries({ queryKey: ["lectureBestScores"] });
 
             Alert.alert("History Cleared", "Your quiz history has been reset.");
           },
