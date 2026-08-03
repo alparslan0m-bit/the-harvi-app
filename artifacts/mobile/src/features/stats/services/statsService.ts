@@ -247,12 +247,57 @@ function applyPendingStats(base: UserStats, pending: any[], localMap: Map<string
     created_at: r.created_at,
   }));
 
+  let newStreak = base.streak;
+  
+  // Calculate optimistic streak
+  let lastEvaluatedDate: Date | null = null;
+  if (base.recent_results && base.recent_results.length > 0) {
+    const firstResult = base.recent_results[0];
+    if (firstResult?.created_at) {
+      lastEvaluatedDate = new Date(firstResult.created_at);
+      lastEvaluatedDate.setHours(0, 0, 0, 0);
+    }
+  }
+
+  const sortedPending = [...pending].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+
+  for (const p of sortedPending) {
+    const pDate = new Date(p.createdAt);
+    pDate.setHours(0, 0, 0, 0);
+    
+    if (!lastEvaluatedDate) {
+      newStreak = 1;
+      lastEvaluatedDate = pDate;
+    } else {
+      const diffDays = Math.round((pDate.getTime() - lastEvaluatedDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays === 1) {
+        newStreak += 1;
+        lastEvaluatedDate = pDate;
+      } else if (diffDays > 1) {
+        newStreak = 1;
+        lastEvaluatedDate = pDate;
+      }
+    }
+  }
+
+  // Also check if the streak has died as of *today*
+  const todayForStreak = new Date();
+  todayForStreak.setHours(0, 0, 0, 0);
+  if (lastEvaluatedDate) {
+    const diffToToday = Math.round((todayForStreak.getTime() - lastEvaluatedDate.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffToToday > 1) {
+      newStreak = 0;
+    }
+  }
+
   return {
     total_quizzes: newTotalQuizzes,
     total_questions: base.total_questions + pending.reduce((s, p) => s + (p.totalQuestions ?? 0), 0),
     average_score: newTotalQuizzes === 0 ? 0 : Math.round(((base.average_score * base.total_quizzes) + pending.reduce((s, p) => s + (p.score ?? 0), 0)) / newTotalQuizzes),
     best_score: Math.max(base.best_score, ...pending.map(p => p.score ?? 0)),
-    streak: base.streak,
+    streak: newStreak,
     weekly_activity,
     subject_mastery,
     recent_results
