@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { Feather } from "@expo/vector-icons";
-import { StatCard } from "./StatCard";
 import { useColors, type PaletteFamily } from "@/src/shared/hooks/useColors";
 
 interface StatsMetricsGridProps {
@@ -17,43 +16,104 @@ interface StatsMetricsGridProps {
  */
 export function StatsMetricsGrid({ totalQuizzes, totalQuestions, averageScore, bestScore }: StatsMetricsGridProps): React.ReactElement {
   const colors = useColors();
-  const [quizzes, questions, avgScore, best] = colors.statCardFamilies as [PaletteFamily, PaletteFamily, PaletteFamily, PaletteFamily];
+  const [quizzes, questions, avgScore] = colors.statCardFamilies as [PaletteFamily, PaletteFamily, PaletteFamily, PaletteFamily];
 
   return (
-    <View style={styles.statsGrid}>
-      <View style={styles.statsRow}>
-        <StatCard
-          label="Quizzes"
-          value={totalQuizzes}
-          icon={<Feather name="check-square" size={18} color={quizzes.solid} />}
-          palette={quizzes}
-        />
-        <StatCard
-          label="Questions"
-          value={totalQuestions}
-          icon={<Feather name="help-circle" size={18} color={questions.solid} />}
-          palette={questions}
-        />
+    <View style={styles.container}>
+      {/* Top Pills Row */}
+      <View style={styles.pillsRow}>
+        <View style={[styles.pill, { backgroundColor: quizzes.fill + "80" }]}>
+          <View style={[styles.pillIconWrap, { backgroundColor: quizzes.fill }]}>
+             <Feather name="check-square" size={20} color={quizzes.ink} />
+          </View>
+          <Text style={[styles.pillValue, { color: colors.foreground }]}>{totalQuizzes}</Text>
+          <Text style={[styles.pillLabel, { color: colors.foreground, opacity: 0.7 }]}>Quizzes</Text>
+        </View>
+
+        <View style={[styles.pill, { backgroundColor: questions.fill + "80" }]}>
+          <View style={[styles.pillIconWrap, { backgroundColor: questions.fill }]}>
+             <Feather name="help-circle" size={20} color={questions.ink} />
+          </View>
+          <Text style={[styles.pillValue, { color: colors.foreground }]}>{totalQuestions}</Text>
+          <Text style={[styles.pillLabel, { color: colors.foreground, opacity: 0.7 }]}>Questions</Text>
+        </View>
+
+        <View style={[styles.pill, styles.pillDashed, { borderColor: colors.mutedForeground + "40" }]}>
+          <View style={[styles.pillIconWrap, { backgroundColor: colors.muted }]}>
+             <Feather name="award" size={20} color={colors.foreground} />
+          </View>
+          <Text style={[styles.pillValue, { color: colors.foreground }]}>{Math.round(bestScore)}%</Text>
+          <Text style={[styles.pillLabel, { color: colors.foreground, opacity: 0.7 }]}>Best Score</Text>
+        </View>
       </View>
-      <View style={styles.statsRow}>
-        <StatCard
-          label="Avg Score"
-          value={`${Math.round(averageScore)}%`}
-          icon={<Feather name="trending-up" size={18} color={avgScore.solid} />}
-          palette={avgScore}
-        />
-        <StatCard
-          label="Best Score"
-          value={`${Math.round(bestScore)}%`}
-          icon={<Feather name="award" size={18} color={best.solid} />}
-          palette={best}
-        />
+
+      {/* Prominent Avg Score (No Card Background) */}
+      <View style={styles.prominentSection}>
+        <Text style={[styles.prominentValue, { color: colors.foreground }]}>{Math.round(averageScore)}%</Text>
+        <Text style={[styles.prominentLabel, { color: colors.foreground, opacity: 0.8 }]}>Average progress</Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  statsGrid: { paddingHorizontal: 20, gap: 10, marginBottom: 16 },
-  statsRow: { flexDirection: "row", gap: 10 },
+  container: {
+    paddingHorizontal: 20,
+    gap: 16,
+    marginBottom: 16,
+    paddingTop: 24, // extra space for the overlapping icons
+  },
+  pillsRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  pill: {
+    flex: 1,
+    alignItems: "center",
+    paddingTop: 36, // space for the overlapping icon
+    paddingBottom: 24,
+    paddingHorizontal: 4,
+    borderRadius: 40, // more oval to match reference
+    position: "relative",
+  },
+  pillDashed: {
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+  },
+  pillIconWrap: {
+    position: "absolute",
+    top: -24, // overlaps the top edge
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pillValue: {
+    fontSize: 26,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -0.5,
+    marginBottom: 2,
+  },
+  pillLabel: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+  },
+  prominentSection: {
+    paddingTop: 24,
+    paddingBottom: 8,
+    paddingHorizontal: 8, // slight inset to align nicely
+  },
+  prominentValue: {
+    fontSize: 84,
+    lineHeight: 90,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -3,
+    marginBottom: 4,
+  },
+  prominentLabel: {
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
+  }
 });

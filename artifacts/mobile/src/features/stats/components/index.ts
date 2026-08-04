@@ -3,7 +3,6 @@ export * from './MasteryBar';
 export * from './MasterySection';
 export * from './RecentResultCard';
 export * from './RecentResultsSection';
-export * from './StatCard';
 export * from './StatsErrorView';
 export * from './StatsMetricsGrid';
 export * from './StreakCard';
