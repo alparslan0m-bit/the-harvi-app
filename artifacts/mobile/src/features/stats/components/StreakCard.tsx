@@ -6,12 +6,12 @@ import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withSequence,
   withTiming,
 } from "react-native-reanimated";
 
 import { useColors } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 
 /** Soft shadow for white cards — §3.1 */
 const SOFT_SHADOW = Platform.select({
@@ -40,13 +40,9 @@ export function StreakCard({ streak }: { streak: number }): React.ReactElement {
   const zapScale = useSharedValue(1);
   useEffect(() => {
     if (streak > 0) {
-      zapScale.value = withRepeat(
-        withSequence(
-          withTiming(1.18, { duration: 600, easing: Easing.out(Easing.quad) }),
-          withTiming(1, { duration: 600, easing: Easing.in(Easing.quad) })
-        ),
-        -1,
-        false
+      zapScale.value = withSequence(
+        withTiming(1.18, { duration: 400, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: 400, easing: Easing.in(Easing.quad) })
       );
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,7 +102,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 12,
     padding: 16,
-    borderRadius: 28, // §6.3 lg
+    borderRadius: THEME.radius, // unified lg radius
     // No borderWidth — §2.3
     flexDirection: "row",
     alignItems: "center",

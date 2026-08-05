@@ -3,23 +3,18 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { RecentResultCard } from "./RecentResultCard";
-import { useColors } from "@/src/shared/hooks/useColors";
+import { useColors, type PaletteFamily } from "@/src/shared/hooks/useColors";
 import { UserStats } from "@/src/shared/types";
-
-/** Candy Pastel Lavender for the section icon badge */
-const LAVENDER = {
-  fill: "#E3DBFA",
-  solid: "#A88BF0",
-} as const;
 
 export function RecentResultsSection({ results }: { results: UserStats["recent_results"] }): React.ReactElement {
   const colors = useColors();
+  const lavender = colors.statCardFamilies[2] as PaletteFamily;
   return (
     <View style={styles.recentSection}>
       <View style={styles.sectionHeader}>
         <View style={styles.sectionTitleRow}>
-          <View style={[styles.sectionIcon, { backgroundColor: LAVENDER.fill }]}>
-            <Feather name="clock" size={14} color={LAVENDER.solid} />
+          <View style={[styles.sectionIcon, { backgroundColor: lavender.fill }]}>
+            <Feather name="clock" size={14} color={lavender.solid} />
           </View>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
             Recent Results

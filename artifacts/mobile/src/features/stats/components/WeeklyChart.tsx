@@ -8,13 +8,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { useColors } from "@/src/shared/hooks/useColors";
-
-/** Candy Pastel Coral for warm bar coloring */
-const CORAL = {
-  fill: "#FFDCCB",
-  solid: "#FF8A5B",
-} as const;
+import { useColors, type PaletteFamily } from "@/src/shared/hooks/useColors";
 
 interface DayData {
   day: string;
@@ -38,6 +32,7 @@ function AnimatedBar({
   maxCount: number;
 }): React.ReactElement {
   const colors = useColors();
+  const chartPalette = colors.statCardFamilies[0] as PaletteFamily;
   const progress = useSharedValue(0);
 
   const targetH = item.count > 0 ? Math.max((item.count / maxCount) * BAR_MAX_H, 12) : 0;
@@ -55,11 +50,10 @@ function AnimatedBar({
   }));
 
   const isActive = item.count > 0;
-  // §1.2: Coral solid for today, Coral fill-tinted for other active bars
   const barColor = item.isToday
-    ? CORAL.solid
+    ? chartPalette.solid
     : isActive
-    ? CORAL.solid + "99"
+    ? chartPalette.solid + "99"
     : colors.muted;
 
   return (
@@ -67,14 +61,14 @@ function AnimatedBar({
       {/* Count label above bar */}
       <View style={styles.labelWrap}>
         {isActive && (
-          <Text style={[styles.countLabel, { color: item.isToday ? CORAL.solid : colors.mutedForeground }]}>
+          <Text style={[styles.countLabel, { color: item.isToday ? chartPalette.solid : colors.mutedForeground }]}>
             {item.count}
           </Text>
         )}
       </View>
 
       {/* Bar track — uses Coral fill for warmth */}
-      <View style={[styles.track, { backgroundColor: CORAL.fill + "66" }]}>
+      <View style={[styles.track, { backgroundColor: chartPalette.fill + "66" }]}>
         <Animated.View
           style={[
             styles.bar,
@@ -89,7 +83,7 @@ function AnimatedBar({
         style={[
           styles.dayLabel,
           {
-            color: item.isToday ? CORAL.solid : colors.mutedForeground,
+            color: item.isToday ? chartPalette.solid : colors.mutedForeground,
             fontFamily: item.isToday ? "Inter_700Bold" : "Inter_500Medium",
           },
         ]}
@@ -99,7 +93,7 @@ function AnimatedBar({
 
       {/* Today dot */}
       {item.isToday && (
-        <View style={[styles.todayDot, { backgroundColor: CORAL.solid }]} />
+        <View style={[styles.todayDot, { backgroundColor: chartPalette.solid }]} />
       )}
     </View>
   );
@@ -138,7 +132,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   countLabel: {
-    fontSize: 10,
+    fontSize: 12,
     fontFamily: "Inter_600SemiBold",
   },
   track: {
@@ -153,7 +147,7 @@ const styles = StyleSheet.create({
     borderRadius: 12, // §6.3 sm
   },
   dayLabel: {
-    fontSize: 11,
+    fontSize: 12,
     marginTop: 2,
   },
   todayDot: {

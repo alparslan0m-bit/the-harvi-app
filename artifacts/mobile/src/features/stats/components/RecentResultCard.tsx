@@ -1,18 +1,9 @@
 import React from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 
-import { useColors } from "@/src/shared/hooks/useColors";
+import { useColors, type PaletteFamily } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 import { QuizResult } from "@/src/shared/types";
-
-/**
- * Semantic pastel colors for score badges — §1.8
- * success → Mint, warning → Sunshine, danger → Rose
- */
-const SCORE_PALETTES = {
-  high:   { fill: "#C9F0DE", solid: "#4FCB94", ink: "#0F5C3C" },  // Mint
-  mid:    { fill: "#FFEFB0", solid: "#FFC93C", ink: "#6B4E00" },  // Sunshine
-  low:    { fill: "#FBD6E4", solid: "#F787AE", ink: "#7A1F42" },  // Rose
-} as const;
 
 /** Soft shadow for white cards — §3.1 */
 const SOFT_SHADOW = Platform.select({
@@ -33,8 +24,13 @@ interface Props {
 export function RecentResultCard({ result }: Props): React.ReactElement {
   const colors = useColors();
 
-  const tier = result.score >= 80 ? "high" : result.score >= 50 ? "mid" : "low";
-  const palette = SCORE_PALETTES[tier];
+  // Semantic score palettes from theme: Mint (high), Sunshine (mid), neutral (low)
+  const mint = colors.statCardFamilies[3] as PaletteFamily;
+  const sunshine = colors.streakFamily;
+  const palette =
+    result.score >= 80 ? mint :
+    result.score >= 50 ? sunshine :
+    { fill: colors.muted, solid: colors.mutedForeground, ink: colors.mutedForeground };
 
   const formattedDate = new Date(result.created_at).toLocaleDateString("en-GB", {
     day: "numeric", month: "short", year: "numeric",
@@ -64,7 +60,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    borderRadius: 20, // §6.3 md
+    borderRadius: THEME.radius,
     // No borderWidth — §2.3
     marginBottom: 10,
   },

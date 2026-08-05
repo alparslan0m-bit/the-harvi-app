@@ -28,7 +28,7 @@ export function MasteryBar({ subject, mastery }: Props) {
   const color =
     mastery >= 80 ? colors.success :
     mastery >= 50 ? colors.warning :
-    colors.destructive;
+    colors.mutedForeground;
 
   return (
     <View style={styles.row}>
@@ -52,8 +52,8 @@ const styles = StyleSheet.create({
   },
   subject: {
     width: 100,
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
   },
   track: {
     flex: 1,
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   pct: {
     width: 36,
     textAlign: "right",
-    fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
   },
 });

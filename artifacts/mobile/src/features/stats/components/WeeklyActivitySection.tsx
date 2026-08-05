@@ -3,14 +3,11 @@ import React from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 
 import { WeeklyChart } from "./WeeklyChart";
-import { useColors } from "@/src/shared/hooks/useColors";
+import { useColors, type PaletteFamily } from "@/src/shared/hooks/useColors";
 import { UserStats } from "@/src/shared/types";
+import { THEME } from "@/src/shared/constants/theme";
 
-/** Candy Pastel Sky family — for the calendar icon badge */
-const SKY = {
-  fill: "#CFE8FA",
-  solid: "#5CB8F0",
-} as const;
+
 
 /** Soft shadow for white cards — §3.1 */
 const SOFT_SHADOW = Platform.select({
@@ -26,6 +23,7 @@ const SOFT_SHADOW = Platform.select({
 
 export function WeeklyActivitySection({ weekData }: { weekData: UserStats["weekly_activity"] }): React.ReactElement {
   const colors = useColors();
+  const skyPalette = colors.statCardFamilies[1] as PaletteFamily;
   const total = weekData.reduce((s, d) => s + d.count, 0);
   return (
     <View
@@ -40,10 +38,10 @@ export function WeeklyActivitySection({ weekData }: { weekData: UserStats["weekl
           <View
             style={[
               styles.sectionIcon,
-              { backgroundColor: SKY.fill },
+              { backgroundColor: skyPalette.fill },
             ]}
           >
-            <Feather name="calendar" size={14} color={SKY.solid} />
+            <Feather name="calendar" size={14} color={skyPalette.solid} />
           </View>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
             Weekly Activity
@@ -65,7 +63,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 16,
     padding: 20,
-    borderRadius: 28, // §6.3 lg
+    borderRadius: THEME.radius, // unified lg radius
     // No borderWidth — §2.3
   },
   sectionHeader: {

@@ -15,7 +15,7 @@ export function MasterySection({ masteryData }: { masteryData: UserStats["subjec
     <View
       style={[
         styles.section,
-        { backgroundColor: colors.card, borderColor: colors.border },
+        { backgroundColor: colors.card },
       ]}
     >
       <AnimatedPressable feedback="opacity"
@@ -51,7 +51,7 @@ export function MasterySection({ masteryData }: { masteryData: UserStats["subjec
         <AnimatedPressable feedback="opacity"
           style={[
             styles.moreBtn,
-            { borderColor: colors.border, backgroundColor: colors.background },
+            { backgroundColor: colors.muted },
           ]}
           onPress={() => router.push("/stats/mastery")}
         >
@@ -71,19 +71,17 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 20,
     borderRadius: THEME.radius,
-    borderWidth: 1,
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 0,
   },
   sectionTitleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   sectionIcon: {
     width: 28,
     height: 28,
-    borderRadius: 8,
+    borderRadius: 12, // §4 radius.sm
     alignItems: "center",
     justifyContent: "center",
   },
@@ -102,7 +100,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingVertical: 12,
     borderRadius: THEME.radius,
-    borderWidth: 1,
   },
   moreBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
 });

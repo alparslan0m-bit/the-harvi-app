@@ -3,6 +3,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useColors } from "@/src/shared/hooks/useColors";
+import { THEME } from "@/src/shared/constants/theme";
 
 export function EmptyNudge() {
   const colors = useColors();
@@ -10,10 +11,7 @@ export function EmptyNudge() {
     <View
       style={[
         styles.nudgeCard,
-        {
-          backgroundColor: colors.primary + "12",
-          borderColor: colors.primary + "33",
-        },
+        { backgroundColor: colors.primary + "12" },
       ]}
     >
       <View
@@ -37,15 +35,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 16,
     padding: 24,
-    borderRadius: 24,
-    borderWidth: 1,
+    borderRadius: THEME.radius,
     alignItems: "center",
     gap: 10,
   },
   nudgeIcon: {
     width: 56,
     height: 56,
-    borderRadius: 18,
+    borderRadius: 12, // §4 radius.sm
     alignItems: "center",
     justifyContent: "center",
   },
