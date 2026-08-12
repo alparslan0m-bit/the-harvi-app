@@ -2,45 +2,13 @@ module.exports = [
   {
     "id": "e1",
     "source": "app",
-    "target": "auth_feature",
-    "type": "navigates",
-    "label": "navigates to",
-    "description": "Stack.Screen (auth)/login — shown when no session"
-  },
-  {
-    "id": "e2",
-    "source": "app",
-    "target": "tab_navigator",
-    "type": "navigates",
-    "label": "navigates to",
-    "description": "Stack.Screen (main)/(tabs) — main authenticated app"
-  },
-  {
-    "id": "e3",
-    "source": "app",
-    "target": "quiz_feature",
-    "type": "navigates",
-    "label": "navigates to",
-    "description": "Stack.Screen (main)/quiz/[lectureId] — full-screen quiz"
-  },
-  {
-    "id": "e4",
-    "source": "app",
-    "target": "purchase_feature",
-    "type": "navigates",
-    "label": "navigates to",
-    "description": "Stack.Screen (main)/purchase/[moduleId] — presented as modal"
-  },
-  {
-    "id": "e5",
-    "source": "app",
     "target": "error_boundary",
     "type": "wraps",
     "label": "wraps",
     "description": "ErrorBoundary is the outermost wrapper in the provider tree"
   },
   {
-    "id": "e6",
+    "id": "e2",
     "source": "app",
     "target": "react_query",
     "type": "wraps",
@@ -48,7 +16,7 @@ module.exports = [
     "description": "QueryClientProvider wraps the entire app with offlineFirst config"
   },
   {
-    "id": "e7",
+    "id": "e3",
     "source": "app",
     "target": "auth_store",
     "type": "wraps",
@@ -56,7 +24,7 @@ module.exports = [
     "description": "AuthProvider listens to onAuthStateChange and deep link OAuth callbacks"
   },
   {
-    "id": "e8",
+    "id": "e4",
     "source": "app",
     "target": "purchase_store",
     "type": "wraps",
@@ -64,7 +32,7 @@ module.exports = [
     "description": "PurchaseProvider initializes RevenueCat SDK and syncs user identity"
   },
   {
-    "id": "e9",
+    "id": "e5",
     "source": "app",
     "target": "sync_store",
     "type": "wraps",
@@ -72,7 +40,7 @@ module.exports = [
     "description": "SyncProvider subscribes to NetInfo and auto-flushes offline queue"
   },
   {
-    "id": "e10",
+    "id": "e6",
     "source": "app",
     "target": "theme_store",
     "type": "calls",
@@ -80,31 +48,7 @@ module.exports = [
     "description": "ThemeProvider loads saved theme from AsyncStorage on mount"
   },
   {
-    "id": "e11",
-    "source": "tab_navigator",
-    "target": "learn_feature",
-    "type": "navigates",
-    "label": "Learn tab",
-    "description": "First tab: (learn) group with book-open icon"
-  },
-  {
-    "id": "e12",
-    "source": "tab_navigator",
-    "target": "stats_feature",
-    "type": "navigates",
-    "label": "Stats tab",
-    "description": "Second tab: stats screen with bar-chart icon"
-  },
-  {
-    "id": "e13",
-    "source": "tab_navigator",
-    "target": "profile_feature",
-    "type": "navigates",
-    "label": "Profile tab",
-    "description": "Third tab: profile screen with user icon"
-  },
-  {
-    "id": "e14",
+    "id": "e7",
     "source": "auth_feature",
     "target": "auth_store",
     "type": "calls",
@@ -112,7 +56,7 @@ module.exports = [
     "description": "useAuthForm calls signIn, signUp, signInWithGoogle from auth store"
   },
   {
-    "id": "e15",
+    "id": "e8",
     "source": "auth_store",
     "target": "supabase_client",
     "type": "calls",
@@ -120,7 +64,7 @@ module.exports = [
     "description": "Calls supabase.auth.signInWithPassword, signUp, signInWithOAuth, exchangeCodeForSession, signOut"
   },
   {
-    "id": "e16",
+    "id": "e9",
     "source": "auth_store",
     "target": "cache_store",
     "type": "calls",
@@ -128,23 +72,7 @@ module.exports = [
     "description": "signOut and onAuthStateChange(null) call useCacheStore.getState().clearAll()"
   },
   {
-    "id": "e17",
-    "source": "auth_store",
-    "target": "progress_service",
-    "type": "calls",
-    "label": "clears on sign-out",
-    "description": "signOut clears progressService memCache and warmed set"
-  },
-  {
-    "id": "e18",
-    "source": "auth_store",
-    "target": "best_score_service",
-    "type": "calls",
-    "label": "clears on sign-out",
-    "description": "signOut clears bestScoreService memCache and warmed set"
-  },
-  {
-    "id": "e19",
+    "id": "e10",
     "source": "supabase_client",
     "target": "secure_store",
     "type": "writes",
@@ -152,7 +80,7 @@ module.exports = [
     "description": "Custom SecureStoreAdapter stores auth tokens in 1800-byte chunks"
   },
   {
-    "id": "e20",
+    "id": "e11",
     "source": "supabase_client",
     "target": "supabase_auth",
     "type": "authenticates",
@@ -160,7 +88,7 @@ module.exports = [
     "description": "Communicates with Supabase Auth server for JWT sessions"
   },
   {
-    "id": "e21",
+    "id": "e12",
     "source": "supabase_client",
     "target": "supabase_db",
     "type": "fetches",
@@ -168,7 +96,7 @@ module.exports = [
     "description": "Direct PostgREST queries to all tables + RPC calls"
   },
   {
-    "id": "e22",
+    "id": "e13",
     "source": "auth_store",
     "target": "google_oauth",
     "type": "authenticates",
@@ -176,7 +104,7 @@ module.exports = [
     "description": "signInWithGoogle opens expo-web-browser for Google consent, receives code/tokens via redirect"
   },
   {
-    "id": "e23",
+    "id": "e14",
     "source": "learn_feature",
     "target": "hierarchy_service",
     "type": "calls",
@@ -184,7 +112,7 @@ module.exports = [
     "description": "useHierarchy hook calls fetchHierarchy for Year→Module→Subject→Lecture tree"
   },
   {
-    "id": "e24",
+    "id": "e15",
     "source": "learn_feature",
     "target": "access_service",
     "type": "calls",
@@ -192,39 +120,7 @@ module.exports = [
     "description": "useModuleAccess hook calls fetchContentAccess to determine paywall state"
   },
   {
-    "id": "e25",
-    "source": "learn_feature",
-    "target": "progress_service",
-    "type": "reads",
-    "label": "reads progress",
-    "description": "useProgress returns Set<lectureId> of completed lectures for badge display"
-  },
-  {
-    "id": "e26",
-    "source": "learn_feature",
-    "target": "best_score_service",
-    "type": "reads",
-    "label": "reads best scores",
-    "description": "useLectureBestScores returns Map<lectureId, score%> for star ratings on lecture cards"
-  },
-  {
-    "id": "e27",
-    "source": "learn_feature",
-    "target": "question_service",
-    "type": "calls",
-    "label": "downloads questions",
-    "description": "useSubjectCache calls fetchQuestions for each lecture during offline download"
-  },
-  {
-    "id": "e28",
-    "source": "learn_feature",
-    "target": "question_cache",
-    "type": "writes",
-    "label": "saves to cache",
-    "description": "useSubjectCache calls saveQuestionsToCache after downloading each lecture's questions"
-  },
-  {
-    "id": "e29",
+    "id": "e16",
     "source": "learn_feature",
     "target": "auth_store",
     "type": "reads",
@@ -232,15 +128,7 @@ module.exports = [
     "description": "useLearnFlow redirects to /login if no session; all hooks read user.id"
   },
   {
-    "id": "e30",
-    "source": "learn_feature",
-    "target": "purchase_feature",
-    "type": "navigates",
-    "label": "navigates to paywall",
-    "description": "SubjectScreen pushes /purchase/[moduleId] when user taps a locked lecture"
-  },
-  {
-    "id": "e31",
+    "id": "e17",
     "source": "learn_feature",
     "target": "quiz_feature",
     "type": "navigates",
@@ -248,7 +136,7 @@ module.exports = [
     "description": "SubjectScreen pushes /quiz/[lectureId] when user taps an accessible lecture"
   },
   {
-    "id": "e32",
+    "id": "e18",
     "source": "quiz_feature",
     "target": "question_service",
     "type": "calls",
@@ -256,7 +144,7 @@ module.exports = [
     "description": "useQuizQuestions calls fetchQuestions from questionService"
   },
   {
-    "id": "e33",
+    "id": "e19",
     "source": "quiz_feature",
     "target": "question_cache",
     "type": "reads",
@@ -264,15 +152,7 @@ module.exports = [
     "description": "useQuizSession pre-loads from AsyncStorage cache; useQuizQuestions falls back to cache when offline"
   },
   {
-    "id": "e34",
-    "source": "quiz_feature",
-    "target": "offline_queue",
-    "type": "writes",
-    "label": "enqueues result",
-    "description": "useQuizSession enqueues quiz result when offline or when online insert fails (fallback)"
-  },
-  {
-    "id": "e35",
+    "id": "e20",
     "source": "quiz_feature",
     "target": "supabase_client",
     "type": "calls",
@@ -280,7 +160,7 @@ module.exports = [
     "description": "useQuizSession inserts directly to quiz_results table with 8s timeout when online"
   },
   {
-    "id": "e36",
+    "id": "e21",
     "source": "quiz_feature",
     "target": "auth_store",
     "type": "reads",
@@ -288,7 +168,7 @@ module.exports = [
     "description": "useQuizSession reads user.id for quiz result submission"
   },
   {
-    "id": "e37",
+    "id": "e22",
     "source": "quiz_feature",
     "target": "sync_store",
     "type": "reads",
@@ -296,23 +176,7 @@ module.exports = [
     "description": "useQuizSession reads isOnline to decide save path; calls flush() after fallback-to-queue"
   },
   {
-    "id": "e38",
-    "source": "quiz_feature",
-    "target": "progress_service",
-    "type": "calls",
-    "label": "marks complete",
-    "description": "useQuizSession calls optimisticallyMarkComplete after quiz finishes"
-  },
-  {
-    "id": "e39",
-    "source": "quiz_feature",
-    "target": "best_score_service",
-    "type": "calls",
-    "label": "updates best score",
-    "description": "useQuizSession calls optimisticallyUpdateBestScore after quiz finishes"
-  },
-  {
-    "id": "e40",
+    "id": "e23",
     "source": "quiz_feature",
     "target": "react_query",
     "type": "calls",
@@ -320,15 +184,7 @@ module.exports = [
     "description": "useQuizSession invalidates progress, stats, and lectureBestScores queries after quiz completes"
   },
   {
-    "id": "e41",
-    "source": "stats_feature",
-    "target": "stats_service",
-    "type": "calls",
-    "label": "fetches stats",
-    "description": "useStats hook calls fetchStats from statsService"
-  },
-  {
-    "id": "e42",
+    "id": "e24",
     "source": "stats_feature",
     "target": "cache_store",
     "type": "reads",
@@ -336,7 +192,7 @@ module.exports = [
     "description": "useStats reads statsCache from cacheStore for synchronous initialData (no loading spinner)"
   },
   {
-    "id": "e43",
+    "id": "e25",
     "source": "stats_feature",
     "target": "auth_store",
     "type": "reads",
@@ -344,7 +200,7 @@ module.exports = [
     "description": "StatsScreen and MasteryScreen read user.id for data queries"
   },
   {
-    "id": "e44",
+    "id": "e26",
     "source": "stats_feature",
     "target": "sync_store",
     "type": "reads",
@@ -352,7 +208,7 @@ module.exports = [
     "description": "StatsScreen reads isOnline and pendingCount to show sync status"
   },
   {
-    "id": "e45",
+    "id": "e27",
     "source": "stats_service",
     "target": "supabase_client",
     "type": "fetches",
@@ -360,7 +216,7 @@ module.exports = [
     "description": "Queries user_stats table + RPC get_user_stats_overview + lectures table for name map"
   },
   {
-    "id": "e46",
+    "id": "e28",
     "source": "stats_service",
     "target": "cache_store",
     "type": "writes",
@@ -368,7 +224,7 @@ module.exports = [
     "description": "writeCache sets stats in cacheStore.setStatsCache for synchronous access"
   },
   {
-    "id": "e47",
+    "id": "e29",
     "source": "stats_service",
     "target": "async_storage",
     "type": "writes",
@@ -376,7 +232,7 @@ module.exports = [
     "description": "Writes UserStats to AsyncStorage (harvi:stats:{userId}) for offline access"
   },
   {
-    "id": "e48",
+    "id": "e30",
     "source": "stats_service",
     "target": "offline_queue",
     "type": "reads",
@@ -384,7 +240,7 @@ module.exports = [
     "description": "Reads queue to merge pending offline quiz results into displayed stats"
   },
   {
-    "id": "e49",
+    "id": "e31",
     "source": "stats_service",
     "target": "hierarchy_service",
     "type": "calls",
@@ -392,7 +248,7 @@ module.exports = [
     "description": "serveFromCache calls fetchHierarchy to build lecture name map for offline display"
   },
   {
-    "id": "e50",
+    "id": "e32",
     "source": "stats_service",
     "target": "netinfo",
     "type": "reads",
@@ -400,7 +256,7 @@ module.exports = [
     "description": "NetInfo.fetch() to short-circuit to cache when offline"
   },
   {
-    "id": "e51",
+    "id": "e33",
     "source": "purchase_feature",
     "target": "purchase_store",
     "type": "calls",
@@ -408,23 +264,7 @@ module.exports = [
     "description": "usePurchase hook wraps purchaseModule, redeemCode, restoreModule from purchaseStore"
   },
   {
-    "id": "e52",
-    "source": "purchase_store",
-    "target": "revenuecat",
-    "type": "calls",
-    "label": "processes native IAP",
-    "description": "Purchases.purchasePackage, restorePurchases, logIn/logOut via RevenueCat SDK"
-  },
-  {
-    "id": "e53",
-    "source": "purchase_store",
-    "target": "supabase_functions",
-    "type": "calls",
-    "label": "invokes edge function",
-    "description": "supabase.functions.invoke('record-iap') with moduleId, transactionId, store"
-  },
-  {
-    "id": "e54",
+    "id": "e34",
     "source": "purchase_store",
     "target": "supabase_client",
     "type": "calls",
@@ -432,7 +272,7 @@ module.exports = [
     "description": "supabase.rpc('redeem_access_code') for promo code redemption"
   },
   {
-    "id": "e55",
+    "id": "e35",
     "source": "purchase_store",
     "target": "auth_store",
     "type": "reads",
@@ -440,7 +280,7 @@ module.exports = [
     "description": "PurchaseProvider reads user.id to logIn/logOut RevenueCat identity"
   },
   {
-    "id": "e56",
+    "id": "e36",
     "source": "purchase_store",
     "target": "react_query",
     "type": "calls",
@@ -448,7 +288,7 @@ module.exports = [
     "description": "invalidateAccess invalidates content_access, my_purchases, hierarchy, quiz queries after purchase"
   },
   {
-    "id": "e57",
+    "id": "e37",
     "source": "supabase_functions",
     "target": "supabase_db",
     "type": "writes",
@@ -456,7 +296,7 @@ module.exports = [
     "description": "record-iap function validates receipt and inserts into purchases table"
   },
   {
-    "id": "e58",
+    "id": "e38",
     "source": "profile_feature",
     "target": "auth_store",
     "type": "calls",
@@ -464,15 +304,7 @@ module.exports = [
     "description": "AccountActions calls onSignOut (auth_store.signOut) then navigates to /login"
   },
   {
-    "id": "e59",
-    "source": "profile_feature",
-    "target": "async_storage",
-    "type": "reads",
-    "label": "reads profile",
-    "description": "useProfileData reads harvi:avatar and harvi:displayName from AsyncStorage"
-  },
-  {
-    "id": "e60",
+    "id": "e39",
     "source": "profile_feature",
     "target": "async_storage",
     "type": "writes",
@@ -480,7 +312,7 @@ module.exports = [
     "description": "useProfileEdit writes avatar and displayName to AsyncStorage"
   },
   {
-    "id": "e61",
+    "id": "e40",
     "source": "profile_feature",
     "target": "theme_store",
     "type": "calls",
@@ -488,7 +320,7 @@ module.exports = [
     "description": "ProfileThemeSelector reads/writes theme via useTheme"
   },
   {
-    "id": "e62",
+    "id": "e41",
     "source": "profile_feature",
     "target": "sync_store",
     "type": "reads",
@@ -496,7 +328,7 @@ module.exports = [
     "description": "AccountActions reads isOnline to gate Clear History (requires network)"
   },
   {
-    "id": "e63",
+    "id": "e42",
     "source": "profile_feature",
     "target": "supabase_client",
     "type": "calls",
@@ -504,7 +336,7 @@ module.exports = [
     "description": "Clear History deletes from quiz_results and user_stats tables via supabase"
   },
   {
-    "id": "e64",
+    "id": "e43",
     "source": "profile_feature",
     "target": "stats_service",
     "type": "calls",
@@ -512,15 +344,7 @@ module.exports = [
     "description": "AccountActions calls clearStatsCache and uses ZERO_STATS constant"
   },
   {
-    "id": "e65",
-    "source": "profile_feature",
-    "target": "progress_service",
-    "type": "calls",
-    "label": "clears progress",
-    "description": "AccountActions calls clearProgressCache on Clear History"
-  },
-  {
-    "id": "e66",
+    "id": "e44",
     "source": "profile_feature",
     "target": "best_score_service",
     "type": "calls",
@@ -528,7 +352,7 @@ module.exports = [
     "description": "AccountActions calls clearBestScoreCache on Clear History"
   },
   {
-    "id": "e67",
+    "id": "e45",
     "source": "profile_feature",
     "target": "question_cache",
     "type": "calls",
@@ -536,7 +360,7 @@ module.exports = [
     "description": "AccountActions calls clearAllLectureCache on Clear Downloaded Lectures"
   },
   {
-    "id": "e68",
+    "id": "e46",
     "source": "profile_feature",
     "target": "offline_queue",
     "type": "calls",
@@ -544,15 +368,7 @@ module.exports = [
     "description": "AccountActions calls clearQueueForUser on Clear History"
   },
   {
-    "id": "e69",
-    "source": "profile_feature",
-    "target": "feedback_form",
-    "type": "renders",
-    "label": "renders",
-    "description": "ProfileScreen renders FeedbackForm component with user.id"
-  },
-  {
-    "id": "e70",
+    "id": "e47",
     "source": "profile_feature",
     "target": "react_query",
     "type": "calls",
@@ -560,31 +376,7 @@ module.exports = [
     "description": "AccountActions zeroes stats/progress/bestScores via setQueriesData, then invalidates"
   },
   {
-    "id": "e71",
-    "source": "feedback_form",
-    "target": "supabase_client",
-    "type": "calls",
-    "label": "submits feedback",
-    "description": "useFeedback hook inserts to 'feedback' table via supabase"
-  },
-  {
-    "id": "e72",
-    "source": "feedback_form",
-    "target": "netinfo",
-    "type": "reads",
-    "label": "checks connectivity",
-    "description": "useFeedback checks NetInfo before submission, blocks when offline"
-  },
-  {
-    "id": "e73",
-    "source": "sync_store",
-    "target": "offline_queue",
-    "type": "reads",
-    "label": "reads queue",
-    "description": "useSyncActions.flush reads queue, filters by userId, processes items with 10s timeout"
-  },
-  {
-    "id": "e74",
+    "id": "e48",
     "source": "sync_store",
     "target": "supabase_client",
     "type": "calls",
@@ -592,7 +384,7 @@ module.exports = [
     "description": "flush() inserts each queued item to quiz_results, handles duplicate errors (23xxx codes)"
   },
   {
-    "id": "e75",
+    "id": "e49",
     "source": "sync_store",
     "target": "auth_store",
     "type": "reads",
@@ -600,7 +392,7 @@ module.exports = [
     "description": "SyncProvider and useSyncActions read user.id to filter queue and gate flush"
   },
   {
-    "id": "e76",
+    "id": "e50",
     "source": "sync_store",
     "target": "netinfo",
     "type": "reads",
@@ -608,7 +400,7 @@ module.exports = [
     "description": "SyncProvider subscribes to NetInfo.addEventListener, sets onlineManager.setOnline"
   },
   {
-    "id": "e77",
+    "id": "e51",
     "source": "sync_store",
     "target": "react_query",
     "type": "calls",
@@ -616,7 +408,7 @@ module.exports = [
     "description": "After successful flush, invalidates stats and progress queries"
   },
   {
-    "id": "e78",
+    "id": "e52",
     "source": "hierarchy_service",
     "target": "supabase_client",
     "type": "fetches",
@@ -624,7 +416,7 @@ module.exports = [
     "description": "Parallel SELECT * from years, modules, subjects, lectures with 10s timeout"
   },
   {
-    "id": "e79",
+    "id": "e53",
     "source": "hierarchy_service",
     "target": "async_storage",
     "type": "writes",
@@ -632,7 +424,7 @@ module.exports = [
     "description": "Writes full Year[] tree to AsyncStorage (harvi:hierarchy) for offline access"
   },
   {
-    "id": "e80",
+    "id": "e54",
     "source": "hierarchy_service",
     "target": "netinfo",
     "type": "reads",
@@ -640,7 +432,7 @@ module.exports = [
     "description": "NetInfo.fetch() to serve from AsyncStorage cache when offline"
   },
   {
-    "id": "e81",
+    "id": "e55",
     "source": "access_service",
     "target": "supabase_client",
     "type": "fetches",
@@ -648,7 +440,7 @@ module.exports = [
     "description": "Calls supabase.rpc('get_content_access_map') with 10s timeout"
   },
   {
-    "id": "e82",
+    "id": "e56",
     "source": "access_service",
     "target": "async_storage",
     "type": "writes",
@@ -656,7 +448,7 @@ module.exports = [
     "description": "Writes access Map to AsyncStorage (harvi:access:{userId}) for offline"
   },
   {
-    "id": "e83",
+    "id": "e57",
     "source": "access_service",
     "target": "netinfo",
     "type": "reads",
@@ -664,7 +456,7 @@ module.exports = [
     "description": "NetInfo.fetch() to serve cached access map when offline"
   },
   {
-    "id": "e84",
+    "id": "e58",
     "source": "progress_service",
     "target": "supabase_client",
     "type": "fetches",
@@ -672,7 +464,7 @@ module.exports = [
     "description": "SELECT lecture_id FROM quiz_results with FK auto-detection (6 column candidates)"
   },
   {
-    "id": "e85",
+    "id": "e59",
     "source": "progress_service",
     "target": "async_storage",
     "type": "writes",
@@ -680,7 +472,7 @@ module.exports = [
     "description": "Writes completed lecture IDs to AsyncStorage (harvi:progress:{userId})"
   },
   {
-    "id": "e86",
+    "id": "e60",
     "source": "progress_service",
     "target": "offline_queue",
     "type": "reads",
@@ -688,7 +480,7 @@ module.exports = [
     "description": "Merges queued offline lecture IDs into the completed set"
   },
   {
-    "id": "e87",
+    "id": "e61",
     "source": "progress_service",
     "target": "netinfo",
     "type": "reads",
@@ -696,7 +488,7 @@ module.exports = [
     "description": "NetInfo.fetch() to serve from memCache/AsyncStorage when offline"
   },
   {
-    "id": "e88",
+    "id": "e62",
     "source": "best_score_service",
     "target": "supabase_client",
     "type": "fetches",
@@ -704,7 +496,7 @@ module.exports = [
     "description": "SELECT lecture_id, score FROM quiz_results with 10s timeout"
   },
   {
-    "id": "e89",
+    "id": "e63",
     "source": "best_score_service",
     "target": "async_storage",
     "type": "writes",
@@ -712,7 +504,7 @@ module.exports = [
     "description": "Writes Map<lectureId, score> entries to AsyncStorage (harvi:bestScores:{userId})"
   },
   {
-    "id": "e90",
+    "id": "e64",
     "source": "best_score_service",
     "target": "offline_queue",
     "type": "reads",
@@ -720,7 +512,7 @@ module.exports = [
     "description": "Merges queued offline quiz scores (takes max) into the score map"
   },
   {
-    "id": "e91",
+    "id": "e65",
     "source": "best_score_service",
     "target": "netinfo",
     "type": "reads",
@@ -728,7 +520,7 @@ module.exports = [
     "description": "NetInfo.fetch() to serve from memCache/AsyncStorage when offline"
   },
   {
-    "id": "e92",
+    "id": "e66",
     "source": "question_service",
     "target": "supabase_client",
     "type": "fetches",
@@ -736,7 +528,7 @@ module.exports = [
     "description": "SELECT * FROM questions with FK auto-detection (7 column candidates) and 6s timeout"
   },
   {
-    "id": "e93",
+    "id": "e67",
     "source": "question_service",
     "target": "async_storage",
     "type": "writes",
@@ -744,7 +536,7 @@ module.exports = [
     "description": "Persists discovered FK column name (harvi:quiz:fkcol) to skip detection on next load"
   },
   {
-    "id": "e94",
+    "id": "e68",
     "source": "question_service",
     "target": "netinfo",
     "type": "reads",
@@ -752,7 +544,7 @@ module.exports = [
     "description": "NetInfo.fetch() to throw 'You are offline' before attempting Supabase call"
   },
   {
-    "id": "e95",
+    "id": "e69",
     "source": "question_cache",
     "target": "async_storage",
     "type": "writes",
@@ -760,7 +552,7 @@ module.exports = [
     "description": "Stores/loads per-lecture question cache (harvi:qcache:{lectureId}) as CachedLecture JSON"
   },
   {
-    "id": "e96",
+    "id": "e70",
     "source": "question_cache",
     "target": "cache_store",
     "type": "calls",
@@ -768,7 +560,7 @@ module.exports = [
     "description": "Reads/sets questionCacheBypassed flag — set true after clearAllLectureCache, reset on save"
   },
   {
-    "id": "e97",
+    "id": "e71",
     "source": "offline_queue",
     "target": "async_storage",
     "type": "writes",
@@ -776,7 +568,7 @@ module.exports = [
     "description": "Writes PendingQuizResult[] to AsyncStorage (harvi:quiz_queue) with retry-once on failure"
   },
   {
-    "id": "e98",
+    "id": "e72",
     "source": "theme_store",
     "target": "async_storage",
     "type": "writes",
@@ -784,7 +576,7 @@ module.exports = [
     "description": "Persists theme choice (harvi:theme) to AsyncStorage on setTheme"
   },
   {
-    "id": "e99",
+    "id": "e73",
     "source": "purchase_feature",
     "target": "auth_store",
     "type": "reads",
@@ -792,7 +584,7 @@ module.exports = [
     "description": "useMyPurchases reads user.id to fetch purchase history"
   },
   {
-    "id": "e100",
+    "id": "e74",
     "source": "purchase_feature",
     "target": "supabase_client",
     "type": "fetches",
@@ -800,7 +592,7 @@ module.exports = [
     "description": "useMyPurchases queries purchases table for active purchases with AsyncStorage cache"
   },
   {
-    "id": "e101",
+    "id": "e75",
     "source": "learn_feature",
     "target": "react_query",
     "type": "calls",
@@ -808,7 +600,7 @@ module.exports = [
     "description": "Learn hooks (useHierarchy, useModuleAccess, useProgress, useLectureBestScores) use useQuery"
   },
   {
-    "id": "e102",
+    "id": "e76",
     "source": "learn_feature",
     "target": "netinfo",
     "type": "reads",
@@ -816,7 +608,7 @@ module.exports = [
     "description": "useSubjectCache checks NetInfo.fetch() before allowing offline downloads"
   },
   {
-    "id": "e103",
+    "id": "e77",
     "source": "purchase_feature",
     "target": "revenuecat",
     "type": "types",
@@ -824,7 +616,7 @@ module.exports = [
     "description": "PurchaseScreen and usePurchase import PurchasesPackage types from revenuecat"
   },
   {
-    "id": "e104",
+    "id": "e78",
     "source": "purchase_feature",
     "target": "async_storage",
     "type": "reads",
@@ -832,7 +624,7 @@ module.exports = [
     "description": "useMyPurchases caches history to AsyncStorage for offline access"
   },
   {
-    "id": "e105",
+    "id": "e79",
     "source": "purchase_feature",
     "target": "netinfo",
     "type": "reads",
@@ -840,7 +632,7 @@ module.exports = [
     "description": "useMyPurchases checks connectivity before fetching purchase history"
   },
   {
-    "id": "e106",
+    "id": "e80",
     "source": "purchase_feature",
     "target": "react_query",
     "type": "calls",
@@ -848,7 +640,7 @@ module.exports = [
     "description": "useMyPurchases uses useQuery for purchase history"
   },
   {
-    "id": "e107",
+    "id": "e81",
     "source": "stats_feature",
     "target": "react_query",
     "type": "calls",
@@ -856,7 +648,7 @@ module.exports = [
     "description": "useStats uses useQuery to fetch user stats"
   },
   {
-    "id": "e108",
+    "id": "e82",
     "source": "profile_feature",
     "target": "stats_feature",
     "type": "calls",
@@ -864,7 +656,7 @@ module.exports = [
     "description": "AccountActions imports clearStatsCache from stats_feature for Clear History"
   },
   {
-    "id": "e109",
+    "id": "e83",
     "source": "profile_feature",
     "target": "learn_feature",
     "type": "calls",
@@ -872,12 +664,172 @@ module.exports = [
     "description": "AccountActions imports clearProgressCache and clearBestScoreCache from learn_feature"
   },
   {
-    "id": "e110",
+    "id": "e84",
     "source": "quiz_feature",
     "target": "learn_feature",
     "type": "calls",
     "label": "updates state",
     "description": "useQuizSession imports optimisticallyMarkComplete and optimisticallyUpdateBestScore from learn_feature hooks"
+  },
+  {
+    "id": "e85",
+    "source": "stats_feature",
+    "target": "learn_feature",
+    "type": "navigates",
+    "label": "navigates",
+    "description": "Empirical edge not previously tracked"
+  },
+  {
+    "id": "e86",
+    "source": "auth_feature",
+    "target": "error_boundary",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/auth/components/AuthScreen.tsx, artifacts/mobile/src/features/auth/components/AuthScreen.tsx"
+  },
+  {
+    "id": "e87",
+    "source": "feedback_form",
+    "target": "error_boundary",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/components/FeedbackForm.tsx"
+  },
+  {
+    "id": "e88",
+    "source": "learn_feature",
+    "target": "error_boundary",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/components/LearnErrorState.tsx, artifacts/mobile/src/features/learn/components/LectureCard.tsx, artifacts/mobile/src/features/learn/components/ModuleCard.tsx, artifacts/mobile/src/features/learn/components/ModuleScreen.tsx, artifacts/mobile/src/features/learn/components/SubjectCard.tsx, artifacts/mobile/src/features/learn/components/SubjectDownloadButton.tsx, artifacts/mobile/src/features/learn/components/SubjectScreen.tsx, artifacts/mobile/src/features/learn/components/YearCard.tsx, artifacts/mobile/src/features/learn/components/YearScreen.tsx"
+  },
+  {
+    "id": "e89",
+    "source": "profile_feature",
+    "target": "error_boundary",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/profile/components/AccountActions.tsx, artifacts/mobile/src/features/profile/components/AvatarPicker.tsx, artifacts/mobile/src/features/profile/components/EditProfileScreen.tsx, artifacts/mobile/src/features/profile/components/ProfileAvatarSection.tsx, artifacts/mobile/src/features/profile/components/ProfileEditField.tsx, artifacts/mobile/src/features/profile/components/ProfileEditHeader.tsx, artifacts/mobile/src/features/profile/components/ProfileHeroCard.tsx, artifacts/mobile/src/features/profile/components/ProfileScreen.tsx, artifacts/mobile/src/features/profile/components/ProfileThemeSelector.tsx"
+  },
+  {
+    "id": "e90",
+    "source": "purchase_feature",
+    "target": "error_boundary",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/purchase/components/BuyTab.tsx, artifacts/mobile/src/features/purchase/components/PremiumButton.tsx, artifacts/mobile/src/features/purchase/components/PurchaseScreen.tsx, artifacts/mobile/src/features/purchase/components/SuccessState.tsx, artifacts/mobile/src/features/purchase/components/TabSwitcher.tsx"
+  },
+  {
+    "id": "e91",
+    "source": "quiz_feature",
+    "target": "error_boundary",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/quiz/components/QuizActiveHeader.tsx, artifacts/mobile/src/features/quiz/components/QuizErrorScreen.tsx, artifacts/mobile/src/features/quiz/components/QuizImage.tsx, artifacts/mobile/src/features/quiz/components/QuizNextButton.tsx, artifacts/mobile/src/features/quiz/components/QuizQuestionContent.tsx, artifacts/mobile/src/features/quiz/components/QuizResultsView.tsx, artifacts/mobile/src/features/quiz/components/QuizReviewScreen.tsx"
+  },
+  {
+    "id": "e92",
+    "source": "stats_feature",
+    "target": "error_boundary",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/stats/components/MasteryFilterChips.tsx, artifacts/mobile/src/features/stats/components/MasteryHeader.tsx, artifacts/mobile/src/features/stats/components/MasterySearch.tsx, artifacts/mobile/src/features/stats/components/MasterySection.tsx"
+  },
+  {
+    "id": "e93",
+    "source": "supabase_client",
+    "target": "supabase_functions",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/purchaseStore.tsx"
+  },
+  {
+    "id": "e94",
+    "source": "tab_navigator",
+    "target": "error_boundary",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/app/(main)/(tabs)/_layout.tsx"
+  },
+  {
+    "id": "e95",
+    "source": "auth_store",
+    "target": "best_score_service",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
+  },
+  {
+    "id": "e96",
+    "source": "auth_store",
+    "target": "progress_service",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
+  },
+  {
+    "id": "e97",
+    "source": "learn_feature",
+    "target": "best_score_service",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useLectureBestScores.ts, artifacts/mobile/src/features/learn/hooks/useLectureBestScores.ts, artifacts/mobile/src/features/learn/index.ts"
+  },
+  {
+    "id": "e98",
+    "source": "learn_feature",
+    "target": "progress_service",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useProgress.ts, artifacts/mobile/src/features/learn/hooks/useProgress.ts, artifacts/mobile/src/features/learn/index.ts"
+  },
+  {
+    "id": "e99",
+    "source": "learn_feature",
+    "target": "question_cache",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useSubjectCache.ts"
+  },
+  {
+    "id": "e100",
+    "source": "purchase_store",
+    "target": "revenuecat",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/purchaseStore.tsx"
+  },
+  {
+    "id": "e101",
+    "source": "question_service",
+    "target": "quiz_feature",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/quiz/services/questionService.ts"
+  },
+  {
+    "id": "e102",
+    "source": "quiz_feature",
+    "target": "offline_queue",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts"
+  },
+  {
+    "id": "e103",
+    "source": "stats_feature",
+    "target": "stats_service",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/stats/hooks/useStats.ts, artifacts/mobile/src/features/stats/hooks/useStats.ts, artifacts/mobile/src/features/stats/index.ts"
+  },
+  {
+    "id": "e104",
+    "source": "sync_store",
+    "target": "offline_queue",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/syncStore.tsx"
   },
   {
     "source": "react_query",
@@ -1163,13 +1115,5 @@ module.exports = [
     "source": "quiz_feature",
     "target": "app",
     "label": "Flow triggers"
-  },
-  {
-    "id": "e111",
-    "source": "stats_feature",
-    "target": "learn_feature",
-    "type": "navigates",
-    "label": "navigates",
-    "description": "Empirical edge not previously tracked"
   }
 ];
