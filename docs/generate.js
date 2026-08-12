@@ -14,6 +14,7 @@ const path = require("path");
 
 const extractorsDir = path.join(__dirname, "extractors");
 const projectRoot = path.resolve(__dirname, "..");
+const outDir = path.join(__dirname, "generated");
 
 console.log("\x1b[35m=== 📚 Generating Harvi Documentation ===\x1b[0m\n");
 
@@ -21,6 +22,11 @@ console.log("\x1b[35m=== 📚 Generating Harvi Documentation ===\x1b[0m\n");
 if (!fs.existsSync(extractorsDir)) {
   console.error(`\x1b[31m❌ Error: Extractors directory not found at ${extractorsDir}\x1b[0m`);
   process.exit(1);
+}
+
+// Ensure output directory exists
+if (!fs.existsSync(outDir)) {
+  fs.mkdirSync(outDir, { recursive: true });
 }
 
 // Get all extractor scripts
@@ -52,11 +58,11 @@ for (const script of extractors) {
     // Generate the markdown content
     const mdContent = extractor.generate();
     
-    // Write to project root
-    const outPath = path.join(projectRoot, extractor.name);
+    // Write to docs/generated
+    const outPath = path.join(outDir, extractor.name);
     fs.writeFileSync(outPath, mdContent);
     
-    console.log(`\x1b[32m✅ Generated ${extractor.name}\x1b[0m`);
+    console.log(`\x1b[32m✅ Generated docs/generated/${extractor.name}\x1b[0m`);
     successCount++;
   } catch (err) {
     console.error(`\x1b[31m❌ Failed ${script}:\x1b[0m`, err.message);
