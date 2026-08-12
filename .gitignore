@@ -50,3 +50,15 @@ Thumbs.db
 
 # Antigravity/Agentic Folders
 .agents/
+
+# Supabase local config (contains secrets & project ref)
+supabase/.temp/
+
+# Root env files
+.env
+.env.*
+!.env.example
+
+# Generated outputs
+graphing/architecture.html
+graphing/architecture.json
