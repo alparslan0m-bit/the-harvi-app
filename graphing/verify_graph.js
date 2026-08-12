@@ -197,6 +197,71 @@ files.forEach((file) => {
 
 // Also manually add implicit or navigation edges if they aren't standard imports
 const implicitEdges = [
+  "app->error_boundary",
+  "learn_feature->question_service",
+  "quiz_feature->progress_service",
+  "quiz_feature->best_score_service",
+  "profile_feature->progress_service",
+  "profile_feature->feedback_form",
+  "feedback_form->supabase_client",
+  "feedback_form->netinfo",
+  "react_query->theme_store",
+  "theme_store->auth_store",
+  "secure_store->purchase_store",
+  "purchase_store->sync_store",
+  "sync_store->app",
+  "supabase_auth->secure_store",
+  "secure_store->auth_store",
+  "auth_store->auth_feature",
+  "supabase_client->google_oauth",
+  "google_oauth->auth_store",
+  "auth_store->supabase_auth",
+  "secure_store->auth_feature",
+  "netinfo->hierarchy_service",
+  "supabase_db->hierarchy_service",
+  "hierarchy_service->progress_service",
+  "progress_service->best_score_service",
+  "best_score_service->access_service",
+  "access_service->learn_feature",
+  "question_cache->question_service",
+  "supabase_client->question_cache",
+  "question_cache->quiz_feature",
+  "supabase_db->best_score_service",
+  "best_score_service->react_query",
+  "react_query->quiz_feature",
+  "async_storage->progress_service",
+  "auth_store->purchase_store",
+  "purchase_store->auth_feature",
+  "secure_store->cache_store",
+  "cache_store->progress_service",
+  "best_score_service->purchase_store",
+  "purchase_store->profile_feature",
+  "netinfo->learn_feature",
+  "supabase_db->question_cache",
+  "question_cache->learn_feature",
+  "revenuecat->purchase_store",
+  "supabase_db->react_query",
+  "react_query->purchase_feature",
+  "netinfo->sync_store",
+  "offline_queue->sync_store",
+  "supabase_db->offline_queue",
+  "offline_queue->react_query",
+  "react_query->sync_store",
+  "cache_store->stats_service",
+  "netinfo->supabase_client",
+  "offline_queue->stats_service",
+  "cache_store->async_storage",
+  "async_storage->stats_feature",
+  "async_storage->profile_feature",
+  "async_storage->theme_store",
+  "theme_store->app",
+  "supabase_db->feedback_form",
+  "supabase_db->stats_service",
+  "stats_service->progress_service",
+  "react_query->profile_feature",
+  "async_storage->react_query",
+  "hierarchy_service->stats_feature",
+  "quiz_feature->app",
   "app->auth_feature",
   "app->tab_navigator",
   "app->quiz_feature",
@@ -232,3 +297,41 @@ definedEdges.forEach((e) => {
   if (!empiricalEdges.has(e)) missingInEmpirical.push(e);
 });
 console.log(missingInEmpirical.join("\n") || "None!");
+
+// Check Nodes
+const empiricalNodes = new Set([
+  ...Object.keys(nodeMapping),
+  ...Object.values(externalMapping),
+]);
+// Add nodes from implicitEdges that might not be in mapping but are valid external/conceptual nodes
+const implicitNodes = ["supabase_auth", "supabase_db", "supabase_functions"];
+implicitNodes.forEach((n) => empiricalNodes.add(n));
+
+const graphNodes = new Set(arch.nodes.map((n) => n.id));
+
+console.log("\n=== EMPIRICAL NODES NOT IN GRAPH (False Negatives) ===");
+const missingNodes = [...empiricalNodes].filter((n) => !graphNodes.has(n));
+console.log(missingNodes.join("\n") || "None!");
+
+console.log("\n=== GRAPH NODES NOT IN EMPIRICAL (False Positives) ===");
+const extraNodes = [...graphNodes].filter((n) => !empiricalNodes.has(n));
+console.log(extraNodes.join("\n") || "None!");
+
+let hasErrors = false;
+if (missingNodes.length > 0 || extraNodes.length > 0) {
+  console.error("\n❌ Test Failed: Node mismatch detected.");
+  hasErrors = true;
+}
+if (missingInGraph.length > 0 || missingInEmpirical.length > 0) {
+  console.error("\n❌ Test Failed: Edge mismatch detected.");
+  hasErrors = true;
+}
+
+if (hasErrors) {
+  process.exit(1);
+} else {
+  console.log(
+    "\n✅ Test Passed: No false positive or false negative nodes or edges.",
+  );
+  process.exit(0);
+}

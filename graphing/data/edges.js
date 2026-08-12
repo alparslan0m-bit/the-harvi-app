@@ -1163,5 +1163,13 @@ module.exports = [
     "source": "quiz_feature",
     "target": "app",
     "label": "Flow triggers"
+  },
+  {
+    "id": "e111",
+    "source": "stats_feature",
+    "target": "learn_feature",
+    "type": "navigates",
+    "label": "navigates",
+    "description": "Empirical edge not previously tracked"
   }
 ];
