@@ -669,13 +669,25 @@ let chartsMdContent = `# Harvi Architecture Charts
 ## 📊 Architecture Diagram
 
 \`\`\`mermaid
-flowchart TD
+flowchart LR
+
+  %% Styling Classes
+  classDef presentation fill:#f472b6,stroke:#831843,stroke-width:2px,color:#000
+  classDef application fill:#60a5fa,stroke:#1e3a8a,stroke-width:2px,color:#000
+  classDef infrastructure fill:#fbbf24,stroke:#78350f,stroke-width:2px,color:#000
+  classDef external fill:#a1a1aa,stroke:#3f3f46,stroke-width:2px,color:#000
 
 `;
-for (const [layer, nodesInLayer] of Object.entries(nodesByLayer)) {
+
+const orderedLayers = ["presentation", "application", "infrastructure", "external"];
+for (const layer of orderedLayers) {
+  const nodesInLayer = nodesByLayer[layer] || [];
+  if (nodesInLayer.length === 0) continue;
+  
   chartsMdContent += `  subgraph ${layer.toUpperCase()}\n`;
+  chartsMdContent += `    direction TB\n`; // Keep nodes inside the layer stacked vertically for compactness
   nodesInLayer.forEach((n) => {
-    chartsMdContent += `    ${n.id}["${n.label}"]\n`;
+    chartsMdContent += `    ${n.id}["${n.label}"]:::${layer}\n`;
   });
   chartsMdContent += `  end\n\n`;
 }

@@ -5,52 +5,62 @@
 ## 📊 Architecture Diagram
 
 ```mermaid
-flowchart TD
+flowchart LR
+
+  %% Styling Classes
+  classDef presentation fill:#f472b6,stroke:#831843,stroke-width:2px,color:#000
+  classDef application fill:#60a5fa,stroke:#1e3a8a,stroke-width:2px,color:#000
+  classDef infrastructure fill:#fbbf24,stroke:#78350f,stroke-width:2px,color:#000
+  classDef external fill:#a1a1aa,stroke:#3f3f46,stroke-width:2px,color:#000
 
   subgraph PRESENTATION
-    app["Mobile App Router"]
-    tab_navigator["Tab Navigator"]
-    auth_feature["Auth UI"]
-    learn_feature["Learn UI"]
-    quiz_feature["Quiz UI"]
-    stats_feature["Stats UI"]
-    purchase_feature["Purchase UI"]
-    profile_feature["Profile UI"]
-    error_boundary["Error Boundary"]
-    offline_banner["Offline Banner"]
-    feedback_form["Feedback Form"]
+    direction TB
+    app["Mobile App Router"]:::presentation
+    tab_navigator["Tab Navigator"]:::presentation
+    auth_feature["Auth UI"]:::presentation
+    learn_feature["Learn UI"]:::presentation
+    quiz_feature["Quiz UI"]:::presentation
+    stats_feature["Stats UI"]:::presentation
+    purchase_feature["Purchase UI"]:::presentation
+    profile_feature["Profile UI"]:::presentation
+    error_boundary["Error Boundary"]:::presentation
+    offline_banner["Offline Banner"]:::presentation
+    feedback_form["Feedback Form"]:::presentation
   end
 
   subgraph APPLICATION
-    auth_store["Auth Store"]
-    sync_store["Sync Engine"]
-    purchase_store["Purchase Store"]
-    cache_store["Cache Store"]
-    theme_store["Theme Store"]
-    react_query["React Query Client"]
-    hierarchy_service["Hierarchy Service"]
-    access_service["Access Service"]
-    progress_service["Progress Service"]
-    best_score_service["Best Score Service"]
-    question_service["Question Service"]
-    stats_service["Stats Service"]
+    direction TB
+    auth_store["Auth Store"]:::application
+    sync_store["Sync Engine"]:::application
+    purchase_store["Purchase Store"]:::application
+    cache_store["Cache Store"]:::application
+    theme_store["Theme Store"]:::application
+    react_query["React Query Client"]:::application
+    hierarchy_service["Hierarchy Service"]:::application
+    access_service["Access Service"]:::application
+    progress_service["Progress Service"]:::application
+    best_score_service["Best Score Service"]:::application
+    question_service["Question Service"]:::application
+    stats_service["Stats Service"]:::application
   end
 
   subgraph INFRASTRUCTURE
-    question_cache["Question Cache"]
-    offline_queue["Offline Queue"]
-    supabase_client["Supabase Client"]
-    secure_store["Secure Store"]
-    async_storage["Async Storage"]
+    direction TB
+    question_cache["Question Cache"]:::infrastructure
+    offline_queue["Offline Queue"]:::infrastructure
+    supabase_client["Supabase Client"]:::infrastructure
+    secure_store["Secure Store"]:::infrastructure
+    async_storage["Async Storage"]:::infrastructure
   end
 
   subgraph EXTERNAL
-    supabase_auth["Supabase Auth"]
-    supabase_db["Supabase Database"]
-    supabase_functions["Edge Functions"]
-    revenuecat["RevenueCat"]
-    netinfo["NetInfo"]
-    google_oauth["Google OAuth"]
+    direction TB
+    supabase_auth["Supabase Auth"]:::external
+    supabase_db["Supabase Database"]:::external
+    supabase_functions["Edge Functions"]:::external
+    revenuecat["RevenueCat"]:::external
+    netinfo["NetInfo"]:::external
+    google_oauth["Google OAuth"]:::external
   end
 
   app --> error_boundary
