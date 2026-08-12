@@ -6,31 +6,47 @@ import { AvatarById, AvatarId } from "./DoctorAvatars";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { AnimatedPressable } from "@/src/shared/components";
 
-export function ProfileAvatarSection({ 
-  avatarId, 
-  initial, 
-  onPress 
-}: { avatarId: AvatarId | null; initial: string; onPress: () => void }) {
+export function ProfileAvatarSection({
+  avatarId,
+  initial,
+  onPress,
+}: {
+  avatarId: AvatarId | null;
+  initial: string;
+  onPress: () => void;
+}) {
   const colors = useColors();
   return (
     <View style={styles.avatarSection}>
-      <AnimatedPressable feedback="opacity"
+      <AnimatedPressable
+        feedback="opacity"
         onPress={onPress}
-        
         style={styles.avatarWrap}
       >
         <View style={[styles.avatarRing, { borderColor: colors.primary }]}>
           {avatarId ? (
-            <View style={[styles.avatarInner, { backgroundColor: colors.primary + "1A" }]}>
+            <View
+              style={[
+                styles.avatarInner,
+                { backgroundColor: colors.primary + "1A" },
+              ]}
+            >
               <AvatarById id={avatarId} size={86} />
             </View>
           ) : (
-            <View style={[styles.avatarInner, { backgroundColor: colors.primary }]}>
+            <View
+              style={[styles.avatarInner, { backgroundColor: colors.primary }]}
+            >
               <Text style={styles.avatarInitialText}>{initial}</Text>
             </View>
           )}
         </View>
-        <View style={[styles.editBadge, { backgroundColor: colors.primary, borderColor: colors.background }]}>
+        <View
+          style={[
+            styles.editBadge,
+            { backgroundColor: colors.primary, borderColor: colors.background },
+          ]}
+        >
           <Feather name="camera" size={14} color="#fff" />
         </View>
       </AnimatedPressable>
@@ -60,7 +76,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     overflow: "hidden",
   },
-  avatarInitialText: { fontSize: 40, fontFamily: "Inter_700Bold", color: "#fff" },
+  avatarInitialText: {
+    fontSize: 40,
+    fontFamily: "Inter_700Bold",
+    color: "#fff",
+  },
   editBadge: {
     position: "absolute",
     bottom: 4,

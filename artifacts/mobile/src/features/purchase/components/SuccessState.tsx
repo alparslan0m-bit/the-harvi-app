@@ -58,7 +58,8 @@ export const SuccessState = React.memo(function SuccessState({
         entering={FadeInDown.duration(400).delay(200)}
         style={{ width: "100%" }}
       >
-        <AnimatedPressable feedback="scale"
+        <AnimatedPressable
+          feedback="scale"
           style={[sharedStyles.ctaOuter, animStyle]}
           onPress={onDone}
           onPressIn={() => {
@@ -74,8 +75,19 @@ export const SuccessState = React.memo(function SuccessState({
             end={{ x: 1, y: 0.5 }}
             style={sharedStyles.ctaInner}
           >
-            <Feather name="check-circle" size={18} color={colors.primaryForeground} />
-            <Text style={[sharedStyles.ctaText, { color: colors.primaryForeground }]}>Done</Text>
+            <Feather
+              name="check-circle"
+              size={18}
+              color={colors.primaryForeground}
+            />
+            <Text
+              style={[
+                sharedStyles.ctaText,
+                { color: colors.primaryForeground },
+              ]}
+            >
+              Done
+            </Text>
           </LinearGradient>
         </AnimatedPressable>
       </Animated.View>

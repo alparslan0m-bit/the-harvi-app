@@ -9,16 +9,16 @@ import { THEME } from "@/src/shared/constants/theme";
 import { UserStats } from "@/src/shared/types";
 import { AnimatedPressable } from "@/src/shared/components";
 
-export function MasterySection({ masteryData }: { masteryData: UserStats["subject_mastery"] }) {
+export function MasterySection({
+  masteryData,
+}: {
+  masteryData: UserStats["subject_mastery"];
+}) {
   const colors = useColors();
   return (
-    <View
-      style={[
-        styles.section,
-        { backgroundColor: colors.card },
-      ]}
-    >
-      <AnimatedPressable feedback="opacity"
+    <View style={[styles.section, { backgroundColor: colors.card }]}>
+      <AnimatedPressable
+        feedback="opacity"
         style={styles.sectionHeader}
         onPress={() => router.push("/stats/mastery")}
       >
@@ -48,11 +48,9 @@ export function MasterySection({ masteryData }: { masteryData: UserStats["subjec
         ))}
       </View>
       {masteryData.length > 3 && (
-        <AnimatedPressable feedback="opacity"
-          style={[
-            styles.moreBtn,
-            { backgroundColor: colors.muted },
-          ]}
+        <AnimatedPressable
+          feedback="opacity"
+          style={[styles.moreBtn, { backgroundColor: colors.muted }]}
           onPress={() => router.push("/stats/mastery")}
         >
           <Text style={[styles.moreBtnText, { color: colors.foreground }]}>

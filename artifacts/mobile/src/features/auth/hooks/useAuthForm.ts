@@ -16,7 +16,9 @@ export function useAuthForm() {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
-  const [focusedField, setFocusedField] = useState<"email" | "password" | null>(null);
+  const [focusedField, setFocusedField] = useState<"email" | "password" | null>(
+    null,
+  );
 
   const handleSubmit = async () => {
     if (!email || !password) {

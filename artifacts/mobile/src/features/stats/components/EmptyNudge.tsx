@@ -9,10 +9,7 @@ export function EmptyNudge() {
   const colors = useColors();
   return (
     <View
-      style={[
-        styles.nudgeCard,
-        { backgroundColor: colors.primary + "12" },
-      ]}
+      style={[styles.nudgeCard, { backgroundColor: colors.primary + "12" }]}
     >
       <View
         style={[styles.nudgeIcon, { backgroundColor: colors.primary + "20" }]}

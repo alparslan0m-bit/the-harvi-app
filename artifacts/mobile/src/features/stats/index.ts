@@ -1,3 +1,3 @@
 export * from "./hooks/useStats";
 export * from "./services/statsService";
-export * from './components';
+export * from "./components";

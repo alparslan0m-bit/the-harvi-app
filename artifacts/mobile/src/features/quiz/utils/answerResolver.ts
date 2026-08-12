@@ -4,20 +4,40 @@
 // ── Schema field-name candidates ────────────────────────────────────────────
 
 export const TEXT_CANDIDATES = [
-  "text", "question", "body", "content", "question_text", "stem",
+  "text",
+  "question",
+  "body",
+  "content",
+  "question_text",
+  "stem",
 ];
 export const OPTIONS_CANDIDATES = ["options", "answers", "choices", "opts"];
 export const ANSWER_CANDIDATES = [
-  "answer", "correct_answer", "correct", "answer_index",
-  "correct_index", "correct_answer_index",
+  "answer",
+  "correct_answer",
+  "correct",
+  "answer_index",
+  "correct_index",
+  "correct_answer_index",
 ];
 export const EXPLANATION_CANDIDATES = [
-  "explanation", "rationale", "reason", "feedback", "solution", "comment",
+  "explanation",
+  "rationale",
+  "reason",
+  "feedback",
+  "solution",
+  "comment",
 ];
 
 export const IMAGE_URL_CANDIDATES = [
-  "image_url", "image", "picture_url", "photo_url",
-  "img_url", "image_link", "img", "media_url",
+  "image_url",
+  "image",
+  "picture_url",
+  "photo_url",
+  "img_url",
+  "image_link",
+  "img",
+  "media_url",
 ];
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -26,7 +46,10 @@ export function str(v: unknown): string {
   return String(v ?? "");
 }
 
-export function pick(row: Record<string, unknown>, candidates: string[]): unknown {
+export function pick(
+  row: Record<string, unknown>,
+  candidates: string[],
+): unknown {
   for (const c of candidates) if (c in row) return row[c];
   return null;
 }
@@ -75,7 +98,12 @@ export function parseOptions(raw: unknown): string[] {
         arr = parsed;
       } else if (typeof parsed === "object" && parsed !== null) {
         arr = Object.entries(parsed)
-          .filter(([k]) => !['answer', 'correct', 'explanation', 'id'].includes(k.toLowerCase()))
+          .filter(
+            ([k]) =>
+              !["answer", "correct", "explanation", "id"].includes(
+                k.toLowerCase(),
+              ),
+          )
           .map(([k, v]) => v);
       } else {
         return [raw];
@@ -85,10 +113,13 @@ export function parseOptions(raw: unknown): string[] {
     }
   } else if (typeof raw === "object" && raw !== null) {
     arr = Object.entries(raw as Record<string, unknown>)
-      .filter(([k]) => !['answer', 'correct', 'explanation', 'id'].includes(k.toLowerCase()))
+      .filter(
+        ([k]) =>
+          !["answer", "correct", "explanation", "id"].includes(k.toLowerCase()),
+      )
       .map(([k, v]) => v);
   }
-  
+
   const mapped = arr.map(extractOptionText).filter(Boolean);
   return Array.from(new Set(mapped));
 }
@@ -103,7 +134,10 @@ export function parseOptions(raw: unknown): string[] {
  *  • Full option text  ("عضلة الحجاب الحاز (Diaphragm)")  ← was broken before
  *  • Numeric string   ("2", "3")
  */
-export function resolveAnswerIndex(rawAnswer: unknown, options: string[]): number {
+export function resolveAnswerIndex(
+  rawAnswer: unknown,
+  options: string[],
+): number {
   const n = options.length;
   if (!rawAnswer) return 0;
 

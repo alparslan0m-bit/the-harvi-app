@@ -38,10 +38,10 @@ export function QuizNextButton({
         },
       ]}
     >
-      <AnimatedPressable feedback="scale"
+      <AnimatedPressable
+        feedback="scale"
         style={[styles.nextBtn, { backgroundColor: colors.primary }]}
         onPress={onNext}
-        
       >
         <Text style={styles.nextBtnText}>
           {isLast ? "See Results" : "Next Question"}
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     paddingVertical: 18,
     borderRadius: 999,
     gap: 8,
-    shadowColor: '#1A1A1A',
+    shadowColor: "#1A1A1A",
     shadowOpacity: 0.1,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 8 },

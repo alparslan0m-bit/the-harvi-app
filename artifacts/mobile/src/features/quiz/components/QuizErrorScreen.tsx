@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-
 import { useColors } from "@/src/shared/hooks/useColors";
 import { AnimatedPressable } from "@/src/shared/components";
 
@@ -53,7 +52,8 @@ export function QuizErrorScreen({ error, lectureId }: QuizErrorScreenProps) {
             ? error.message
             : `No questions are linked to this lecture.\n\nLecture ID: ${lectureId}`}
       </Text>
-      <AnimatedPressable feedback="scale"
+      <AnimatedPressable
+        feedback="scale"
         onPress={() => router.back()}
         style={[styles.errorBtn, { backgroundColor: colors.primary }]}
       >

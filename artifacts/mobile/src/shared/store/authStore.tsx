@@ -5,8 +5,14 @@ import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import { supabase } from "@/src/shared/services/supabase";
 import { useCacheStore } from "@/src/shared/store/cacheStore";
-import { memCache as progressMemCache, warmed as progressWarmed } from "@/src/features/learn/services/progressService";
-import { memCache as bestScoreMemCache, warmed as bestScoreWarmed } from "@/src/features/learn/services/bestScoreService";
+import {
+  memCache as progressMemCache,
+  warmed as progressWarmed,
+} from "@/src/features/learn/services/progressService";
+import {
+  memCache as bestScoreMemCache,
+  warmed as bestScoreWarmed,
+} from "@/src/features/learn/services/bestScoreService";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -15,9 +21,18 @@ interface AuthState {
   user: User | null;
   loading: boolean;
   setSession: (session: Session | null) => void;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: string | null }>;
-  signInWithGoogle: () => Promise<{ error: string | null; cancelled?: boolean }>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: string | null }>;
+  signUp: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: string | null }>;
+  signInWithGoogle: () => Promise<{
+    error: string | null;
+    cancelled?: boolean;
+  }>;
   signOut: () => Promise<void>;
 }
 
@@ -31,9 +46,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   session: null,
   user: null,
   loading: true,
-  setSession: (session) => set({ session, user: session?.user ?? null, loading: false }),
+  setSession: (session) =>
+    set({ session, user: session?.user ?? null, loading: false }),
   signIn: async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     return { error: error?.message ?? null };
   },
   signUp: async (email, password) => {
@@ -52,25 +71,36 @@ export const useAuthStore = create<AuthState>((set) => ({
         },
       });
 
-      if (error || !data.url) return { error: error?.message ?? "Could not start Google sign-in" };
+      if (error || !data.url)
+        return { error: error?.message ?? "Could not start Google sign-in" };
 
-      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+      const result = await WebBrowser.openAuthSessionAsync(
+        data.url,
+        redirectTo,
+      );
       if (result.type === "success" && result.url) {
         const params = parseOAuthUrl(result.url);
         const code = params.get("code");
         if (code) {
-          const { error: exchError } = await supabase.auth.exchangeCodeForSession(decodeURIComponent(code));
+          const { error: exchError } =
+            await supabase.auth.exchangeCodeForSession(
+              decodeURIComponent(code),
+            );
           return { error: exchError?.message ?? null };
         }
         const access_token = params.get("access_token");
         const refresh_token = params.get("refresh_token");
         if (access_token && refresh_token) {
-          const { error: sessError } = await supabase.auth.setSession({ access_token, refresh_token });
+          const { error: sessError } = await supabase.auth.setSession({
+            access_token,
+            refresh_token,
+          });
           return { error: sessError?.message ?? null };
         }
         return { error: "Redirect URL not configured in Supabase." };
       }
-      if (result.type === "cancel" || result.type === "dismiss") return { error: null, cancelled: true };
+      if (result.type === "cancel" || result.type === "dismiss")
+        return { error: null, cancelled: true };
       return { error: "Sign-in was not completed." };
     } catch (e: unknown) {
       return { error: e instanceof Error ? e.message : "Unknown error" };
@@ -84,7 +114,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     progressWarmed.clear();
     bestScoreMemCache.clear();
     bestScoreWarmed.clear();
-  }
+  },
 }));
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -117,7 +147,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const params = parseOAuthUrl(url);
       const code = params.get("code");
       if (code) {
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        const { data, error } =
+          await supabase.auth.exchangeCodeForSession(code);
         if (!error && data.session) setSession(data.session);
         return;
       }
@@ -129,7 +160,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const sub = Linking.addEventListener("url", ({ url }) => handleUrl(url));
-    Linking.getInitialURL().then((url) => { if (url) handleUrl(url); });
+    Linking.getInitialURL().then((url) => {
+      if (url) handleUrl(url);
+    });
     return () => sub.remove();
   }, [setSession]);
 

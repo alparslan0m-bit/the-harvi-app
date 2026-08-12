@@ -17,7 +17,7 @@ export function ScoreRing({
   ringAnimStyle,
 }: ScoreRingProps) {
   const colors = useColors();
-  
+
   return (
     <Animated.View style={[styles.ringWrap, ringAnimStyle]}>
       <View style={[styles.ringOuter, { borderColor: ringColor + "33" }]}>
@@ -33,14 +33,16 @@ export function ScoreRing({
           </Text>
         </View>
       </View>
-      <View style={[
-        styles.gradeBadge, 
-        { 
-          backgroundColor: ringColor,
-          borderColor: colors.background,
-          borderWidth: 4
-        }
-      ]}>
+      <View
+        style={[
+          styles.gradeBadge,
+          {
+            backgroundColor: ringColor,
+            borderColor: colors.background,
+            borderWidth: 4,
+          },
+        ]}
+      >
         <Text style={styles.gradeText}>{grade}</Text>
       </View>
     </Animated.View>
@@ -48,10 +50,10 @@ export function ScoreRing({
 }
 
 const styles = StyleSheet.create({
-  ringWrap: { 
-    alignItems: "center", 
-    marginTop: 0, 
-    marginBottom: 28 
+  ringWrap: {
+    alignItems: "center",
+    marginTop: 0,
+    marginBottom: 28,
   },
   ringOuter: {
     width: 170,
@@ -70,10 +72,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 2,
   },
-  scoreRow: { 
-    flexDirection: "row", 
-    alignItems: "flex-end", 
-    gap: 2 
+  scoreRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 2,
   },
   scoreNum: {
     fontSize: 48,
@@ -101,9 +103,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  gradeText: { 
-    fontSize: 20, 
-    fontFamily: "Inter_800ExtraBold", 
-    color: "#fff" 
+  gradeText: {
+    fontSize: 20,
+    fontFamily: "Inter_800ExtraBold",
+    color: "#fff",
   },
 });

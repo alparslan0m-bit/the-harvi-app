@@ -14,25 +14,25 @@ export function ProfileEditHeader({
 }) {
   const colors = useColors();
   return (
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: topPad + 14,
-            backgroundColor: colors.background,
-          },
-        ]}
-      >
+    <View
+      style={[
+        styles.header,
+        {
+          paddingTop: topPad + 14,
+          backgroundColor: colors.background,
+        },
+      ]}
+    >
       <BackButton onPress={onCancel} />
 
       <Text style={[styles.headerTitle, { color: colors.foreground }]}>
         Edit Profile
       </Text>
 
-      <AnimatedPressable feedback="opacity"
+      <AnimatedPressable
+        feedback="opacity"
         style={[styles.headerBtn, { backgroundColor: colors.primary }]}
         onPress={onSave}
-        
       >
         <Text style={[styles.headerBtnText, { color: "#fff" }]}>Save</Text>
       </AnimatedPressable>

@@ -22,11 +22,7 @@ export const HeroIcon = React.memo(function HeroIcon({
   const glowOpacity = useSharedValue(0.5);
 
   useEffect(() => {
-    glowOpacity.value = withRepeat(
-      withTiming(1, { duration: 2000 }),
-      -1,
-      true,
-    );
+    glowOpacity.value = withRepeat(withTiming(1, { duration: 2000 }), -1, true);
   }, [glowOpacity]);
 
   const glowStyle = useAnimatedStyle(() => ({
@@ -34,7 +30,10 @@ export const HeroIcon = React.memo(function HeroIcon({
   }));
 
   return (
-    <Animated.View entering={FadeInDown.duration(500)} style={styles.heroWrapper}>
+    <Animated.View
+      entering={FadeInDown.duration(500)}
+      style={styles.heroWrapper}
+    >
       {/* Pulsing glow ring */}
       <Animated.View
         style={[

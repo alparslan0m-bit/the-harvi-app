@@ -29,7 +29,10 @@ export class ErrorBoundary extends Component<
     return { error };
   }
 
-  override componentDidCatch(error: Error, info: { componentStack?: string }): void {
+  override componentDidCatch(
+    error: Error,
+    info: { componentStack?: string },
+  ): void {
     if (typeof this.props.onError === "function") {
       this.props.onError(error, info.componentStack || "");
     }
@@ -52,4 +55,3 @@ export class ErrorBoundary extends Component<
     );
   }
 }
-

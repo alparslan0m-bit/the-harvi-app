@@ -1,7 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-
 import { useColors } from "@/src/shared/hooks/useColors";
 import { THEME } from "@/src/shared/constants/theme";
 import { Year } from "@/src/shared/types";
@@ -12,8 +11,6 @@ interface Props {
   index: number;
   onPress: () => void;
 }
-
-
 
 export function YearCard({ year, index, onPress }: Props) {
   const colors = useColors();

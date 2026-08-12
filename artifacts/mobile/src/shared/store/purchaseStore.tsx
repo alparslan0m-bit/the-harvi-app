@@ -12,7 +12,8 @@ import { useAuth } from "./authStore";
 import { supabase } from "@/src/shared/services/supabase";
 
 const REVENUECAT_IOS_KEY = process.env["EXPO_PUBLIC_REVENUECAT_IOS_KEY"] ?? "";
-const REVENUECAT_ANDROID_KEY = process.env["EXPO_PUBLIC_REVENUECAT_ANDROID_KEY"] ?? "";
+const REVENUECAT_ANDROID_KEY =
+  process.env["EXPO_PUBLIC_REVENUECAT_ANDROID_KEY"] ?? "";
 
 interface PurchaseState {
   isReady: boolean;
@@ -30,7 +31,7 @@ export const usePurchaseStore = create<PurchaseState>((set) => ({
 
 export function usePurchaseActions() {
   const queryClient = useQueryClient();
-  const setCustomerInfo = usePurchaseStore(s => s.setCustomerInfo);
+  const setCustomerInfo = usePurchaseStore((s) => s.setCustomerInfo);
 
   const invalidateAccess = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ["content_access"] });
@@ -52,12 +53,15 @@ export function usePurchaseActions() {
           store: params.store,
         },
       });
-      
-      const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-        setTimeout(() => reject(new Error("timeout")), 15000)
+
+      const timeoutPromise = new Promise<{ data: any; error: any }>(
+        (_, reject) => setTimeout(() => reject(new Error("timeout")), 15000),
       );
 
-      const { data, error } = await Promise.race([invokePromise, timeoutPromise]);
+      const { data, error } = await Promise.race([
+        invokePromise,
+        timeoutPromise,
+      ]);
 
       if (error) throw new Error(error.message);
       return data;
@@ -68,7 +72,8 @@ export function usePurchaseActions() {
   const purchaseModule = useCallback(
     async (moduleId: string, rcPackage: PurchasesPackage) => {
       try {
-        const { customerInfo: info, transaction } = await Purchases.purchasePackage(rcPackage);
+        const { customerInfo: info, transaction } =
+          await Purchases.purchasePackage(rcPackage);
         setCustomerInfo(info);
         const store = Platform.OS === "ios" ? "apple_iap" : "google_play";
         const txId = transaction?.transactionIdentifier ?? rcPackage.identifier;
@@ -79,7 +84,8 @@ export function usePurchaseActions() {
         if (typeof e === "object" && e !== null) {
           const err = e as Record<string, unknown>;
           if (err["userCancelled"]) return { success: false };
-          if (typeof err["message"] === "string") return { success: false, error: err["message"] };
+          if (typeof err["message"] === "string")
+            return { success: false, error: err["message"] };
         }
         return { success: false, error: "Purchase failed" };
       }
@@ -87,31 +93,41 @@ export function usePurchaseActions() {
     [recordIAP, invalidateAccess, setCustomerInfo],
   );
 
-
-
   const redeemCode = useCallback(
     async (code: string) => {
       try {
         const rpcPromise = supabase.rpc("redeem_access_code", { p_code: code });
-        const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-          setTimeout(() => reject(new Error("timeout")), 15000)
+        const timeoutPromise = new Promise<{ data: any; error: any }>(
+          (_, reject) => setTimeout(() => reject(new Error("timeout")), 15000),
         );
-        const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);
+        const { data, error } = await Promise.race([
+          rpcPromise,
+          timeoutPromise,
+        ]);
         if (error) return { success: false, error: error.message };
-        if (!data || typeof data !== "object") return { success: false, error: "Invalid response from server" };
-        
+        if (!data || typeof data !== "object")
+          return { success: false, error: "Invalid response from server" };
+
         const responseData = data as Record<string, unknown>;
         const success = Boolean(responseData["success"]);
-        const resultError = typeof responseData["error"] === "string" ? responseData["error"] : undefined;
-        const itemName = typeof responseData["item_name"] === "string" ? responseData["item_name"] : undefined;
+        const resultError =
+          typeof responseData["error"] === "string"
+            ? responseData["error"]
+            : undefined;
+        const itemName =
+          typeof responseData["item_name"] === "string"
+            ? responseData["item_name"]
+            : undefined;
 
-        if (!success) return { success: false, error: resultError ?? "Redemption failed" };
+        if (!success)
+          return { success: false, error: resultError ?? "Redemption failed" };
         await invalidateAccess();
         return { success: true, itemName };
       } catch (e: unknown) {
         if (typeof e === "object" && e !== null) {
           const err = e as Record<string, unknown>;
-          if (typeof err["message"] === "string") return { success: false, error: err["message"] };
+          if (typeof err["message"] === "string")
+            return { success: false, error: err["message"] };
         }
         return { success: false, error: "Redemption failed" };
       }
@@ -131,23 +147,32 @@ export function usePurchaseActions() {
 
   const restoreModule = useCallback(
     async (moduleId: string, productId: string) => {
-      if (Platform.OS === "web") return { success: false, error: "Not available on web" };
+      if (Platform.OS === "web")
+        return { success: false, error: "Not available on web" };
       try {
         const info = await Purchases.restorePurchases();
         setCustomerInfo(info);
-        const isPurchased = info.allPurchasedProductIdentifiers.includes(productId);
+        const isPurchased =
+          info.allPurchasedProductIdentifiers.includes(productId);
         if (isPurchased) {
-          const txId = info.nonSubscriptionTransactions.find((t) => t.productIdentifier === productId)?.transactionIdentifier ?? `restored_${productId}`;
+          const txId =
+            info.nonSubscriptionTransactions.find(
+              (t) => t.productIdentifier === productId,
+            )?.transactionIdentifier ?? `restored_${productId}`;
           const store = Platform.OS === "ios" ? "apple_iap" : "google_play";
           await recordIAP({ moduleId, transactionId: txId, store });
           await invalidateAccess();
           return { success: true };
         }
-        return { success: false, error: "No purchase found to restore for this product." };
+        return {
+          success: false,
+          error: "No purchase found to restore for this product.",
+        };
       } catch (e: unknown) {
         if (typeof e === "object" && e !== null) {
           const err = e as Record<string, unknown>;
-          if (typeof err["message"] === "string") return { success: false, error: err["message"] };
+          if (typeof err["message"] === "string")
+            return { success: false, error: err["message"] };
         }
         return { success: false, error: "Restore failed" };
       }
@@ -155,21 +180,25 @@ export function usePurchaseActions() {
     [recordIAP, invalidateAccess, setCustomerInfo],
   );
 
-  return React.useMemo(() => ({
-    purchaseModule, 
-    redeemCode, 
-    restorePurchases, 
-    restoreModule 
-  }), [purchaseModule, redeemCode, restorePurchases, restoreModule]);
+  return React.useMemo(
+    () => ({
+      purchaseModule,
+      redeemCode,
+      restorePurchases,
+      restoreModule,
+    }),
+    [purchaseModule, redeemCode, restorePurchases, restoreModule],
+  );
 }
 
 export function PurchaseProvider({ children }: { children: React.ReactNode }) {
   const user = useAuth((s) => s.user);
-  const setIsReady = usePurchaseStore(s => s.setIsReady);
-  const setCustomerInfo = usePurchaseStore(s => s.setCustomerInfo);
-  const isReady = usePurchaseStore(s => s.isReady);
+  const setIsReady = usePurchaseStore((s) => s.setIsReady);
+  const setCustomerInfo = usePurchaseStore((s) => s.setCustomerInfo);
+  const isReady = usePurchaseStore((s) => s.isReady);
 
-  const apiKey = Platform.OS === "ios" ? REVENUECAT_IOS_KEY : REVENUECAT_ANDROID_KEY;
+  const apiKey =
+    Platform.OS === "ios" ? REVENUECAT_IOS_KEY : REVENUECAT_ANDROID_KEY;
   const IS_REVENUECAT_ENABLED = Boolean(Platform.OS !== "web" && apiKey);
 
   useEffect(() => {
@@ -212,5 +241,3 @@ export function PurchaseProvider({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
-
-

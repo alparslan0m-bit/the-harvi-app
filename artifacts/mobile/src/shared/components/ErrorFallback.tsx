@@ -1,7 +1,14 @@
 import { Feather } from "@expo/vector-icons";
 import { reloadAppAsync } from "expo";
 import React, { useState } from "react";
-import { Modal, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useColors } from "@/src/shared/hooks/useColors";
@@ -45,7 +52,8 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {__DEV__ ? (
-        <AnimatedPressable feedback="scale"
+        <AnimatedPressable
+          feedback="scale"
           onPress={() => setIsModalVisible(true)}
           accessibilityLabel="View error details"
           accessibilityRole="button"
@@ -70,7 +78,8 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           Please reload the app to continue.
         </Text>
 
-        <AnimatedPressable feedback="scale"
+        <AnimatedPressable
+          feedback="scale"
           onPress={handleRestart}
           style={[
             styles.button,
@@ -80,10 +89,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           ]}
         >
           <Text
-            style={[
-              styles.buttonText,
-              { color: colors.primaryForeground },
-            ]}
+            style={[styles.buttonText, { color: colors.primaryForeground }]}
           >
             Try Again
           </Text>
@@ -113,13 +119,12 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                 <Text style={[styles.modalTitle, { color: colors.foreground }]}>
                   Error Details
                 </Text>
-                <AnimatedPressable feedback="scale"
+                <AnimatedPressable
+                  feedback="scale"
                   onPress={() => setIsModalVisible(false)}
                   accessibilityLabel="Close error details"
                   accessibilityRole="button"
-                  style={[
-                    styles.closeButton,
-                  ]}
+                  style={[styles.closeButton]}
                 >
                   <Feather name="x" size={24} color={colors.foreground} />
                 </AnimatedPressable>

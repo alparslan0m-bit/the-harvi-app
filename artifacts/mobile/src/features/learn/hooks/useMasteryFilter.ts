@@ -13,11 +13,15 @@ export function useMasteryFilter(allData: UserStats["subject_mastery"]) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
 
-  const counts = useMemo(() => ({
-    strong:    allData.filter((i) => i.mastery >= 80).length,
-    improving: allData.filter((i) => i.mastery >= 50 && i.mastery < 80).length,
-    weak:      allData.filter((i) => i.mastery < 50).length,
-  }), [allData]);
+  const counts = useMemo(
+    () => ({
+      strong: allData.filter((i) => i.mastery >= 80).length,
+      improving: allData.filter((i) => i.mastery >= 50 && i.mastery < 80)
+        .length,
+      weak: allData.filter((i) => i.mastery < 50).length,
+    }),
+    [allData],
+  );
 
   const overallAvg = allData.length
     ? Math.round(allData.reduce((s, i) => s + i.mastery, 0) / allData.length)
@@ -25,8 +29,11 @@ export function useMasteryFilter(allData: UserStats["subject_mastery"]) {
 
   const items = useMemo(() => {
     return allData.filter((item) => {
-      const matchSearch = search === "" || item.subject.toLowerCase().includes(search.toLowerCase());
-      const matchFilter = filter === "all" || masteryTier(item.mastery) === filter;
+      const matchSearch =
+        search === "" ||
+        item.subject.toLowerCase().includes(search.toLowerCase());
+      const matchFilter =
+        filter === "all" || masteryTier(item.mastery) === filter;
       return matchSearch && matchFilter;
     });
   }, [allData, search, filter]);

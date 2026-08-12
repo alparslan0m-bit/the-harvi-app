@@ -26,8 +26,14 @@ export const useCacheStore = create<CacheState>((set, get) => ({
     newWarmed.add(userId);
     set({ warmedStats: newWarmed });
   },
-  setQuestionCacheBypassed: (bypassed) => set({ questionCacheBypassed: bypassed }),
-  clearAll: () => set({ statsCache: new Map(), warmedStats: new Set(), questionCacheBypassed: false }),
+  setQuestionCacheBypassed: (bypassed) =>
+    set({ questionCacheBypassed: bypassed }),
+  clearAll: () =>
+    set({
+      statsCache: new Map(),
+      warmedStats: new Set(),
+      questionCacheBypassed: false,
+    }),
   clearStatsCacheForUser: (userId) => {
     const newCache = new Map(get().statsCache);
     newCache.delete(userId);

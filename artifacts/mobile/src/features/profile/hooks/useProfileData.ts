@@ -18,7 +18,7 @@ export function useProfileData() {
         STORAGE_KEYS.AVATAR,
         STORAGE_KEYS.DISPLAY_NAME,
       ]);
-      
+
       const av = pairs[0]?.[1];
       const nm = pairs[1]?.[1];
 
@@ -32,7 +32,7 @@ export function useProfileData() {
   useFocusEffect(
     useCallback(() => {
       loadProfile();
-    }, [loadProfile])
+    }, [loadProfile]),
   );
 
   return { avatarId, displayName, refresh: loadProfile };

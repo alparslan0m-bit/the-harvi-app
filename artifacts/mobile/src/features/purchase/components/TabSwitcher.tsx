@@ -63,7 +63,8 @@ export const TabSwitcher = React.memo(function TabSwitcher({
           />
         )}
 
-        <AnimatedPressable feedback="opacity"
+        <AnimatedPressable
+          feedback="opacity"
           style={styles.tab}
           onPress={() => onTabChange("buy")}
         >
@@ -75,14 +76,17 @@ export const TabSwitcher = React.memo(function TabSwitcher({
           <Text
             style={[
               styles.tabText,
-              { color: tab === "buy" ? colors.primary : colors.mutedForeground },
+              {
+                color: tab === "buy" ? colors.primary : colors.mutedForeground,
+              },
             ]}
           >
             Buy
           </Text>
         </AnimatedPressable>
 
-        <AnimatedPressable feedback="opacity"
+        <AnimatedPressable
+          feedback="opacity"
           style={styles.tab}
           onPress={() => onTabChange("code")}
         >
@@ -94,7 +98,9 @@ export const TabSwitcher = React.memo(function TabSwitcher({
           <Text
             style={[
               styles.tabText,
-              { color: tab === "code" ? colors.primary : colors.mutedForeground },
+              {
+                color: tab === "code" ? colors.primary : colors.mutedForeground,
+              },
             ]}
           >
             Access Code

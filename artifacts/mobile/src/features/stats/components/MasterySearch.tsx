@@ -4,10 +4,21 @@ import { StyleSheet, TextInput, View } from "react-native";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { AnimatedPressable } from "@/src/shared/components";
 
-export function MasterySearch({ search, setSearch }: { search: string; setSearch: (t: string) => void }) {
+export function MasterySearch({
+  search,
+  setSearch,
+}: {
+  search: string;
+  setSearch: (t: string) => void;
+}) {
   const colors = useColors();
   return (
-    <View style={[styles.searchWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
+    <View
+      style={[
+        styles.searchWrap,
+        { backgroundColor: colors.card, borderColor: colors.border },
+      ]}
+    >
       <Feather name="search" size={16} color={colors.mutedForeground} />
       <TextInput
         style={[styles.searchInput, { color: colors.foreground }]}
@@ -19,7 +30,11 @@ export function MasterySearch({ search, setSearch }: { search: string; setSearch
         returnKeyType="search"
       />
       {search.length > 0 && (
-        <AnimatedPressable feedback="opacity" onPress={() => setSearch("")} hitSlop={8}>
+        <AnimatedPressable
+          feedback="opacity"
+          onPress={() => setSearch("")}
+          hitSlop={8}
+        >
           <Feather name="x-circle" size={15} color={colors.mutedForeground} />
         </AnimatedPressable>
       )}

@@ -9,7 +9,10 @@ interface QuizProgressBarProps {
   colors: ThemeColors;
 }
 
-export function QuizProgressBar({ progressStyle, colors }: QuizProgressBarProps) {
+export function QuizProgressBar({
+  progressStyle,
+  colors,
+}: QuizProgressBarProps) {
   return (
     <View style={[styles.progressTrack, { backgroundColor: colors.muted }]}>
       <Animated.View

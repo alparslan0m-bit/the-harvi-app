@@ -160,7 +160,9 @@ export function DoctorAvatar({ id, size = 80 }: { id: string; size?: number }) {
 export const AVATARS = Object.keys(SMART_LIBRARY).map((id) => ({
   id,
   label: "Doctor",
-  component: ({ size }: AvatarProps) => <DoctorAvatar id={id} {...(size !== undefined ? { size } : {})} />,
+  component: ({ size }: AvatarProps) => (
+    <DoctorAvatar id={id} {...(size !== undefined ? { size } : {})} />
+  ),
 }));
 
 export function AvatarById({

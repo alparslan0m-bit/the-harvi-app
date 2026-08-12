@@ -3,7 +3,11 @@ import { create } from "zustand";
 import { useQueryClient, onlineManager } from "@tanstack/react-query";
 import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
 import { useAuth } from "./authStore";
-import { getQueue, pendingCount as getPendingCount, removeSynced } from "@/src/shared/services/offlineQueue";
+import {
+  getQueue,
+  pendingCount as getPendingCount,
+  removeSynced,
+} from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 
 interface SyncState {
@@ -27,8 +31,8 @@ export const useSyncStore = create<SyncState>((set) => ({
 export function useSyncActions() {
   const queryClient = useQueryClient();
   const user = useAuth((s) => s.user);
-  const setPendingCount = useSyncStore(s => s.setPendingCount);
-  const setIsSyncing = useSyncStore(s => s.setIsSyncing);
+  const setPendingCount = useSyncStore((s) => s.setPendingCount);
+  const setIsSyncing = useSyncStore((s) => s.setIsSyncing);
   const flushing = useRef(false);
   const lastFlushTime = useRef<number>(0);
 
@@ -39,7 +43,7 @@ export function useSyncActions() {
 
   const flush = useCallback(async () => {
     if (flushing.current || !user) return;
-    
+
     // Basic backoff: skip if we failed a flush in the last 30 seconds
     const now = Date.now();
     if (now - lastFlushTime.current < 30000) return;
@@ -79,8 +83,8 @@ export function useSyncActions() {
         const insertPromise = supabase.from("quiz_results").insert(payload);
 
         // 10s timeout
-        const timeoutPromise = new Promise<{ error: any }>((_, reject) => 
-          setTimeout(() => reject(new Error("timeout")), 10000)
+        const timeoutPromise = new Promise<{ error: any }>((_, reject) =>
+          setTimeout(() => reject(new Error("timeout")), 10000),
         );
 
         const { error } = await Promise.race([insertPromise, timeoutPromise]);
@@ -89,8 +93,17 @@ export function useSyncActions() {
           syncedIds.push(item.localId);
           anySynced = true;
         } else {
-          if (__DEV__) console.error(`[useSyncSession] flush insert FAILED for item ${item.localId}:`, error);
-          if (error.code && (error.code.startsWith("23") || error.code.startsWith("42") || error.code.startsWith("22"))) {
+          if (__DEV__)
+            console.error(
+              `[useSyncSession] flush insert FAILED for item ${item.localId}:`,
+              error,
+            );
+          if (
+            error.code &&
+            (error.code.startsWith("23") ||
+              error.code.startsWith("42") ||
+              error.code.startsWith("22"))
+          ) {
             syncedIds.push(item.localId);
             anySynced = true; // The row already exists (duplicate), so force UI to fetch updated server stats
           } else {
@@ -128,14 +141,16 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Sync initial state
     NetInfo.fetch().then((state: NetInfoState) => {
-      const online = state.isConnected !== false && state.isInternetReachable !== false;
+      const online =
+        state.isConnected !== false && state.isInternetReachable !== false;
       setIsOnline(online);
       onlineManager.setOnline(online);
     });
 
     // Subscribe to changes
     const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
-      const online = state.isConnected !== false && state.isInternetReachable !== false;
+      const online =
+        state.isConnected !== false && state.isInternetReachable !== false;
       setIsOnline(online);
       onlineManager.setOnline(online);
     });
@@ -150,5 +165,3 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
   return <>{children}</>;
 }
-
-

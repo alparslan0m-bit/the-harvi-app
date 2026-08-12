@@ -29,4 +29,3 @@ export function getTitle(score: number): {
   if (score >= 60) return { text: "Keep going", icon: "book-open" };
   return { text: "Keep practising", icon: "book-open" };
 }
-

@@ -1,2 +1,2 @@
 export * from "./hooks/useAuthForm";
-export * from './components';
+export * from "./components";

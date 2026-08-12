@@ -3,7 +3,11 @@ import React from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
-import { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 
 import type { ThemeColors } from "@/src/shared/hooks/useColors";
 import { SPRING_CONFIG } from "./purchase.constants";
@@ -32,7 +36,8 @@ export const PremiumButton = React.memo(function PremiumButton({
   }));
 
   return (
-    <AnimatedPressable feedback="scale"
+    <AnimatedPressable
+      feedback="scale"
       style={[sharedStyles.ctaOuter, animStyle]}
       onPress={onPress}
       onPressIn={() => {

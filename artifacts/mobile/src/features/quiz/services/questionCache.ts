@@ -7,7 +7,11 @@
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { CachedLecture, CachedLectureSchema, Question } from "@/src/shared/types";
+import {
+  CachedLecture,
+  CachedLectureSchema,
+  Question,
+} from "@/src/shared/types";
 
 const KEY = (id: string) => `harvi:qcache:${id}`;
 
@@ -17,7 +21,7 @@ const CACHE_VERSION = "v3";
 
 export async function saveQuestionsToCache(
   lectureId: string,
-  questions: Question[]
+  questions: Question[],
 ): Promise<void> {
   useCacheStore.getState().setQuestionCacheBypassed(false);
   const entry: CachedLecture = {
@@ -29,13 +33,13 @@ export async function saveQuestionsToCache(
   try {
     await AsyncStorage.setItem(KEY(lectureId), JSON.stringify(entry));
   } catch (e) {
-    if (__DEV__) console.warn('[questionCache] Error saving cache:', e);
+    if (__DEV__) console.warn("[questionCache] Error saving cache:", e);
     // Best-effort — storage quota issues shouldn't crash the app
   }
 }
 
 export async function loadQuestionsFromCache(
-  lectureId: string
+  lectureId: string,
 ): Promise<CachedLecture | null> {
   if (useCacheStore.getState().questionCacheBypassed) return null;
   try {
@@ -45,12 +49,15 @@ export async function loadQuestionsFromCache(
     const result = CachedLectureSchema.safeParse(parsed);
     if (!result.success) return null;
     if (result.data.version !== CACHE_VERSION) {
-      if (__DEV__) console.log(`[questionCache] Invalid cache version for lecture ${lectureId}, discarding.`);
+      if (__DEV__)
+        console.log(
+          `[questionCache] Invalid cache version for lecture ${lectureId}, discarding.`,
+        );
       return null;
     }
     return result.data;
   } catch (e) {
-    if (__DEV__) console.warn('[questionCache] Error loading cache:', e);
+    if (__DEV__) console.warn("[questionCache] Error loading cache:", e);
     return null;
   }
 }
@@ -59,7 +66,8 @@ export async function clearLectureCache(lectureId: string): Promise<void> {
   try {
     await AsyncStorage.removeItem(KEY(lectureId));
   } catch (e) {
-    if (__DEV__) console.warn('[questionCache] Error clearing lecture cache:', e);
+    if (__DEV__)
+      console.warn("[questionCache] Error clearing lecture cache:", e);
   }
 }
 
@@ -72,15 +80,18 @@ export async function clearAllLectureCache(): Promise<void> {
       await AsyncStorage.multiRemove(cacheKeys);
     }
   } catch (e) {
-    if (__DEV__) console.warn('[questionCache] Error clearing all cache:', e);
+    if (__DEV__) console.warn("[questionCache] Error clearing all cache:", e);
   }
 }
 
 /** Lightweight meta read — avoids deserialising the full questions array */
 export async function getLectureCacheMeta(
-  lectureId: string
+  lectureId: string,
 ): Promise<Pick<CachedLecture, "questionCount" | "downloadedAt"> | null> {
   const cached = await loadQuestionsFromCache(lectureId);
   if (!cached) return null;
-  return { questionCount: cached.questionCount, downloadedAt: cached.downloadedAt };
+  return {
+    questionCount: cached.questionCount,
+    downloadedAt: cached.downloadedAt,
+  };
 }

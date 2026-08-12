@@ -13,19 +13,31 @@ import { COLORS } from "@/src/shared/constants/theme";
 
 function getMasteryPalette(m: number) {
   if (m >= 80) return COLORS.light.statCardFamilies[3]; // Mint
-  if (m >= 50) return COLORS.light.streakFamily;        // Sunshine
-  return COLORS.light.statCardFamilies[0];              // Coral
+  if (m >= 50) return COLORS.light.streakFamily; // Sunshine
+  return COLORS.light.statCardFamilies[0]; // Coral
 }
 
-function ProgressBar({ mastery, color, delay = 0 }: { mastery: number; color: string; delay?: number }) {
+function ProgressBar({
+  mastery,
+  color,
+  delay = 0,
+}: {
+  mastery: number;
+  color: string;
+  delay?: number;
+}) {
   const width = useSharedValue(0);
   React.useEffect(() => {
     width.value = withDelay(delay, withTiming(mastery, { duration: 700 }));
   }, [mastery, delay]);
-  const animStyle = useAnimatedStyle(() => ({ width: `${width.value}%` as `${number}%` }));
+  const animStyle = useAnimatedStyle(() => ({
+    width: `${width.value}%` as `${number}%`,
+  }));
   return (
     <View style={barStyles.track}>
-      <Animated.View style={[barStyles.fill, { backgroundColor: color }, animStyle]} />
+      <Animated.View
+        style={[barStyles.fill, { backgroundColor: color }, animStyle]}
+      />
     </View>
   );
 }
@@ -42,8 +54,16 @@ const barStyles = StyleSheet.create({
 });
 
 export function MasteryLectureCard({
-  subject, mastery, rank, attempts = 0,
-}: { subject: string; mastery: number; rank: number; attempts?: number }) {
+  subject,
+  mastery,
+  rank,
+  attempts = 0,
+}: {
+  subject: string;
+  mastery: number;
+  rank: number;
+  attempts?: number;
+}) {
   const colors = useColors();
   const palette = getMasteryPalette(mastery);
   const color = palette.solid;
@@ -51,35 +71,57 @@ export function MasteryLectureCard({
   const ink = palette.ink;
 
   return (
-    <View style={[
-      cardStyles.card, 
-      { 
-        backgroundColor: colors.card, 
-        borderColor: color + "4D"
-      }
-    ]}>
+    <View
+      style={[
+        cardStyles.card,
+        {
+          backgroundColor: colors.card,
+          borderColor: color + "4D",
+        },
+      ]}
+    >
       <View style={[cardStyles.accent, { backgroundColor: color }]} />
       <View style={cardStyles.body}>
         <View style={cardStyles.topRow}>
-          <View style={[cardStyles.rankBadge, { backgroundColor: colors.muted }]}>
-            <Text style={[cardStyles.rankText, { color: colors.mutedForeground }]}>{rank}</Text>
+          <View
+            style={[cardStyles.rankBadge, { backgroundColor: colors.muted }]}
+          >
+            <Text
+              style={[cardStyles.rankText, { color: colors.mutedForeground }]}
+            >
+              {rank}
+            </Text>
           </View>
           <View style={cardStyles.textContainer}>
-            <Text style={[cardStyles.name, { color: colors.foreground }]} numberOfLines={2}>
+            <Text
+              style={[cardStyles.name, { color: colors.foreground }]}
+              numberOfLines={2}
+            >
               {subject}
             </Text>
-            <Text style={[cardStyles.attemptsText, { color: colors.mutedForeground }]}>
+            <Text
+              style={[
+                cardStyles.attemptsText,
+                { color: colors.mutedForeground },
+              ]}
+            >
               {attempts} {attempts === 1 ? "attempt" : "attempts"}
             </Text>
           </View>
           <View style={[cardStyles.badge, { backgroundColor: bg }]}>
-            <Text style={[cardStyles.badgeText, { color: ink }]}>{mastery}%</Text>
+            <Text style={[cardStyles.badgeText, { color: ink }]}>
+              {mastery}%
+            </Text>
           </View>
         </View>
         <View style={cardStyles.barRow}>
           <ProgressBar mastery={mastery} color={color} delay={rank * 40} />
           <Text style={[cardStyles.tierLabel, { color: ink }]}>
-            {mastery >= 80 ? "Strong" : mastery >= 50 ? "Improving" : "Needs Work"}
+            {mastery >= 80
+              ? "Strong"
+              : mastery >= 50
+                ? "Improving"
+                : "Needs Work"}
           </Text>
         </View>
       </View>
@@ -117,5 +159,10 @@ const cardStyles = StyleSheet.create({
   },
   badgeText: { fontSize: 13, fontFamily: "Inter_700Bold" },
   barRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  tierLabel: { fontSize: 11, fontFamily: "Inter_500Medium", minWidth: 70, textAlign: "right" },
+  tierLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    minWidth: 70,
+    textAlign: "right",
+  },
 });

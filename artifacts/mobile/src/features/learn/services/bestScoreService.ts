@@ -43,11 +43,14 @@ async function readCache(userId: string): Promise<BestScoreMap | null> {
   }
 }
 
-export async function writeCache(userId: string, data: BestScoreMap): Promise<void> {
+export async function writeCache(
+  userId: string,
+  data: BestScoreMap,
+): Promise<void> {
   try {
     await AsyncStorage.setItem(
       CACHE_KEY(userId),
-      JSON.stringify([...data.entries()])
+      JSON.stringify([...data.entries()]),
     );
     memCache.set(userId, data);
   } catch (e) {
@@ -74,10 +77,12 @@ export async function warmMemCache(userId: string): Promise<void> {
 export async function optimisticallyUpdateBestScore(
   userId: string,
   lectureId: string,
-  score: number
+  score: number,
 ): Promise<void> {
   const current =
-    memCache.get(userId) ?? (await readCache(userId)) ?? new Map<string, number>();
+    memCache.get(userId) ??
+    (await readCache(userId)) ??
+    new Map<string, number>();
   const prevScore = current.get(lectureId) ?? 0;
   if (score > prevScore) {
     current.set(lectureId, score);
@@ -89,7 +94,7 @@ export async function optimisticallyUpdateBestScore(
 
 async function mergeQueuedScores(
   userId: string,
-  base: BestScoreMap
+  base: BestScoreMap,
 ): Promise<BestScoreMap> {
   const queue = await getQueue();
   const pending = queue.filter((q) => q.userId === userId);
@@ -109,7 +114,9 @@ async function mergeQueuedScores(
 
 async function serveFromCache(userId: string): Promise<BestScoreMap> {
   const cached =
-    memCache.get(userId) ?? (await readCache(userId)) ?? new Map<string, number>();
+    memCache.get(userId) ??
+    (await readCache(userId)) ??
+    new Map<string, number>();
   const merged = await mergeQueuedScores(userId, cached);
   memCache.set(userId, merged);
   return merged;
@@ -132,11 +139,11 @@ export async function fetchBestScores(userId: string): Promise<BestScoreMap> {
       .from("quiz_results")
       .select("lecture_id, score")
       .eq("user_id", userId);
-      
+
     const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-      setTimeout(() => reject(new Error("timeout")), 10000)
+      setTimeout(() => reject(new Error("timeout")), 10000),
     );
-    
+
     const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
     if (error) throw error;
@@ -165,8 +172,7 @@ export async function fetchBestScores(userId: string): Promise<BestScoreMap> {
     await writeCache(userId, merged);
     return merged;
   } catch (e) {
-    if (__DEV__)
-      console.warn("[bestScoreService] fetchBestScores error:", e);
+    if (__DEV__) console.warn("[bestScoreService] fetchBestScores error:", e);
     return serveFromCache(userId);
   }
 }

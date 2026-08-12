@@ -11,13 +11,17 @@ interface SupabaseSetupHelperProps {
   onToggle: () => void;
 }
 
-export function SupabaseSetupHelper({ showSetup, onToggle }: SupabaseSetupHelperProps) {
+export function SupabaseSetupHelper({
+  showSetup,
+  onToggle,
+}: SupabaseSetupHelperProps) {
   const colors = useColors();
   const redirectUrl = Linking.createURL("/callback");
 
   return (
     <>
-      <AnimatedPressable feedback="opacity"
+      <AnimatedPressable
+        feedback="opacity"
         style={[
           styles.setupToggle,
           {
@@ -38,32 +42,36 @@ export function SupabaseSetupHelper({ showSetup, onToggle }: SupabaseSetupHelper
             { color: showSetup ? colors.primary : colors.mutedForeground },
           ]}
         >
-          {showSetup ? "Hide Supabase setup" : "Google not working? Tap to see setup"}
+          {showSetup
+            ? "Hide Supabase setup"
+            : "Google not working? Tap to see setup"}
         </Text>
       </AnimatedPressable>
 
       {showSetup && (
-        <View style={[styles.setupBox, { backgroundColor: colors.primary + "1A", borderColor: colors.primary + "33" }]}>
+        <View
+          style={[
+            styles.setupBox,
+            {
+              backgroundColor: colors.primary + "1A",
+              borderColor: colors.primary + "33",
+            },
+          ]}
+        >
           <Text style={styles.setupTitle}>
-            Add this URL to Supabase → Authentication → URL Configuration → Redirect URLs:
+            Add this URL to Supabase → Authentication → URL Configuration →
+            Redirect URLs:
           </Text>
 
           {/* Selectable URL box */}
-          <AnimatedPressable feedback="opacity"
+          <AnimatedPressable
+            feedback="opacity"
             style={styles.urlBox}
             onLongPress={() => {
-              Alert.alert(
-                "Redirect URL",
-                redirectUrl,
-                [{ text: "OK" }]
-              );
+              Alert.alert("Redirect URL", redirectUrl, [{ text: "OK" }]);
             }}
             onPress={() => {
-              Alert.alert(
-                "Copy this URL",
-                redirectUrl,
-                [{ text: "OK" }]
-              );
+              Alert.alert("Copy this URL", redirectUrl, [{ text: "OK" }]);
             }}
           >
             <Text style={styles.urlText} selectable>
@@ -73,11 +81,12 @@ export function SupabaseSetupHelper({ showSetup, onToggle }: SupabaseSetupHelper
           </AnimatedPressable>
 
           <Text style={styles.setupNote}>
-            Also add:{"\n"}
-            • <Text style={styles.monoSmall}>mobile://callback</Text>
-            {"\n"}
-            • <Text style={styles.monoSmall}>exp://**</Text> (wildcard for Expo Go){"\n\n"}
-            Then in Supabase → Auth → Providers → Google, make sure Google is enabled and your OAuth credentials are set.
+            Also add:{"\n"}•{" "}
+            <Text style={styles.monoSmall}>mobile://callback</Text>
+            {"\n"}• <Text style={styles.monoSmall}>exp://**</Text> (wildcard for
+            Expo Go){"\n\n"}
+            Then in Supabase → Auth → Providers → Google, make sure Google is
+            enabled and your OAuth credentials are set.
           </Text>
         </View>
       )}

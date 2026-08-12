@@ -21,22 +21,29 @@ async function readCachedPurchases(userId: string): Promise<Purchase[] | null> {
     }
     return null;
   } catch (e) {
-    if (__DEV__) console.warn('[useMyPurchases] Error reading cache:', e);
+    if (__DEV__) console.warn("[useMyPurchases] Error reading cache:", e);
     return null;
   }
 }
 
-async function writeCachedPurchases(userId: string, data: Purchase[]): Promise<void> {
+async function writeCachedPurchases(
+  userId: string,
+  data: Purchase[],
+): Promise<void> {
   try {
-    await AsyncStorage.setItem(PURCHASES_CACHE_KEY(userId), JSON.stringify(data));
+    await AsyncStorage.setItem(
+      PURCHASES_CACHE_KEY(userId),
+      JSON.stringify(data),
+    );
   } catch (e) {
-    if (__DEV__) console.warn('[useMyPurchases] Error writing cache:', e);
+    if (__DEV__) console.warn("[useMyPurchases] Error writing cache:", e);
   }
 }
 
 async function fetchMyPurchases(userId: string): Promise<Purchase[]> {
   const net = await NetInfo.fetch();
-  const isOnline = (net.isConnected ?? false) && net.isInternetReachable !== false;
+  const isOnline =
+    (net.isConnected ?? false) && net.isInternetReachable !== false;
 
   if (!isOnline) {
     const cached = await readCachedPurchases(userId);
@@ -50,16 +57,19 @@ async function fetchMyPurchases(userId: string): Promise<Purchase[]> {
       .select("id, module_id, amount_cents, currency, status, created_at")
       .eq("status", "active")
       .order("created_at", { ascending: false });
-      
+
     const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-      setTimeout(() => reject(new Error("timeout")), 10000)
+      setTimeout(() => reject(new Error("timeout")), 10000),
     );
 
     const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
     if (error) throw error;
     const list: Purchase[] = (data ?? []).map((r: unknown) => {
-      const rec = typeof r === "object" && r !== null ? (r as Record<string, unknown>) : {};
+      const rec =
+        typeof r === "object" && r !== null
+          ? (r as Record<string, unknown>)
+          : {};
       return {
         id: String(rec["id"] ?? ""),
         module_id: rec["module_id"] ? String(rec["module_id"]) : null,

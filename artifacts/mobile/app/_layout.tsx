@@ -33,7 +33,13 @@ const queryClient = new QueryClient({
   },
 });
 
-function RootLayoutNav({ fontsLoaded, fontError }: { fontsLoaded: boolean; fontError: Error | null }) {
+function RootLayoutNav({
+  fontsLoaded,
+  fontError,
+}: {
+  fontsLoaded: boolean;
+  fontError: Error | null;
+}) {
   const loading = useAuth((s) => s.loading);
 
   useEffect(() => {
@@ -46,13 +52,28 @@ function RootLayoutNav({ fontsLoaded, fontError }: { fontsLoaded: boolean; fontE
   if (loading) return null;
 
   return (
-    <Stack screenOptions={{ headerShown: false, animation: "fade", animationDuration: 200 }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: "fade",
+        animationDuration: 200,
+      }}
+    >
       <Stack.Screen name="(main)/(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
-      <Stack.Screen name="(main)/quiz/[lectureId]" options={{ headerShown: false }} />
-      <Stack.Screen name="(main)/purchase/[moduleId]" options={{ presentation: 'modal' }} />
+      <Stack.Screen
+        name="(main)/quiz/[lectureId]"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="(main)/purchase/[moduleId]"
+        options={{ presentation: "modal" }}
+      />
       <Stack.Screen name="(auth)/callback" options={{ headerShown: false }} />
-      <Stack.Screen name="(main)/profile/edit" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="(main)/profile/edit"
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="+not-found"
         options={{ headerShown: true, title: "Not Found" }}
@@ -83,7 +104,10 @@ export default function RootLayout() {
                   <AuthProvider>
                     <PurchaseProvider>
                       <SyncProvider>
-                        <RootLayoutNav fontsLoaded={fontsLoaded} fontError={fontError} />
+                        <RootLayoutNav
+                          fontsLoaded={fontsLoaded}
+                          fontError={fontError}
+                        />
                       </SyncProvider>
                     </PurchaseProvider>
                   </AuthProvider>
@@ -96,4 +120,3 @@ export default function RootLayout() {
     </>
   );
 }
-

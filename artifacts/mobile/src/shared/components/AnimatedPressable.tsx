@@ -22,7 +22,12 @@ const PRESS_OUT_DURATION = 150;
 const SCALE_ACTIVE = 0.96;
 const OPACITY_ACTIVE = 0.85;
 
-export type HapticFeedbackType = "none" | "light" | "medium" | "success" | "error";
+export type HapticFeedbackType =
+  | "none"
+  | "light"
+  | "medium"
+  | "success"
+  | "error";
 
 export interface AnimatedPressableProps extends Omit<PressableProps, "style"> {
   feedback?: "scale" | "opacity" | "none";
@@ -46,7 +51,8 @@ export function AnimatedPressable({
   const isReducedMotion = useReducedMotion();
 
   // Determine actual feedback (if reduced motion, never use scale)
-  const activeFeedback = isReducedMotion && feedback === "scale" ? "opacity" : feedback;
+  const activeFeedback =
+    isReducedMotion && feedback === "scale" ? "opacity" : feedback;
 
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
@@ -75,10 +81,12 @@ export function AnimatedPressable({
       type === "light"
         ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
         : type === "medium"
-        ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-        : type === "success"
-        ? Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-        : Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+          : type === "success"
+            ? Haptics.notificationAsync(
+                Haptics.NotificationFeedbackType.Success,
+              )
+            : Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
 
     void promise.catch((err) => {
       if (__DEV__) {
@@ -94,7 +102,9 @@ export function AnimatedPressable({
       if (activeFeedback === "scale") {
         scale.value = withTiming(SCALE_ACTIVE, { duration: PRESS_IN_DURATION });
       } else if (activeFeedback === "opacity") {
-        opacity.value = withTiming(OPACITY_ACTIVE, { duration: PRESS_IN_DURATION });
+        opacity.value = withTiming(OPACITY_ACTIVE, {
+          duration: PRESS_IN_DURATION,
+        });
       }
     }
     onPressIn?.(e);

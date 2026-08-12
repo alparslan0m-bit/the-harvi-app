@@ -25,27 +25,20 @@ export function MasteryScreen() {
   const { data: stats } = useStats(user?.id);
 
   const allData = stats?.subject_mastery ?? [];
-  
+
   // Custom hook for filtering logic
-  const {
-    search,
-    setSearch,
-    filter,
-    setFilter,
-    counts,
-    overallAvg,
-    items,
-  } = useMasteryFilter(allData);
+  const { search, setSearch, filter, setFilter, counts, overallAvg, items } =
+    useMasteryFilter(allData);
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       {/* ── Header ── */}
-      <MasteryHeader 
-        topPad={topPad} 
-        allCount={allData.length} 
-        overallAvg={overallAvg} 
+      <MasteryHeader
+        topPad={topPad}
+        allCount={allData.length}
+        overallAvg={overallAvg}
       />
 
       <ScrollView
@@ -60,11 +53,11 @@ export function MasteryScreen() {
         <MasterySearch search={search} setSearch={setSearch} />
 
         {/* ── Filter chips ── */}
-        <MasteryFilterChips 
-          filter={filter} 
-          setFilter={setFilter} 
-          counts={counts} 
-          allCount={allData.length} 
+        <MasteryFilterChips
+          filter={filter}
+          setFilter={setFilter}
+          counts={counts}
+          allCount={allData.length}
         />
 
         {/* ── Cards ── */}

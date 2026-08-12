@@ -55,7 +55,7 @@ async function readCache(userId: string): Promise<UserStats | null> {
     const result = UserStatsSchema.safeParse(JSON.parse(raw));
     return result.success ? result.data : null;
   } catch (e) {
-    if (__DEV__) console.warn('[statsService] Error reading cache:', e);
+    if (__DEV__) console.warn("[statsService] Error reading cache:", e);
     return null;
   }
 }
@@ -65,14 +65,15 @@ async function writeCache(userId: string, data: UserStats): Promise<void> {
     await AsyncStorage.setItem(CACHE_KEY(userId), JSON.stringify(data));
     useCacheStore.getState().setStatsCache(userId, data);
   } catch (e) {
-    if (__DEV__) console.warn('[statsService] Error writing cache:', e);
+    if (__DEV__) console.warn("[statsService] Error writing cache:", e);
   }
 }
 
 // ── Warm memory cache from AsyncStorage (called once per session) ────────────
 
 export async function warmMemCache(userId: string): Promise<void> {
-  const { warmedStats, statsCache, setWarmed, setStatsCache } = useCacheStore.getState();
+  const { warmedStats, statsCache, setWarmed, setStatsCache } =
+    useCacheStore.getState();
   if (warmedStats.has(userId)) return;
   setWarmed(userId);
   const cached = await readCache(userId);
@@ -86,7 +87,7 @@ export async function warmMemCache(userId: string): Promise<void> {
 async function buildLectureNameMap(): Promise<Map<string, string>> {
   const queryPromise = supabase.from("lectures").select("id, name");
   const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-    setTimeout(() => reject(new Error("timeout")), 10000)
+    setTimeout(() => reject(new Error("timeout")), 10000),
   );
 
   let data, error;
@@ -101,7 +102,10 @@ async function buildLectureNameMap(): Promise<Map<string, string>> {
   const map = new Map<string, string>();
   if (error || !data) return map;
   for (const row of data) {
-    const r = typeof row === "object" && row !== null ? (row as Record<string, unknown>) : {};
+    const r =
+      typeof row === "object" && row !== null
+        ? (row as Record<string, unknown>)
+        : {};
     const id = String(r["id"] ?? "");
     const name = String(r["name"] ?? "");
     if (id && name) map.set(id, name);
@@ -119,10 +123,12 @@ function mapRpcToUserStats(rpcData: any, dbStats: DbStats | null): UserStats {
 
   let streak = dbStats?.current_streak ?? 0;
   if (streak > 0 && dbStats?.last_quiz_date) {
-    const lastQuiz = new Date(dbStats.last_quiz_date + 'T00:00:00');
+    const lastQuiz = new Date(dbStats.last_quiz_date + "T00:00:00");
     const now = new Date();
     now.setHours(0, 0, 0, 0);
-    const diffDays = Math.floor((now.getTime() - lastQuiz.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor(
+      (now.getTime() - lastQuiz.getTime()) / (1000 * 60 * 60 * 24),
+    );
     if (diffDays > 1) streak = 0;
   }
 
@@ -132,9 +138,9 @@ function mapRpcToUserStats(rpcData: any, dbStats: DbStats | null): UserStats {
     (rpcData?.weekly_activity ?? []).map((w: any) => {
       const index = (w.dow + 1) % 7;
       return [index, w.count];
-    })
+    }),
   );
-  
+
   const weekly_activity = DAYS.map((day, i) => ({
     day,
     count: weeklyMap.get(i) ?? 0,
@@ -151,7 +157,9 @@ function mapRpcToUserStats(rpcData: any, dbStats: DbStats | null): UserStats {
     id: String(r.id),
     user_id: String(r.user_id),
     lecture_id: String(r.lecture_id),
-    lecture_name: String(r.lecture_name ?? `Lecture ${String(r.lecture_id).slice(0, 6)}…`),
+    lecture_name: String(
+      r.lecture_name ?? `Lecture ${String(r.lecture_id).slice(0, 6)}…`,
+    ),
     score: Number(r.score ?? 0),
     total_questions: Number(r.total_questions ?? 0),
     correct_answers: Number(r.correct_answers ?? 0),
@@ -170,7 +178,11 @@ function mapRpcToUserStats(rpcData: any, dbStats: DbStats | null): UserStats {
   };
 }
 
-function applyPendingStats(base: UserStats, pending: any[], localMap: Map<string, string>): UserStats {
+function applyPendingStats(
+  base: UserStats,
+  pending: any[],
+  localMap: Map<string, string>,
+): UserStats {
   const syntheticRows: RawRow[] = pending.map((q) => ({
     id: q.localId,
     user_id: q.userId,
@@ -191,12 +203,15 @@ function applyPendingStats(base: UserStats, pending: any[], localMap: Map<string
     created_at: r.created_at,
   }));
 
-  const mergedRows = [...syntheticRows, ...cachedRows].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-  ).slice(0, 10);
+  const mergedRows = [...syntheticRows, ...cachedRows]
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    )
+    .slice(0, 10);
 
   const newTotalQuizzes = base.total_quizzes + pending.length;
-  
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const weekStart = new Date(today);
@@ -205,8 +220,8 @@ function applyPendingStats(base: UserStats, pending: any[], localMap: Map<string
   weekStart.setDate(weekStart.getDate() - daysSinceSaturday);
   const weekStartMs = weekStart.getTime();
 
-  const weekly_activity = base.weekly_activity.map(a => ({ ...a }));
-  pending.forEach(q => {
+  const weekly_activity = base.weekly_activity.map((a) => ({ ...a }));
+  pending.forEach((q) => {
     const d = new Date(q.createdAt);
     d.setHours(0, 0, 0, 0);
     if (d.getTime() >= weekStartMs) {
@@ -217,30 +232,41 @@ function applyPendingStats(base: UserStats, pending: any[], localMap: Map<string
     }
   });
 
-  const masteryMap = new Map<string, { subject: string, totalScore: number, attempts: number }>();
-  base.subject_mastery.forEach(m => {
+  const masteryMap = new Map<
+    string,
+    { subject: string; totalScore: number; attempts: number }
+  >();
+  base.subject_mastery.forEach((m) => {
     masteryMap.set(m.subject, { ...m, totalScore: m.mastery * m.attempts });
   });
 
-  pending.forEach(q => {
-    const subjName = localMap.get(q.lectureId) ?? `Lecture ${q.lectureId.slice(0, 6)}…`;
-    const existing = masteryMap.get(subjName) ?? { subject: subjName, totalScore: 0, attempts: 0 };
+  pending.forEach((q) => {
+    const subjName =
+      localMap.get(q.lectureId) ?? `Lecture ${q.lectureId.slice(0, 6)}…`;
+    const existing = masteryMap.get(subjName) ?? {
+      subject: subjName,
+      totalScore: 0,
+      attempts: 0,
+    };
     existing.totalScore += q.score;
     existing.attempts += 1;
     masteryMap.set(subjName, existing);
   });
 
-  const subject_mastery = Array.from(masteryMap.values()).map(m => ({
-    subject: m.subject,
-    mastery: Math.round(m.totalScore / m.attempts),
-    attempts: m.attempts
-  })).sort((a, b) => b.mastery - a.mastery);
+  const subject_mastery = Array.from(masteryMap.values())
+    .map((m) => ({
+      subject: m.subject,
+      mastery: Math.round(m.totalScore / m.attempts),
+      attempts: m.attempts,
+    }))
+    .sort((a, b) => b.mastery - a.mastery);
 
-  const recent_results = mergedRows.map(r => ({
+  const recent_results = mergedRows.map((r) => ({
     id: r.id,
     user_id: r.user_id,
     lecture_id: r.lecture_id,
-    lecture_name: localMap.get(r.lecture_id) ?? `Lecture ${r.lecture_id.slice(0, 6)}…`,
+    lecture_name:
+      localMap.get(r.lecture_id) ?? `Lecture ${r.lecture_id.slice(0, 6)}…`,
     score: r.score ?? 0,
     total_questions: r.total_questions ?? 0,
     correct_answers: r.correct_answers ?? 0,
@@ -248,7 +274,7 @@ function applyPendingStats(base: UserStats, pending: any[], localMap: Map<string
   }));
 
   let newStreak = base.streak;
-  
+
   // Calculate optimistic streak
   let lastEvaluatedDate: Date | null = null;
   if (base.recent_results && base.recent_results.length > 0) {
@@ -260,18 +286,20 @@ function applyPendingStats(base: UserStats, pending: any[], localMap: Map<string
   }
 
   const sortedPending = [...pending].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   );
 
   for (const p of sortedPending) {
     const pDate = new Date(p.createdAt);
     pDate.setHours(0, 0, 0, 0);
-    
+
     if (!lastEvaluatedDate) {
       newStreak = 1;
       lastEvaluatedDate = pDate;
     } else {
-      const diffDays = Math.round((pDate.getTime() - lastEvaluatedDate.getTime()) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.round(
+        (pDate.getTime() - lastEvaluatedDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
       if (diffDays === 1) {
         newStreak += 1;
         lastEvaluatedDate = pDate;
@@ -286,7 +314,10 @@ function applyPendingStats(base: UserStats, pending: any[], localMap: Map<string
   const todayForStreak = new Date();
   todayForStreak.setHours(0, 0, 0, 0);
   if (lastEvaluatedDate) {
-    const diffToToday = Math.round((todayForStreak.getTime() - lastEvaluatedDate.getTime()) / (1000 * 60 * 60 * 24));
+    const diffToToday = Math.round(
+      (todayForStreak.getTime() - lastEvaluatedDate.getTime()) /
+        (1000 * 60 * 60 * 24),
+    );
     if (diffToToday > 1) {
       newStreak = 0;
     }
@@ -294,24 +325,29 @@ function applyPendingStats(base: UserStats, pending: any[], localMap: Map<string
 
   return {
     total_quizzes: newTotalQuizzes,
-    total_questions: base.total_questions + pending.reduce((s, p) => s + (p.totalQuestions ?? 0), 0),
-    average_score: newTotalQuizzes === 0 ? 0 : Math.round(((base.average_score * base.total_quizzes) + pending.reduce((s, p) => s + (p.score ?? 0), 0)) / newTotalQuizzes),
-    best_score: Math.max(base.best_score, ...pending.map(p => p.score ?? 0)),
+    total_questions:
+      base.total_questions +
+      pending.reduce((s, p) => s + (p.totalQuestions ?? 0), 0),
+    average_score:
+      newTotalQuizzes === 0
+        ? 0
+        : Math.round(
+            (base.average_score * base.total_quizzes +
+              pending.reduce((s, p) => s + (p.score ?? 0), 0)) /
+              newTotalQuizzes,
+          ),
+    best_score: Math.max(base.best_score, ...pending.map((p) => p.score ?? 0)),
     streak: newStreak,
     weekly_activity,
     subject_mastery,
-    recent_results
+    recent_results,
   };
 }
-
 
 // ── Offline path (shared) ────────────────────────────────────────────────────
 
 async function serveFromCache(userId: string): Promise<UserStats> {
-  const [cached, queue] = await Promise.all([
-    readCache(userId),
-    getQueue(),
-  ]);
+  const [cached, queue] = await Promise.all([readCache(userId), getQueue()]);
   const pending = queue.filter((q) => q.userId === userId);
 
   if (!cached && pending.length === 0) return ZERO_STATS;
@@ -323,16 +359,18 @@ async function serveFromCache(userId: string): Promise<UserStats> {
   if (pending.length === 0) return base;
 
   const localMap = new Map<string, string>();
-  base.recent_results?.forEach((r) => localMap.set(r.lecture_id, r.lecture_name));
+  base.recent_results?.forEach((r) =>
+    localMap.set(r.lecture_id, r.lecture_name),
+  );
 
   try {
     const hierarchy = await fetchHierarchy();
     hierarchy.forEach((year) =>
       year.modules.forEach((mod) =>
         mod.subjects.forEach((sub) =>
-          sub.lectures.forEach((lec) => localMap.set(lec.id, lec.name))
-        )
-      )
+          sub.lectures.forEach((lec) => localMap.set(lec.id, lec.name)),
+        ),
+      ),
     );
   } catch (e) {
     // Ignore if hierarchy cache is missing
@@ -345,7 +383,8 @@ async function serveFromCache(userId: string): Promise<UserStats> {
 
 export async function fetchStats(userId: string): Promise<UserStats> {
   const net = await NetInfo.fetch();
-  const isOnline = (net.isConnected ?? false) && net.isInternetReachable !== false;
+  const isOnline =
+    (net.isConnected ?? false) && net.isInternetReachable !== false;
 
   if (!isOnline) {
     return serveFromCache(userId);
@@ -360,25 +399,26 @@ export async function fetchStats(userId: string): Promise<UserStats> {
       .select("*")
       .eq("user_id", userId)
       .maybeSingle();
-      
-    const rpcQuery = supabase
-      .rpc("get_user_stats_overview", { p_user_id: userId });
+
+    const rpcQuery = supabase.rpc("get_user_stats_overview", {
+      p_user_id: userId,
+    });
 
     const timeoutPromise = new Promise<any>((_, reject) =>
-      setTimeout(() => reject(new Error("timeout")), 10000)
+      setTimeout(() => reject(new Error("timeout")), 10000),
     );
 
     const [statsRes, rpcRes] = await Promise.race([
       Promise.all([statsQuery, rpcQuery]),
-      timeoutPromise
+      timeoutPromise,
     ]);
 
     if (rpcRes.error) throw rpcRes.error;
-    
+
     dbStats = statsRes.data;
     rpcData = rpcRes.data;
   } catch (e) {
-    if (__DEV__) console.warn('[statsService] Network error mid-request:', e);
+    if (__DEV__) console.warn("[statsService] Network error mid-request:", e);
     return serveFromCache(userId);
   }
 
@@ -389,8 +429,8 @@ export async function fetchStats(userId: string): Promise<UserStats> {
 
   // Prevent double-counting: if the server already processed this quiz (but the client timed out and queued it),
   // it will be in the server's recent_results. We filter it out so we don't add its stats twice.
-  const serverIds = new Set(baseResult.recent_results?.map(r => r.id) ?? []);
-  pending = pending.filter(q => !serverIds.has(q.localId));
+  const serverIds = new Set(baseResult.recent_results?.map((r) => r.id) ?? []);
+  pending = pending.filter((q) => !serverIds.has(q.localId));
 
   let finalResult = baseResult;
   if (pending.length > 0) {
@@ -409,6 +449,7 @@ export async function clearStatsCache(userId: string) {
     await AsyncStorage.removeItem(CACHE_KEY(userId));
     useCacheStore.getState().clearStatsCacheForUser(userId);
   } catch (error) {
-    if (__DEV__) console.error("[clearStatsCache] Error clearing stats cache:", error);
+    if (__DEV__)
+      console.error("[clearStatsCache] Error clearing stats cache:", error);
   }
 }

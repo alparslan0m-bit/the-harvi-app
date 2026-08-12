@@ -39,32 +39,36 @@ export function OfflineBanner({ isOnline, pendingCount, isSyncing }: Props) {
     opacity: opacity.value,
   }));
 
-  const bg = !isOnline ? colors.warning : isSyncing ? colors.primary : colors.success;
+  const bg = !isOnline
+    ? colors.warning
+    : isSyncing
+      ? colors.primary
+      : colors.success;
   const icon: React.ComponentProps<typeof Feather>["name"] = !isOnline
     ? "wifi-off"
     : isSyncing
-    ? "refresh-cw"
-    : "check-circle";
+      ? "refresh-cw"
+      : "check-circle";
 
   const label = !isOnline
     ? pendingCount > 0
       ? `Offline · ${pendingCount} result${pendingCount !== 1 ? "s" : ""} queued`
       : "You're offline"
     : isSyncing
-    ? "Syncing results…"
-    : pendingCount > 0
-    ? `Synced ${pendingCount} result${pendingCount !== 1 ? "s" : ""}`
-    : "";
+      ? "Syncing results…"
+      : pendingCount > 0
+        ? `Synced ${pendingCount} result${pendingCount !== 1 ? "s" : ""}`
+        : "";
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[
-        styles.banner, 
-        { 
+        styles.banner,
+        {
           backgroundColor: colors.card,
           borderColor: bg + "33",
-        }, 
-        animStyle
+        },
+        animStyle,
       ]}
     >
       <View style={[styles.indicator, { backgroundColor: bg }]} />

@@ -97,8 +97,6 @@ export function ProfileScreen() {
   );
 }
 
-
-
 const styles = StyleSheet.create({
   root: { flex: 1 },
   header: {

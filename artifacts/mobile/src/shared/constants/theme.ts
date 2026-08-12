@@ -85,7 +85,6 @@ export const COLORS = {
     ],
     streakFamily: { fill: "#E8D6EF", solid: "#B07CC8", ink: "#4A1D6B" }, // Soft Mauve
   },
-
 } as const;
 
 export const THEME = {

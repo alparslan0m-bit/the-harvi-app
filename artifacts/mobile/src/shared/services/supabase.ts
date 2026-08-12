@@ -40,7 +40,10 @@ const SecureStoreAdapter = {
   },
 
   async setItem(key: string, value: string): Promise<void> {
-    if (Platform.OS === "web") { localStorage.setItem(key, value); return; }
+    if (Platform.OS === "web") {
+      localStorage.setItem(key, value);
+      return;
+    }
 
     if (value.length <= CHUNK_SIZE) {
       await SecureStore.setItemAsync(key, value);
@@ -61,7 +64,10 @@ const SecureStoreAdapter = {
   },
 
   async removeItem(key: string): Promise<void> {
-    if (Platform.OS === "web") { localStorage.removeItem(key); return; }
+    if (Platform.OS === "web") {
+      localStorage.removeItem(key);
+      return;
+    }
 
     const countRaw = await SecureStore.getItemAsync(`${key}.__count`);
     if (countRaw !== null) {

@@ -81,9 +81,13 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
 
   return (
     <Animated.View style={animStyle}>
-      <AnimatedPressable 
+      <AnimatedPressable
         feedback="opacity"
-        style={[styles.option, { backgroundColor: bgColor, borderColor }, shadowStyle]}
+        style={[
+          styles.option,
+          { backgroundColor: bgColor, borderColor },
+          shadowStyle,
+        ]}
         onPress={() => {
           if (answered) return;
           onSelect(index);
@@ -91,25 +95,21 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
         disabled={!!answered}
         disabledOpacity={1}
       >
-          <View style={[styles.badge, { backgroundColor: labelBg }]}>
-            <Text style={[styles.badgeText, { color: labelColor }]}>
-              {label}
-            </Text>
-          </View>
+        <View style={[styles.badge, { backgroundColor: labelBg }]}>
+          <Text style={[styles.badgeText, { color: labelColor }]}>{label}</Text>
+        </View>
 
-          <Text
-            style={[styles.optionText, { color: textColor }]}
-            numberOfLines={5}
-          >
-            {text}
-          </Text>
+        <Text
+          style={[styles.optionText, { color: textColor }]}
+          numberOfLines={5}
+        >
+          {text}
+        </Text>
 
-          {isCorrect && (
-            <Feather name="check-circle" size={20} color={iconColor} />
-          )}
-          {isWrong && (
-            <Feather name="x-circle" size={20} color={iconColor} />
-          )}
+        {isCorrect && (
+          <Feather name="check-circle" size={20} color={iconColor} />
+        )}
+        {isWrong && <Feather name="x-circle" size={20} color={iconColor} />}
       </AnimatedPressable>
     </Animated.View>
   );

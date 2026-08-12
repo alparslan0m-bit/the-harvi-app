@@ -34,7 +34,10 @@ export function StatsMetricsGrid({
       <View style={styles.pillsRow}>
         <View style={[styles.pill, { backgroundColor: quizzes.fill + "80" }]}>
           <View
-            style={[styles.pillIconWrap, { backgroundColor: quizzes.fill, borderColor: colors.background }]}
+            style={[
+              styles.pillIconWrap,
+              { backgroundColor: quizzes.fill, borderColor: colors.background },
+            ]}
           >
             <Feather name="check-square" size={20} color={quizzes.ink} />
           </View>
@@ -58,7 +61,13 @@ export function StatsMetricsGrid({
 
         <View style={[styles.pill, { backgroundColor: questions.fill + "80" }]}>
           <View
-            style={[styles.pillIconWrap, { backgroundColor: questions.fill, borderColor: colors.background }]}
+            style={[
+              styles.pillIconWrap,
+              {
+                backgroundColor: questions.fill,
+                borderColor: colors.background,
+              },
+            ]}
           >
             <Feather name="help-circle" size={20} color={questions.ink} />
           </View>
@@ -88,7 +97,10 @@ export function StatsMetricsGrid({
           ]}
         >
           <View
-            style={[styles.pillIconWrap, { backgroundColor: colors.muted, borderColor: colors.background }]}
+            style={[
+              styles.pillIconWrap,
+              { backgroundColor: colors.muted, borderColor: colors.background },
+            ]}
           >
             <Feather name="award" size={20} color={colors.foreground} />
           </View>

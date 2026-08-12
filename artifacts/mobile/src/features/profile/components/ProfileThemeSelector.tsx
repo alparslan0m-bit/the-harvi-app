@@ -14,41 +14,48 @@ export function ProfileThemeSelector() {
 
   return (
     <View style={styles.fieldGroup}>
-      <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>APPEARANCE</Text>
+      <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>
+        APPEARANCE
+      </Text>
       <View style={styles.themeRow}>
-        {([
-          { id: "harvi", label: "Harvi", icon: "activity" },
-          { id: "pink", label: "Pink", icon: "heart" },
-        ] as const).map((item) => {
+        {(
+          [
+            { id: "harvi", label: "Harvi", icon: "activity" },
+            { id: "pink", label: "Pink", icon: "heart" },
+          ] as const
+        ).map((item) => {
           const active = theme === item.id;
           const accent = item.id === "pink" ? "#db2777" : colors.primary;
-          
+
           let bg = colors.primary + "1A";
           if (item.id === "pink") bg = "#db27771A";
 
           return (
-            <AnimatedPressable feedback="scale"
+            <AnimatedPressable
+              feedback="scale"
               key={item.id}
               style={[
                 styles.themeBtn,
-                { 
+                {
                   backgroundColor: active ? bg : colors.muted,
-                }
+                },
               ]}
               onPress={() => {
                 setTheme(item.id);
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               }}
             >
-              <Feather 
-                name={item.icon} 
-                size={16} 
-                color={active ? accent : colors.mutedForeground} 
+              <Feather
+                name={item.icon}
+                size={16}
+                color={active ? accent : colors.mutedForeground}
               />
-              <Text style={[
-                styles.themeBtnText, 
-                { color: active ? accent : colors.mutedForeground }
-              ]}>
+              <Text
+                style={[
+                  styles.themeBtnText,
+                  { color: active ? accent : colors.mutedForeground },
+                ]}
+              >
                 {item.label}
               </Text>
             </AnimatedPressable>

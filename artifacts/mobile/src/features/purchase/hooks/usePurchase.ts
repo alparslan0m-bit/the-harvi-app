@@ -37,8 +37,6 @@ export function usePurchase() {
     [purchaseModule],
   );
 
-
-
   const submitCode = useCallback(
     async (code: string) => {
       setStatus("loading");

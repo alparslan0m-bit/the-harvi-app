@@ -32,7 +32,9 @@ export function SubjectScreen() {
     ?.flatMap((y) => y.modules)
     .find((m) => m.subjects.some((s) => s.id === id));
 
-  const moduleAccess = parentModule ? accessMap?.get(parentModule.id) : undefined;
+  const moduleAccess = parentModule
+    ? accessMap?.get(parentModule.id)
+    : undefined;
   const hasAccess = !!moduleAccess?.has_access;
 
   const { status, progress, lectureInfo, downloadSubject, newQuestionCount } =
@@ -57,7 +59,10 @@ export function SubjectScreen() {
           },
         ]}
       >
-        <BackButton onPress={() => router.back()} color={colors.headerForeground} />
+        <BackButton
+          onPress={() => router.back()}
+          color={colors.headerForeground}
+        />
         <Text
           style={[styles.headerTitle, { color: colors.headerForeground }]}
           numberOfLines={2}
@@ -126,11 +131,12 @@ export function SubjectScreen() {
         </Text>
 
         {subject.lectures.map((lec, i) => {
-          const bestScore = bestScores.get(lec.id) ?? bestScores.get(lec.external_id);
+          const bestScore =
+            bestScores.get(lec.id) ?? bestScores.get(lec.external_id);
           const info = lectureInfo.find((li) => li.lectureId === lec.id);
           const isCached = info?.isCached ?? false;
           const hasNewQuestions = info?.isStale ?? false;
-          
+
           const isLectureFree = !!lec.is_free;
           const canAccessLecture = hasAccess || isLectureFree;
 
@@ -153,8 +159,23 @@ export function SubjectScreen() {
                       priceDisplay: `$${((moduleAccess?.price_cents ?? 0) / 100).toFixed(2)}`,
                       productId: parentModule.external_price_id || "",
                       totalSubjects: String(parentModule.subjects.length),
-                      totalLectures: String(parentModule.subjects.reduce((s, sub) => s + sub.lectures.length, 0)),
-                      totalQuestions: String(parentModule.subjects.reduce((s, sub) => s + sub.lectures.reduce((ls, l) => ls + (l.question_count ?? 0), 0), 0)),
+                      totalLectures: String(
+                        parentModule.subjects.reduce(
+                          (s, sub) => s + sub.lectures.length,
+                          0,
+                        ),
+                      ),
+                      totalQuestions: String(
+                        parentModule.subjects.reduce(
+                          (s, sub) =>
+                            s +
+                            sub.lectures.reduce(
+                              (ls, l) => ls + (l.question_count ?? 0),
+                              0,
+                            ),
+                          0,
+                        ),
+                      ),
                     },
                   });
                 } else {

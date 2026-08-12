@@ -6,14 +6,20 @@ import { RecentResultCard } from "./RecentResultCard";
 import { useColors, type PaletteFamily } from "@/src/shared/hooks/useColors";
 import { UserStats } from "@/src/shared/types";
 
-export function RecentResultsSection({ results }: { results: UserStats["recent_results"] }): React.ReactElement {
+export function RecentResultsSection({
+  results,
+}: {
+  results: UserStats["recent_results"];
+}): React.ReactElement {
   const colors = useColors();
   const lavender = colors.statCardFamilies[2] as PaletteFamily;
   return (
     <View style={styles.recentSection}>
       <View style={styles.sectionHeader}>
         <View style={styles.sectionTitleRow}>
-          <View style={[styles.sectionIcon, { backgroundColor: lavender.fill }]}>
+          <View
+            style={[styles.sectionIcon, { backgroundColor: lavender.fill }]}
+          >
             <Feather name="clock" size={14} color={lavender.solid} />
           </View>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>

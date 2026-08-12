@@ -10,7 +10,12 @@ import { z } from "zod";
 const PROGRESS_CACHE_KEY = (uid: string) => `harvi:progress:${uid}`;
 
 const FK_CANDIDATES = [
-  "lecture_id", "lec_id", "lesson_id", "topic_id", "subject_id", "content_id",
+  "lecture_id",
+  "lec_id",
+  "lesson_id",
+  "topic_id",
+  "subject_id",
+  "content_id",
 ];
 
 // ── Module-level memory cache (survives re-renders, cleared on app restart) ──
@@ -31,18 +36,24 @@ async function readCache(userId: string): Promise<Set<string> | null> {
     }
     return null;
   } catch (e) {
-    if (__DEV__) console.warn('[progressService] readCache error:', e);
+    if (__DEV__) console.warn("[progressService] readCache error:", e);
     return null;
   }
 }
 
 /** Write the completed-IDs set to AsyncStorage + memCache (best-effort). */
-export async function writeProgressCache(userId: string, ids: Set<string>): Promise<void> {
+export async function writeProgressCache(
+  userId: string,
+  ids: Set<string>,
+): Promise<void> {
   try {
-    await AsyncStorage.setItem(PROGRESS_CACHE_KEY(userId), JSON.stringify([...ids]));
+    await AsyncStorage.setItem(
+      PROGRESS_CACHE_KEY(userId),
+      JSON.stringify([...ids]),
+    );
     memCache.set(userId, ids);
   } catch (e) {
-    if (__DEV__) console.warn('[progressService] writeProgressCache error:', e);
+    if (__DEV__) console.warn("[progressService] writeProgressCache error:", e);
   }
 }
 
@@ -53,9 +64,10 @@ export async function writeProgressCache(userId: string, ids: Set<string>): Prom
  */
 export async function optimisticallyMarkComplete(
   userId: string,
-  lectureId: string
+  lectureId: string,
 ): Promise<void> {
-  const current = memCache.get(userId) ?? (await readCache(userId)) ?? new Set<string>();
+  const current =
+    memCache.get(userId) ?? (await readCache(userId)) ?? new Set<string>();
   current.add(lectureId);
   await writeProgressCache(userId, current);
 }
@@ -81,7 +93,8 @@ async function queuedIds(userId: string): Promise<string[]> {
 // ── Offline path ─────────────────────────────────────────────────────────────
 
 async function serveFromCache(userId: string): Promise<Set<string>> {
-  const cached = memCache.get(userId) ?? (await readCache(userId)) ?? new Set<string>();
+  const cached =
+    memCache.get(userId) ?? (await readCache(userId)) ?? new Set<string>();
   const pending = await queuedIds(userId);
   pending.forEach((id) => cached.add(id));
   // Keep memCache in sync
@@ -91,12 +104,15 @@ async function serveFromCache(userId: string): Promise<Set<string>> {
 
 // ── Online fetch ─────────────────────────────────────────────────────────────
 
-export async function fetchCompletedLectures(userId: string): Promise<Set<string>> {
+export async function fetchCompletedLectures(
+  userId: string,
+): Promise<Set<string>> {
   // ── Fast offline short-circuit ───────────────────────────────────────────
   // Check connectivity BEFORE any Supabase call.
   // Without this, an offline app waits up to 30 s for the request to fail.
   const net = await NetInfo.fetch();
-  const isOnline = (net.isConnected ?? false) && net.isInternetReachable !== false;
+  const isOnline =
+    (net.isConnected ?? false) && net.isInternetReachable !== false;
 
   if (!isOnline) {
     return serveFromCache(userId);
@@ -112,8 +128,8 @@ export async function fetchCompletedLectures(userId: string): Promise<Set<string
         .select(col)
         .eq("user_id", userId);
 
-      const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-        setTimeout(() => reject(new Error("timeout")), 10000)
+      const timeoutPromise = new Promise<{ data: any; error: any }>(
+        (_, reject) => setTimeout(() => reject(new Error("timeout")), 10000),
       );
 
       let data, error;
@@ -128,17 +144,23 @@ export async function fetchCompletedLectures(userId: string): Promise<Set<string
       if (error) {
         if (error.code === "42703") continue; // column doesn't exist → try next
         if (error instanceof Error && error.message === "timeout") throw error; // break the loop on timeout
-        throw error;                           // real error → fall through to catch
+        throw error; // real error → fall through to catch
       }
 
       if (data && Array.isArray(data) && data.length > 0) {
         const ids = data
-          .filter((r: unknown): r is Record<string, unknown> => typeof r === "object" && r !== null)
+          .filter(
+            (r: unknown): r is Record<string, unknown> =>
+              typeof r === "object" && r !== null,
+          )
           .map((r) => {
             const val: unknown = r[col as keyof typeof r];
             return val;
           })
-          .filter((v): v is string | number => v != null && String(v) !== "null" && String(v).length > 0)
+          .filter(
+            (v): v is string | number =>
+              v != null && String(v) !== "null" && String(v).length > 0,
+          )
           .map((v) => String(v));
 
         if (ids.length > 0) {
@@ -150,7 +172,8 @@ export async function fetchCompletedLectures(userId: string): Promise<Set<string
 
     if (!result) result = new Set<string>();
   } catch (e) {
-    if (__DEV__) console.warn('[progressService] fetchCompletedLectures error:', e);
+    if (__DEV__)
+      console.warn("[progressService] fetchCompletedLectures error:", e);
     // Network error mid-request — fall back to cache
     return serveFromCache(userId);
   }
@@ -175,6 +198,10 @@ export async function clearProgressCache(userId: string) {
     memCache.delete(userId);
     warmed.delete(userId);
   } catch (error) {
-    if (__DEV__) console.error("[clearProgressCache] Error clearing progress cache:", error);
+    if (__DEV__)
+      console.error(
+        "[clearProgressCache] Error clearing progress cache:",
+        error,
+      );
   }
 }

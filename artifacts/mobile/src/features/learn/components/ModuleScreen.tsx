@@ -40,7 +40,10 @@ export function ModuleScreen() {
           },
         ]}
       >
-        <BackButton onPress={() => router.back()} color={colors.headerForeground} />
+        <BackButton
+          onPress={() => router.back()}
+          color={colors.headerForeground}
+        />
         <Text
           style={[styles.headerTitle, { color: colors.headerForeground }]}
           numberOfLines={2}
@@ -68,7 +71,8 @@ export function ModuleScreen() {
 
           // Subject-level access check
           const isLocked = !hasModuleAccess;
-          const isFreePreview = !hasModuleAccess && sub.lectures.some((l) => l.is_free);
+          const isFreePreview =
+            !hasModuleAccess && sub.lectures.some((l) => l.is_free);
 
           return (
             <SubjectCard
@@ -128,4 +132,3 @@ const styles = StyleSheet.create({
   empty: { alignItems: "center", paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular" },
 });
-

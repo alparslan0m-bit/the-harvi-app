@@ -15,7 +15,9 @@ export function LearnHeader({ topPad }: { topPad: number }) {
         },
       ]}
     >
-      <Text style={[styles.title, { color: colors.headerForeground }]}>Harvi</Text>
+      <Text style={[styles.title, { color: colors.headerForeground }]}>
+        Harvi
+      </Text>
     </View>
   );
 }

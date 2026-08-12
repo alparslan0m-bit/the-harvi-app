@@ -25,10 +25,10 @@ export function QuizActiveHeader({
   return (
     <View style={[styles.header, { paddingTop: topPad + 10 }]}>
       {/* Close button */}
-      <AnimatedPressable feedback="opacity"
+      <AnimatedPressable
+        feedback="opacity"
         onPress={onClose}
         style={[styles.iconBtn, { backgroundColor: colors.card }]}
-        
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
         <Feather name="x" size={20} color={colors.foreground} />
@@ -105,8 +105,8 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_800ExtraBold",
     letterSpacing: -0.2,
   },
-  counterTotal: { 
-    fontSize: 14, 
+  counterTotal: {
+    fontSize: 14,
     fontFamily: "Inter_600SemiBold",
   },
 });

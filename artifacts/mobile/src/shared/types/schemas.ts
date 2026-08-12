@@ -90,23 +90,27 @@ export const UserStatsSchema = z.object({
   average_score: z.number(),
   best_score: z.number(),
   streak: z.number(),
-  weekly_activity: z.array(z.object({
-    day: z.string(),
-    count: z.number(),
-    isToday: z.boolean().optional(),
-  })),
-  subject_mastery: z.array(z.object({
-    subject: z.string(),
-    mastery: z.number(),
-    attempts: z.number(),
-  })),
+  weekly_activity: z.array(
+    z.object({
+      day: z.string(),
+      count: z.number(),
+      isToday: z.boolean().optional(),
+    }),
+  ),
+  subject_mastery: z.array(
+    z.object({
+      subject: z.string(),
+      mastery: z.number(),
+      attempts: z.number(),
+    }),
+  ),
   recent_results: z.array(QuizResultSchema),
 });
 export type UserStats = z.infer<typeof UserStatsSchema>;
 
 export const ContentAccessEntrySchema = z.object({
   item_id: z.string(),
-  item_type: z.enum(['module', 'subject']),
+  item_type: z.enum(["module", "subject"]),
   has_access: z.boolean(),
   is_free: z.boolean(),
   price_cents: z.number(),

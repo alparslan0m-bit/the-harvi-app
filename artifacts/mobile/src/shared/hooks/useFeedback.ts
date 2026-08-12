@@ -66,7 +66,9 @@ export function useFeedback(userId: string | undefined) {
 
     const net = await NetInfo.fetch();
     if (net.isConnected === false || net.isInternetReachable === false) {
-      setFeedbackError("You are offline. Feedback requires an internet connection.");
+      setFeedbackError(
+        "You are offline. Feedback requires an internet connection.",
+      );
       return;
     }
 

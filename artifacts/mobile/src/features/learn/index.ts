@@ -19,4 +19,4 @@ export {
   clearProgressCache,
   writeProgressCache,
 } from "./services/progressService";
-export * from './components';
+export * from "./components";

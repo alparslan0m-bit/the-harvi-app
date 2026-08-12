@@ -17,7 +17,7 @@ export function YearScreen() {
   if (!id || typeof id !== "string") return <Redirect href="/+not-found" />;
   const { data: years } = useHierarchy();
   const { data: accessMap } = useModuleAccess();
-  
+
   const year = years?.find((y) => y.id === id);
 
   const topPad = insets.top + (Platform.OS === "web" ? 67 : 0);
@@ -36,7 +36,10 @@ export function YearScreen() {
           },
         ]}
       >
-        <BackButton onPress={() => router.back()} color={colors.headerForeground} />
+        <BackButton
+          onPress={() => router.back()}
+          color={colors.headerForeground}
+        />
         <Text
           style={[styles.headerTitle, { color: colors.headerForeground }]}
           numberOfLines={2}
@@ -69,7 +72,10 @@ export function YearScreen() {
               hasAccess={hasAccess}
               isFree={isFree}
               onPress={() => {
-                router.push({ pathname: "/module/[id]", params: { id: mod.id } });
+                router.push({
+                  pathname: "/module/[id]",
+                  params: { id: mod.id },
+                });
               }}
             />
           );
@@ -115,4 +121,3 @@ const styles = StyleSheet.create({
   empty: { alignItems: "center", paddingTop: 60, gap: 12 },
   emptyText: { fontSize: 14, fontFamily: "Inter_400Regular" },
 });
-

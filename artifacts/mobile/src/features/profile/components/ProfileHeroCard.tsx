@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-
 import { AvatarById, AvatarId } from "./DoctorAvatars";
 import { useColors } from "@/src/shared/hooks/useColors";
 import { AnimatedPressable } from "@/src/shared/components";
@@ -30,7 +29,12 @@ export function ProfileHeroCard({
   const heroInk = "#1A1A1A"; // Candy Pastel high-contrast ink
 
   return (
-    <View style={[styles.card, { backgroundColor: heroBg, elevation: 0, shadowOpacity: 0 }]}>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: heroBg, elevation: 0, shadowOpacity: 0 },
+      ]}
+    >
       <View style={styles.topSection}>
         {/* Avatar */}
         <View style={styles.avatarWrap}>
@@ -81,7 +85,8 @@ export function ProfileHeroCard({
         </View>
 
         {/* Edit button */}
-        <AnimatedPressable feedback="opacity"
+        <AnimatedPressable
+          feedback="opacity"
           style={[styles.editBtn, { backgroundColor: heroInk }]}
           onPress={() => router.push("/profile/edit")}
         >
@@ -91,11 +96,20 @@ export function ProfileHeroCard({
 
       {memberSince && (
         <View style={styles.footer}>
-          <Feather name="calendar" size={12} color={heroInk} style={{ opacity: 0.7 }} />
+          <Feather
+            name="calendar"
+            size={12}
+            color={heroInk}
+            style={{ opacity: 0.7 }}
+          />
           <Text style={[styles.memberText, { color: heroInk, opacity: 0.7 }]}>
             Joined at{" "}
             <Text
-              style={{ color: heroInk, fontFamily: "Inter_600SemiBold", opacity: 1 }}
+              style={{
+                color: heroInk,
+                fontFamily: "Inter_600SemiBold",
+                opacity: 1,
+              }}
             >
               {memberSince}
             </Text>
@@ -186,4 +200,3 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
 });
-

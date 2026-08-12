@@ -26,9 +26,9 @@ export const useThemeStore = create<ThemeState>((set) => ({
         Appearance.setColorScheme("light");
       }
     } catch (e) {
-      if (__DEV__) console.warn('[themeStore] Error loading theme:', e);
+      if (__DEV__) console.warn("[themeStore] Error loading theme:", e);
     }
-  }
+  },
 }));
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

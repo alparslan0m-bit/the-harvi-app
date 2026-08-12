@@ -41,42 +41,55 @@ export function QuizLoadingScreen({ lectureName }: { lectureName?: string }) {
   useEffect(() => {
     ring1Scale.value = withRepeat(
       withTiming(2.2, { duration: 1600, easing: Easing.out(Easing.cubic) }),
-      -1, false
+      -1,
+      false,
     );
     ring1Opacity.value = withRepeat(
       withSequence(
         withTiming(0.45, { duration: 200 }),
-        withTiming(0, { duration: 1400 })
+        withTiming(0, { duration: 1400 }),
       ),
-      -1, false
+      -1,
+      false,
     );
-    ring2Scale.value = withDelay(700,
+    ring2Scale.value = withDelay(
+      700,
       withRepeat(
         withTiming(2.2, { duration: 1600, easing: Easing.out(Easing.cubic) }),
-        -1, false
-      )
+        -1,
+        false,
+      ),
     );
-    ring2Opacity.value = withDelay(700,
+    ring2Opacity.value = withDelay(
+      700,
       withRepeat(
         withSequence(
           withTiming(0.3, { duration: 200 }),
-          withTiming(0, { duration: 1400 })
+          withTiming(0, { duration: 1400 }),
         ),
-        -1, false
-      )
+        -1,
+        false,
+      ),
     );
     iconY.value = withRepeat(
       withSequence(
         withTiming(-7, { duration: 950, easing: Easing.inOut(Easing.sin) }),
-        withTiming(0, { duration: 950, easing: Easing.inOut(Easing.sin) })
+        withTiming(0, { duration: 950, easing: Easing.inOut(Easing.sin) }),
       ),
-      -1, false
+      -1,
+      false,
     );
 
     const dotTimer = setInterval(() => setDots((d) => (d % 3) + 1), 450);
-    const tipTimer = setInterval(() => setTipIndex((t) => (t + 1) % TIPS.length), 3200);
-    return () => { clearInterval(dotTimer); clearInterval(tipTimer); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    const tipTimer = setInterval(
+      () => setTipIndex((t) => (t + 1) % TIPS.length),
+      3200,
+    );
+    return () => {
+      clearInterval(dotTimer);
+      clearInterval(tipTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const ring1Style = useAnimatedStyle(() => ({
@@ -94,8 +107,12 @@ export function QuizLoadingScreen({ lectureName }: { lectureName?: string }) {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <View style={styles.ringWrap}>
-        <Animated.View style={[styles.ring, { borderColor: colors.primary }, ring1Style]} />
-        <Animated.View style={[styles.ring, { borderColor: colors.primary }, ring2Style]} />
+        <Animated.View
+          style={[styles.ring, { borderColor: colors.primary }, ring1Style]}
+        />
+        <Animated.View
+          style={[styles.ring, { borderColor: colors.primary }, ring2Style]}
+        />
         <Animated.View style={iconStyle}>
           <View style={[styles.iconBox, { backgroundColor: colors.primary }]}>
             <Feather name="zap" size={34} color="#fff" />
@@ -103,10 +120,18 @@ export function QuizLoadingScreen({ lectureName }: { lectureName?: string }) {
         </Animated.View>
       </View>
 
-      <Animated.View entering={FadeIn.delay(200).duration(500)} style={styles.textGroup}>
-        <Text style={[styles.title, { color: colors.foreground }]}>Warming Engines</Text>
+      <Animated.View
+        entering={FadeIn.delay(200).duration(500)}
+        style={styles.textGroup}
+      >
+        <Text style={[styles.title, { color: colors.foreground }]}>
+          Warming Engines
+        </Text>
         {lectureName ? (
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]} numberOfLines={1}>
+          <Text
+            style={[styles.subtitle, { color: colors.mutedForeground }]}
+            numberOfLines={1}
+          >
             {lectureName}
           </Text>
         ) : null}
@@ -119,7 +144,10 @@ export function QuizLoadingScreen({ lectureName }: { lectureName?: string }) {
         key={tipIndex}
         entering={FadeInDown.duration(200)}
         exiting={FadeOut.duration(200)}
-        style={[styles.tipCard, { backgroundColor: colors.muted, borderColor: colors.border }]}
+        style={[
+          styles.tipCard,
+          { backgroundColor: colors.muted, borderColor: colors.border },
+        ]}
       >
         <Feather name="book-open" size={13} color={colors.primary} />
         <Text style={[styles.tipText, { color: colors.mutedForeground }]}>
@@ -131,8 +159,19 @@ export function QuizLoadingScreen({ lectureName }: { lectureName?: string }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, alignItems: "center", justifyContent: "center", gap: 32, paddingHorizontal: 32 },
-  ringWrap: { width: 88, height: 88, alignItems: "center", justifyContent: "center" },
+  root: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 32,
+    paddingHorizontal: 32,
+  },
+  ringWrap: {
+    width: 88,
+    height: 88,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   ring: {
     position: "absolute",
     width: 88,
@@ -149,7 +188,12 @@ const styles = StyleSheet.create({
   },
   textGroup: { alignItems: "center", gap: 6 },
   title: { fontSize: 26, fontFamily: "Inter_700Bold", letterSpacing: -0.7 },
-  subtitle: { fontSize: 14, fontFamily: "Inter_400Regular", maxWidth: 240, textAlign: "center" },
+  subtitle: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    maxWidth: 240,
+    textAlign: "center",
+  },
   dots: { fontSize: 10, letterSpacing: 4, marginTop: 4 },
   tipCard: {
     flexDirection: "row",
@@ -161,5 +205,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     width: "100%",
   },
-  tipText: { flex: 1, fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19, letterSpacing: -0.1 },
+  tipText: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 19,
+    letterSpacing: -0.1,
+  },
 });

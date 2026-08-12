@@ -1,5 +1,11 @@
 import React from "react";
-import { View, Text, TextInput, ActivityIndicator, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  ActivityIndicator,
+  StyleSheet,
+} from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useFeedback } from "@/src/shared/hooks/useFeedback";
 import { useColors } from "@/src/shared/hooks/useColors";
@@ -117,7 +123,8 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
         </View>
       )}
 
-      <AnimatedPressable feedback="opacity"
+      <AnimatedPressable
+        feedback="opacity"
         style={[
           styles.submitBtn,
           {
@@ -128,7 +135,6 @@ export function FeedbackForm({ userId }: FeedbackFormProps) {
         ]}
         onPress={handleSubmit}
         disabled={isDisabled || isTooShort}
-        
       >
         {submitting ? (
           <ActivityIndicator color="#fff" size="small" />

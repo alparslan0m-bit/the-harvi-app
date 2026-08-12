@@ -55,7 +55,9 @@ export interface SubjectCacheState {
   newQuestionCount: number;
 }
 
-export function useSubjectCache(subject: Subject | undefined): SubjectCacheState {
+export function useSubjectCache(
+  subject: Subject | undefined,
+): SubjectCacheState {
   const [status, setStatus] = useState<SubjectCacheStatus>("none");
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [lectureInfo, setLectureInfo] = useState<LectureCacheInfo[]>([]);
@@ -85,7 +87,7 @@ export function useSubjectCache(subject: Subject | undefined): SubjectCacheState
           isStale: !!meta && liveCount > cachedCount,
           downloadedAt: meta?.downloadedAt ?? null,
         };
-      })
+      }),
     );
 
     setLectureInfo(infos);
@@ -103,7 +105,7 @@ export function useSubjectCache(subject: Subject | undefined): SubjectCacheState
   useFocusEffect(
     useCallback(() => {
       loadState();
-    }, [loadState])
+    }, [loadState]),
   );
 
   const downloadSubject = useCallback(async () => {
@@ -124,7 +126,7 @@ export function useSubjectCache(subject: Subject | undefined): SubjectCacheState
 
       const lec = subject.lectures[i];
       if (!lec) continue;
-      
+
       try {
         const questions = await fetchQuestions(lec.id);
         await saveQuestionsToCache(lec.id, questions);
@@ -139,7 +141,7 @@ export function useSubjectCache(subject: Subject | undefined): SubjectCacheState
           if (isMounted.current) {
             Alert.alert(
               "Connection Lost",
-              "The download timed out due to poor or no internet connection. Please check your network and try again."
+              "The download timed out due to poor or no internet connection. Please check your network and try again.",
             );
           }
           break;
@@ -160,7 +162,7 @@ export function useSubjectCache(subject: Subject | undefined): SubjectCacheState
 
   const newQuestionCount = lectureInfo.reduce(
     (sum, i) => sum + (i.isStale ? i.liveCount - i.cachedCount : 0),
-    0
+    0,
   );
 
   return { status, progress, lectureInfo, downloadSubject, newQuestionCount };

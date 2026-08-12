@@ -57,11 +57,14 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
                 supabase.from("user_stats").delete().eq("user_id", uid),
               ]);
               const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("timeout")), 10000)
+                setTimeout(() => reject(new Error("timeout")), 10000),
               );
               await Promise.race([deletePromise, timeoutPromise]);
             } catch (error) {
-              Alert.alert("Network Error", "Could not reach the server to clear your history. Please check your connection and try again.");
+              Alert.alert(
+                "Network Error",
+                "Could not reach the server to clear your history. Please check your connection and try again.",
+              );
               return; // Stop execution so we don't desync local and remote state
             }
 
@@ -76,7 +79,10 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
             // 3. Zero out UI immediately, then re-fetch clean state
             queryClient.setQueriesData({ queryKey: ["stats"] }, ZERO_STATS);
             queryClient.setQueriesData({ queryKey: ["progress"] }, new Set());
-            queryClient.setQueriesData({ queryKey: ["lectureBestScores"] }, new Map());
+            queryClient.setQueriesData(
+              { queryKey: ["lectureBestScores"] },
+              new Map(),
+            );
             // Invalidate to ensure any active observers refetch cleanly in the background
             queryClient.invalidateQueries({ queryKey: ["stats"] });
             queryClient.invalidateQueries({ queryKey: ["progress"] });
@@ -103,7 +109,10 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
             await clearAllLectureCache();
             queryClient.setQueriesData({ queryKey: ["quiz"] }, undefined);
             queryClient.removeQueries({ queryKey: ["quiz"] });
-            Alert.alert("Downloads Cleared", "All offline lectures have been removed.");
+            Alert.alert(
+              "Downloads Cleared",
+              "All offline lectures have been removed.",
+            );
           },
         },
       ],
@@ -169,10 +178,10 @@ interface ActionRowProps {
 function ActionRow({ icon, label, onPress, color, bgColor }: ActionRowProps) {
   const colors = useColors();
   return (
-    <AnimatedPressable feedback="opacity"
+    <AnimatedPressable
+      feedback="opacity"
       style={styles.actionRow}
       onPress={onPress}
-      
     >
       <View style={[styles.actionIconWrap, { backgroundColor: bgColor }]}>
         <Feather name={icon} size={15} color={color} />

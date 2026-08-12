@@ -35,14 +35,15 @@ function AnimatedBar({
   const chartPalette = colors.statCardFamilies[0] as PaletteFamily;
   const progress = useSharedValue(0);
 
-  const targetH = item.count > 0 ? Math.max((item.count / maxCount) * BAR_MAX_H, 12) : 0;
+  const targetH =
+    item.count > 0 ? Math.max((item.count / maxCount) * BAR_MAX_H, 12) : 0;
 
   useEffect(() => {
     progress.value = withDelay(
       index * 60,
-      withTiming(1, { duration: 550, easing: Easing.out(Easing.cubic) })
+      withTiming(1, { duration: 550, easing: Easing.out(Easing.cubic) }),
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item.count]);
 
   const barStyle = useAnimatedStyle(() => ({
@@ -53,28 +54,35 @@ function AnimatedBar({
   const barColor = item.isToday
     ? chartPalette.solid
     : isActive
-    ? chartPalette.solid + "99"
-    : colors.muted;
+      ? chartPalette.solid + "99"
+      : colors.muted;
 
   return (
     <View style={styles.barWrapper}>
       {/* Count label above bar */}
       <View style={styles.labelWrap}>
         {isActive && (
-          <Text style={[styles.countLabel, { color: item.isToday ? chartPalette.solid : colors.mutedForeground }]}>
+          <Text
+            style={[
+              styles.countLabel,
+              {
+                color: item.isToday
+                  ? chartPalette.solid
+                  : colors.mutedForeground,
+              },
+            ]}
+          >
             {item.count}
           </Text>
         )}
       </View>
 
       {/* Bar track — uses Coral fill for warmth */}
-      <View style={[styles.track, { backgroundColor: chartPalette.fill + "66" }]}>
+      <View
+        style={[styles.track, { backgroundColor: chartPalette.fill + "66" }]}
+      >
         <Animated.View
-          style={[
-            styles.bar,
-            barStyle,
-            { backgroundColor: barColor },
-          ]}
+          style={[styles.bar, barStyle, { backgroundColor: barColor }]}
         />
       </View>
 
@@ -93,7 +101,9 @@ function AnimatedBar({
 
       {/* Today dot */}
       {item.isToday && (
-        <View style={[styles.todayDot, { backgroundColor: chartPalette.solid }]} />
+        <View
+          style={[styles.todayDot, { backgroundColor: chartPalette.solid }]}
+        />
       )}
     </View>
   );

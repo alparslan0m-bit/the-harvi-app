@@ -29,7 +29,15 @@ import { ValueProposition } from "./ValueProposition";
 // ── Main Screen ──────────────────────────────────────────────
 
 export function PurchaseScreen() {
-  const { moduleId, moduleName, priceDisplay, productId, totalQuestions, totalLectures, totalSubjects } = useLocalSearchParams<{
+  const {
+    moduleId,
+    moduleName,
+    priceDisplay,
+    productId,
+    totalQuestions,
+    totalLectures,
+    totalSubjects,
+  } = useLocalSearchParams<{
     moduleId: string;
     moduleName: string;
     priceDisplay: string;
@@ -38,10 +46,12 @@ export function PurchaseScreen() {
     totalLectures?: string;
     totalSubjects?: string;
   }>();
-  if (!moduleId || typeof moduleId !== "string") return <Redirect href="/+not-found" />;
+  if (!moduleId || typeof moduleId !== "string")
+    return <Redirect href="/+not-found" />;
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { buyModule, submitCode, restorePurchase, status, error, reset } = usePurchase();
+  const { buyModule, submitCode, restorePurchase, status, error, reset } =
+    usePurchase();
 
   const [tab, setTab] = useState<Tab>("buy");
   const [successMessage, setSuccessMessage] = useState("");
@@ -73,7 +83,8 @@ export function PurchaseScreen() {
       >
         {/* Header */}
         <View style={[styles.header, { paddingTop: topPad + 16 }]}>
-          <AnimatedPressable feedback="opacity"
+          <AnimatedPressable
+            feedback="opacity"
             onPress={() => router.back()}
             style={[styles.backBtn, { backgroundColor: colors.muted }]}
           >
@@ -133,8 +144,14 @@ export function PurchaseScreen() {
                     { backgroundColor: colors.destructive + "15" },
                   ]}
                 >
-                  <Feather name="alert-circle" size={16} color={colors.destructive} />
-                  <Text style={[styles.errorText, { color: colors.destructive }]}>
+                  <Feather
+                    name="alert-circle"
+                    size={16}
+                    color={colors.destructive}
+                  />
+                  <Text
+                    style={[styles.errorText, { color: colors.destructive }]}
+                  >
                     {error}
                   </Text>
                 </Animated.View>

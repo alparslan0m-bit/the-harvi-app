@@ -1,9 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { ActivityIndicator, StyleSheet, Text } from "react-native";
-import Animated, {
-  FadeIn,
-} from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 
 import { useColors } from "@/src/shared/hooks/useColors";
 import { SubjectCacheStatus } from "@/src/features/learn/hooks/useSubjectCache";
@@ -49,18 +47,16 @@ export function SubjectDownloadButton({
         style={[styles.pill, { backgroundColor: mint.fill }]}
       >
         <Feather name="check-circle" size={14} color={mint.solid} />
-        <Text style={[styles.label, { color: mint.ink }]}>
-          Downloaded
-        </Text>
+        <Text style={[styles.label, { color: mint.ink }]}>Downloaded</Text>
       </Animated.View>
     );
   }
 
   if (status === "stale") {
     return (
-      <AnimatedPressable feedback="opacity"
+      <AnimatedPressable
+        feedback="opacity"
         onPress={onPress}
-        
         style={[
           styles.pill,
           {
@@ -82,9 +78,9 @@ export function SubjectDownloadButton({
 
   // "none" or "partial"
   return (
-    <AnimatedPressable feedback="opacity"
+    <AnimatedPressable
+      feedback="opacity"
       onPress={onPress}
-      
       style={[
         styles.pill,
         {

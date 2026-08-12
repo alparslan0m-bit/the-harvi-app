@@ -24,7 +24,7 @@ export function EditProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const user = useAuth((s) => s.user);
-  
+
   // Custom hook for state and persistence logic
   const {
     avatarId,
@@ -43,26 +43,29 @@ export function EditProfileScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       {/* ── Header ── */}
-      <ProfileEditHeader 
-        topPad={topPad} 
-        onSave={handleSave} 
-        onCancel={handleCancel} 
+      <ProfileEditHeader
+        topPad={topPad}
+        onSave={handleSave}
+        onCancel={handleCancel}
       />
 
       <ScrollView
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40 }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + 40 },
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         {/* ── Avatar Section ── */}
-        <ProfileAvatarSection 
-          avatarId={avatarId} 
-          initial={initial} 
-          onPress={() => setPickerVisible(true)} 
+        <ProfileAvatarSection
+          avatarId={avatarId}
+          initial={initial}
+          onPress={() => setPickerVisible(true)}
         />
 
         {/* ── Name Field ── */}
-        <ProfileEditField 
+        <ProfileEditField
           label="DISPLAY NAME"
           value={nameInput}
           onChangeText={setNameInput}
@@ -73,27 +76,26 @@ export function EditProfileScreen() {
         />
 
         {/* ── Email Field (Read-only) ── */}
-        <ProfileEditField 
+        <ProfileEditField
           label="EMAIL"
           value={user?.email ?? ""}
           icon="mail"
           readOnly
           note="Primary account email (secured)"
         />
-        
+
         {/* ── Appearance Section ── */}
         <ProfileThemeSelector />
 
         {/* ── Primary Save Button ── */}
-        <AnimatedPressable feedback="opacity"
+        <AnimatedPressable
+          feedback="opacity"
           style={[styles.saveBtn, { backgroundColor: colors.primary }]}
           onPress={handleSave}
-          
         >
           <Feather name="check" size={18} color="#fff" />
           <Text style={styles.saveBtnText}>Save Changes</Text>
         </AnimatedPressable>
-
       </ScrollView>
 
       {/* ── Modals ── */}
@@ -119,5 +121,9 @@ const styles = StyleSheet.create({
     borderRadius: THEME.radius,
     marginTop: 6,
   },
-  saveBtnText: { fontSize: 17, fontFamily: "Nunito_800ExtraBold", color: "#fff" },
+  saveBtnText: {
+    fontSize: 17,
+    fontFamily: "Nunito_800ExtraBold",
+    color: "#fff",
+  },
 });

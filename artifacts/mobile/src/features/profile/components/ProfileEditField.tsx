@@ -17,23 +17,43 @@ interface Props {
   onSubmitEditing?: () => void;
 }
 
-export function ProfileEditField({ 
-  label, value, onChangeText, placeholder, icon, readOnly, note, onClear, onSubmitEditing 
+export function ProfileEditField({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  icon,
+  readOnly,
+  note,
+  onClear,
+  onSubmitEditing,
 }: Props) {
   const colors = useColors();
   return (
     <View style={styles.fieldGroup}>
-      <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>{label}</Text>
-      <View style={[
-        styles.fieldBox, 
-        { 
-          backgroundColor: readOnly ? colors.muted + "60" : colors.muted, // Soft fill instead of card background with border
-        }
-      ]}>
-        <Feather name={icon} size={16} color={colors.mutedForeground} style={styles.fieldIcon} />
-        
+      <Text style={[styles.fieldLabel, { color: colors.mutedForeground }]}>
+        {label}
+      </Text>
+      <View
+        style={[
+          styles.fieldBox,
+          {
+            backgroundColor: readOnly ? colors.muted + "60" : colors.muted, // Soft fill instead of card background with border
+          },
+        ]}
+      >
+        <Feather
+          name={icon}
+          size={16}
+          color={colors.mutedForeground}
+          style={styles.fieldIcon}
+        />
+
         {readOnly ? (
-          <Text style={[styles.fieldReadOnly, { color: colors.mutedForeground }]} numberOfLines={1}>
+          <Text
+            style={[styles.fieldReadOnly, { color: colors.mutedForeground }]}
+            numberOfLines={1}
+          >
             {value}
           </Text>
         ) : (
@@ -50,14 +70,20 @@ export function ProfileEditField({
           />
         )}
 
-        {readOnly && <Feather name="lock" size={13} color={colors.mutedForeground} />}
+        {readOnly && (
+          <Feather name="lock" size={13} color={colors.mutedForeground} />
+        )}
         {!readOnly && value.length > 0 && onClear && (
-          <AnimatedPressable feedback="opacity" onPress={onClear} >
+          <AnimatedPressable feedback="opacity" onPress={onClear}>
             <Feather name="x-circle" size={16} color={colors.mutedForeground} />
           </AnimatedPressable>
         )}
       </View>
-      {note && <Text style={[styles.fieldNote, { color: colors.mutedForeground }]}>{note}</Text>}
+      {note && (
+        <Text style={[styles.fieldNote, { color: colors.mutedForeground }]}>
+          {note}
+        </Text>
+      )}
     </View>
   );
 }

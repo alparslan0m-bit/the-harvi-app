@@ -20,7 +20,16 @@
 import { Feather } from "@expo/vector-icons";
 import { Image, ImageSource } from "expo-image";
 import React, { useEffect, useRef, useState, useMemo } from "react";
-import { Dimensions, Modal, Platform, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  Modal,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 import { supabase } from "@/src/shared/services/supabase";
@@ -29,7 +38,10 @@ import { useColors, type ThemeColors } from "@/src/shared/hooks/useColors";
 import { useWindowDimensions } from "react-native";
 import { AnimatedPressable } from "@/src/shared/components";
 
-const SUPABASE_URL = (process.env["EXPO_PUBLIC_SUPABASE_URL"] ?? "").replace(/\/$/, "");
+const SUPABASE_URL = (process.env["EXPO_PUBLIC_SUPABASE_URL"] ?? "").replace(
+  /\/$/,
+  "",
+);
 const SUPABASE_ANON_KEY = process.env["EXPO_PUBLIC_SUPABASE_ANON_KEY"] ?? "";
 
 /** Returns true if the URL looks like a direct image file rather than a webpage. */
@@ -38,7 +50,8 @@ function looksLikeImageUrl(uri: string): boolean {
     const url = new URL(uri);
     const path = url.pathname.toLowerCase();
     // Explicit image extensions
-    if (/\.(jpe?g|png|webp|gif|svg|avif|heic|bmp|tiff?)(\?|$)/.test(path)) return true;
+    if (/\.(jpe?g|png|webp|gif|svg|avif|heic|bmp|tiff?)(\?|$)/.test(path))
+      return true;
     // Supabase Storage paths don't end with image extensions but ARE images
     if (path.includes("/storage/v1/")) return true;
     // Anything ending in .html / .htm / .php / .asp is definitely not an image
@@ -54,7 +67,11 @@ function looksLikeImageUrl(uri: string): boolean {
  *  when the URL belongs to this project's Supabase instance. */
 async function resolveSource(uri: string): Promise<ImageSource> {
   // ── Supabase Storage URL ─────────────────────────────────────────────────
-  if (SUPABASE_URL && uri.startsWith(SUPABASE_URL) && uri.includes("/storage/v1/")) {
+  if (
+    SUPABASE_URL &&
+    uri.startsWith(SUPABASE_URL) &&
+    uri.includes("/storage/v1/")
+  ) {
     const headers: Record<string, string> = { apikey: SUPABASE_ANON_KEY };
 
     // Add the user's JWT so private-bucket URLs also work
@@ -89,10 +106,13 @@ function QuizImageComponent({ uri, caption }: Props) {
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
-  
+
   const colors = useColors();
   const { width, height } = useWindowDimensions();
-  const styles = useMemo(() => createStyles(colors, width, height), [colors, width, height]);
+  const styles = useMemo(
+    () => createStyles(colors, width, height),
+    [colors, width, height],
+  );
 
   // Resolve auth headers (async) before rendering the image
   useEffect(() => {
@@ -106,8 +126,9 @@ function QuizImageComponent({ uri, caption }: Props) {
       if (__DEV__) {
         console.warn(
           "[QuizImage] URL does not look like an image file — " +
-          "store a direct .jpg/.png/.webp URL or a Supabase Storage URL.\n" +
-          "Got:", uri
+            "store a direct .jpg/.png/.webp URL or a Supabase Storage URL.\n" +
+            "Got:",
+          uri,
         );
       }
       setError(true);
@@ -117,11 +138,13 @@ function QuizImageComponent({ uri, caption }: Props) {
 
     let cancelled = false;
 
-    resolveSource(uri).then(s => {
-      if (!cancelled) setSource(s);
-    }).catch(() => {
-      if (!cancelled) setSource({ uri });
-    });
+    resolveSource(uri)
+      .then((s) => {
+        if (!cancelled) setSource(s);
+      })
+      .catch(() => {
+        if (!cancelled) setSource({ uri });
+      });
 
     return () => {
       cancelled = true;
@@ -133,7 +156,8 @@ function QuizImageComponent({ uri, caption }: Props) {
   return (
     <>
       {/* ── Thumbnail ────────────────────────────────────────────────────── */}
-      <AnimatedPressable feedback="opacity"
+      <AnimatedPressable
+        feedback="opacity"
         style={styles.thumbWrap}
         onPress={() => !error && source && setOpen(true)}
       >
@@ -153,7 +177,9 @@ function QuizImageComponent({ uri, caption }: Props) {
             <Feather name="image" size={28} color={colors.mutedForeground} />
             <Text style={styles.errorText}>Image unavailable</Text>
             {__DEV__ && (
-              <Text style={styles.errorUri} numberOfLines={3}>{uri}</Text>
+              <Text style={styles.errorUri} numberOfLines={3}>
+                {uri}
+              </Text>
             )}
           </View>
         ) : source ? (
@@ -164,7 +190,8 @@ function QuizImageComponent({ uri, caption }: Props) {
             transition={250}
             onLoad={() => setLoaded(true)}
             onError={(e) => {
-              if (__DEV__) console.warn("[QuizImage] Load error:", e, "URI:", uri);
+              if (__DEV__)
+                console.warn("[QuizImage] Load error:", e, "URI:", uri);
               setError(true);
               setLoaded(true);
             }}
@@ -192,7 +219,8 @@ function QuizImageComponent({ uri, caption }: Props) {
         <View style={styles.modalBg}>
           <StatusBar hidden />
 
-          <AnimatedPressable feedback="opacity"
+          <AnimatedPressable
+            feedback="opacity"
             style={styles.closeBtn}
             onPress={() => {
               scrollRef.current?.scrollTo({ x: 0, y: 0, animated: false });
@@ -235,101 +263,106 @@ function QuizImageComponent({ uri, caption }: Props) {
   );
 }
 
-const createStyles = (colors: ThemeColors, SCREEN_W: number, SCREEN_H: number) => StyleSheet.create({
-  thumbWrap: {
-    width: "100%",
-    height: 220,
-    borderRadius: 16,
-    overflow: "hidden",
-    backgroundColor: colors.muted,
-    marginBottom: 4,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-  },
-  skeleton: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.muted,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  thumb: { width: "100%", height: "100%" },
-  expandBadge: {
-    position: "absolute",
-    bottom: 10,
-    right: 10,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    borderRadius: 8,
-    padding: 6,
-  },
-  errorBox: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    paddingHorizontal: 16,
-  },
-  errorText: {
-    fontSize: 13,
-    color: colors.mutedForeground,
-    fontFamily: "Inter_400Regular",
-  },
-  errorUri: {
-    fontSize: 10,
-    color: colors.mutedForeground,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-    marginTop: 4,
-  },
-  caption: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    color: colors.mutedForeground,
-    textAlign: "center",
-    marginBottom: 2,
-    lineHeight: 17,
-  },
+const createStyles = (
+  colors: ThemeColors,
+  SCREEN_W: number,
+  SCREEN_H: number,
+) =>
+  StyleSheet.create({
+    thumbWrap: {
+      width: "100%",
+      height: 220,
+      borderRadius: 16,
+      overflow: "hidden",
+      backgroundColor: colors.muted,
+      marginBottom: 4,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+    },
+    skeleton: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: colors.muted,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    thumb: { width: "100%", height: "100%" },
+    expandBadge: {
+      position: "absolute",
+      bottom: 10,
+      right: 10,
+      backgroundColor: "rgba(0,0,0,0.45)",
+      borderRadius: 8,
+      padding: 6,
+    },
+    errorBox: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      paddingHorizontal: 16,
+    },
+    errorText: {
+      fontSize: 13,
+      color: colors.mutedForeground,
+      fontFamily: "Inter_400Regular",
+    },
+    errorUri: {
+      fontSize: 10,
+      color: colors.mutedForeground,
+      fontFamily: "Inter_400Regular",
+      textAlign: "center",
+      marginTop: 4,
+    },
+    caption: {
+      fontSize: 12,
+      fontFamily: "Inter_400Regular",
+      color: colors.mutedForeground,
+      textAlign: "center",
+      marginBottom: 2,
+      lineHeight: 17,
+    },
 
-  // ── Full-screen modal ───────────────────────────────────────────────────
-  // Note: Modal styles keep hardcoded #fff/black because they overlay the entire screen
-  // in a standard image-viewer presentation, regardless of app theme.
-  modalBg: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.96)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  closeBtn: {
-    position: "absolute",
-    top: Platform.OS === "android" ? 44 : 56,
-    right: 20,
-    zIndex: 10,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    borderRadius: 12,
-    padding: 10,
-  },
-  zoomScroll: { width: SCREEN_W, height: SCREEN_H },
-  zoomContent: {
-    width: SCREEN_W,
-    height: SCREEN_H,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  fullImg: {
-    width: SCREEN_W,
-    height: SCREEN_H * 0.82,
-  },
-  hint: {
-    position: "absolute",
-    bottom: 40,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-  },
-  hintText: {
-    fontSize: 12,
-    color: "rgba(255,255,255,0.5)",
-    fontFamily: "Inter_400Regular",
-  },
-});
+    // ── Full-screen modal ───────────────────────────────────────────────────
+    // Note: Modal styles keep hardcoded #fff/black because they overlay the entire screen
+    // in a standard image-viewer presentation, regardless of app theme.
+    modalBg: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.96)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    closeBtn: {
+      position: "absolute",
+      top: Platform.OS === "android" ? 44 : 56,
+      right: 20,
+      zIndex: 10,
+      backgroundColor: "rgba(255,255,255,0.15)",
+      borderRadius: 12,
+      padding: 10,
+    },
+    zoomScroll: { width: SCREEN_W, height: SCREEN_H },
+    zoomContent: {
+      width: SCREEN_W,
+      height: SCREEN_H,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    fullImg: {
+      width: SCREEN_W,
+      height: SCREEN_H * 0.82,
+    },
+    hint: {
+      position: "absolute",
+      bottom: 40,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+    },
+    hintText: {
+      fontSize: 12,
+      color: "rgba(255,255,255,0.5)",
+      fontFamily: "Inter_400Regular",
+    },
+  });
 
 export const QuizImage = React.memo(QuizImageComponent);

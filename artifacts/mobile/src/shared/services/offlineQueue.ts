@@ -11,7 +11,10 @@ import { z } from "zod";
 const QUEUE_KEY = "harvi:quiz_queue";
 
 export function generateUUID(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
     return crypto.randomUUID();
   }
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
@@ -45,7 +48,10 @@ async function writeQueue(queue: PendingQuizResult[]): Promise<void> {
     try {
       await AsyncStorage.setItem(QUEUE_KEY, payload);
     } catch (retryErr) {
-      console.error("[offlineQueue] CRITICAL: Failed to persist quiz result after retry", retryErr);
+      console.error(
+        "[offlineQueue] CRITICAL: Failed to persist quiz result after retry",
+        retryErr,
+      );
       throw retryErr; // Let caller handle (show user notification)
     }
   }
@@ -53,7 +59,7 @@ async function writeQueue(queue: PendingQuizResult[]): Promise<void> {
 
 export async function enqueueQuizResult(
   item: Omit<PendingQuizResult, "localId">,
-  providedLocalId?: string
+  providedLocalId?: string,
 ): Promise<void> {
   const queue = await readQueue();
   queue.push({ ...item, localId: providedLocalId ?? generateUUID() });

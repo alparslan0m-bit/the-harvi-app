@@ -14,7 +14,10 @@ import { useQuizQuestions } from "@/src/features/quiz/hooks/useQuiz";
 import { optimisticallyMarkComplete } from "@/src/features/learn/hooks/useProgress";
 import { optimisticallyUpdateBestScore } from "@/src/features/learn/hooks/useLectureBestScores";
 import { loadQuestionsFromCache } from "@/src/features/quiz/services/questionCache";
-import { enqueueQuizResult, generateUUID } from "@/src/shared/services/offlineQueue";
+import {
+  enqueueQuizResult,
+  generateUUID,
+} from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { AnsweredState, HistoryItem, Question } from "@/src/shared/types";
 
@@ -30,7 +33,7 @@ export function useQuizSession(lectureId: string) {
   >();
   const [cacheChecked, setCacheChecked] = useState(false);
   const mountedRef = useRef(true);
-  
+
   useEffect(() => {
     mountedRef.current = true;
     loadQuestionsFromCache(lectureId).then((hit) => {
@@ -123,14 +126,17 @@ export function useQuizSession(lectureId: string) {
 
       try {
         if (!isOnline) {
-          await enqueueQuizResult({
-            userId: user?.id ?? "",
-            lectureId: lectureId ?? "",
-            score,
-            totalQuestions: questions.length,
-            correctAnswers: correctCount,
-            createdAt: now,
-          }, sessionId);
+          await enqueueQuizResult(
+            {
+              userId: user?.id ?? "",
+              lectureId: lectureId ?? "",
+              score,
+              totalQuestions: questions.length,
+              correctAnswers: correctCount,
+              createdAt: now,
+            },
+            sessionId,
+          );
           if (user?.id && lectureId) {
             await optimisticallyMarkComplete(user.id, lectureId);
             await optimisticallyUpdateBestScore(user.id, lectureId, score);
@@ -138,20 +144,18 @@ export function useQuizSession(lectureId: string) {
           setSavedOffline(true);
           refreshCount();
         } else {
-          const insertPromise = supabase
-            .from("quiz_results")
-            .insert({
-              id: sessionId,
-              user_id: user?.id,
-              lecture_id: lectureId,
-              score,
-              total_questions: questions.length,
-              correct_answers: correctCount,
-              created_at: now,
-            });
+          const insertPromise = supabase.from("quiz_results").insert({
+            id: sessionId,
+            user_id: user?.id,
+            lecture_id: lectureId,
+            score,
+            total_questions: questions.length,
+            correct_answers: correctCount,
+            created_at: now,
+          });
 
           const timeoutPromise = new Promise<{ error: any }>((_, reject) =>
-            setTimeout(() => reject(new Error("timeout")), 8000)
+            setTimeout(() => reject(new Error("timeout")), 8000),
           );
 
           let insertErr: any = null;
@@ -169,27 +173,34 @@ export function useQuizSession(lectureId: string) {
                 JSON.stringify(insertErr),
               );
             }
-            await enqueueQuizResult({
-              userId: user?.id ?? "",
-              lectureId: lectureId ?? "",
-              score,
-              totalQuestions: questions.length,
-              correctAnswers: correctCount,
-              createdAt: now,
-            }, sessionId);
+            await enqueueQuizResult(
+              {
+                userId: user?.id ?? "",
+                lectureId: lectureId ?? "",
+                score,
+                totalQuestions: questions.length,
+                correctAnswers: correctCount,
+                createdAt: now,
+              },
+              sessionId,
+            );
             if (user?.id && lectureId) {
               await optimisticallyMarkComplete(user.id, lectureId);
               await optimisticallyUpdateBestScore(user.id, lectureId, score);
             }
             setSavedOffline(true);
             refreshCount();
-            flush().catch((e) => console.error("[QuizSession] Background flush failed:", e));
+            flush().catch((e) =>
+              console.error("[QuizSession] Background flush failed:", e),
+            );
           } else if (user?.id && lectureId) {
             await optimisticallyUpdateBestScore(user.id, lectureId, score);
           }
         }
       } catch (err) {
-        setSaveError(err instanceof Error ? err.message : "Failed to save quiz result");
+        setSaveError(
+          err instanceof Error ? err.message : "Failed to save quiz result",
+        );
         setFinished(false);
         isSubmittingRef.current = false;
       } finally {

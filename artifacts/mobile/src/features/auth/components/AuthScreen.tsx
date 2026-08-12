@@ -1,6 +1,15 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SupabaseSetupHelper } from "@/src/shared/components";
 import { useColors } from "@/src/shared/hooks/useColors";
@@ -17,8 +26,18 @@ function GoogleIcon() {
 }
 
 const googleIconStyles = StyleSheet.create({
-  container: { width: 20, height: 20, alignItems: "center", justifyContent: "center" },
-  g: { fontSize: 15, fontFamily: "Inter_700Bold", color: "#4285F4", letterSpacing: -0.5 },
+  container: {
+    width: 20,
+    height: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  g: {
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    color: "#4285F4",
+    letterSpacing: -0.5,
+  },
 });
 
 export function AuthScreen() {
@@ -64,7 +83,9 @@ export function AuthScreen() {
           <View style={[styles.logoMark, { backgroundColor: colors.primary }]}>
             <Feather name="activity" size={28} color="#fff" />
           </View>
-          <Text style={[styles.appName, { color: colors.foreground }]}>Harvi</Text>
+          <Text style={[styles.appName, { color: colors.foreground }]}>
+            Harvi
+          </Text>
           <Text style={[styles.tagline, { color: colors.mutedForeground }]}>
             Medical Education, Elevated.
           </Text>
@@ -72,21 +93,26 @@ export function AuthScreen() {
 
         <View style={styles.form}>
           {/* Google Sign-In */}
-          <AnimatedPressable feedback="scale"
+          <AnimatedPressable
+            feedback="scale"
             style={[
               styles.googleBtn,
-              { borderColor: colors.border, backgroundColor: colors.background },
+              {
+                borderColor: colors.border,
+                backgroundColor: colors.background,
+              },
             ]}
             onPress={handleGoogleSignIn}
             disabled={googleLoading || loading}
-            
           >
             {googleLoading ? (
               <ActivityIndicator color={colors.mutedForeground} size="small" />
             ) : (
               <>
                 <GoogleIcon />
-                <Text style={[styles.googleBtnText, { color: colors.foreground }]}>
+                <Text
+                  style={[styles.googleBtnText, { color: colors.foreground }]}
+                >
                   Continue with Google
                 </Text>
               </>
@@ -101,23 +127,40 @@ export function AuthScreen() {
 
           {/* Divider */}
           <View style={styles.divider}>
-            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-            <Text style={[styles.dividerText, { color: colors.mutedForeground }]}>or</Text>
-            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+            <View
+              style={[styles.dividerLine, { backgroundColor: colors.border }]}
+            />
+            <Text
+              style={[styles.dividerText, { color: colors.mutedForeground }]}
+            >
+              or
+            </Text>
+            <View
+              style={[styles.dividerLine, { backgroundColor: colors.border }]}
+            />
           </View>
 
           {/* Email */}
           <View
             style={[
               styles.inputWrap,
-              { 
-                borderColor: focusedField === "email" ? colors.primary : colors.border, 
+              {
+                borderColor:
+                  focusedField === "email" ? colors.primary : colors.border,
                 backgroundColor: colors.card,
                 borderWidth: focusedField === "email" ? 2 : 1,
               },
             ]}
           >
-            <Feather name="mail" size={18} color={focusedField === "email" ? colors.primary : colors.mutedForeground} />
+            <Feather
+              name="mail"
+              size={18}
+              color={
+                focusedField === "email"
+                  ? colors.primary
+                  : colors.mutedForeground
+              }
+            />
             <TextInput
               style={[styles.input, { color: colors.foreground }]}
               placeholder="Email address"
@@ -136,14 +179,23 @@ export function AuthScreen() {
           <View
             style={[
               styles.inputWrap,
-              { 
-                borderColor: focusedField === "password" ? colors.primary : colors.border, 
+              {
+                borderColor:
+                  focusedField === "password" ? colors.primary : colors.border,
                 backgroundColor: colors.card,
                 borderWidth: focusedField === "password" ? 2 : 1,
               },
             ]}
           >
-            <Feather name="lock" size={18} color={focusedField === "password" ? colors.primary : colors.mutedForeground} />
+            <Feather
+              name="lock"
+              size={18}
+              color={
+                focusedField === "password"
+                  ? colors.primary
+                  : colors.mutedForeground
+              }
+            />
             <TextInput
               style={[styles.input, { color: colors.foreground }]}
               placeholder="Password"
@@ -155,11 +207,18 @@ export function AuthScreen() {
               onFocus={() => setFocusedField("password")}
               onBlur={() => setFocusedField(null)}
             />
-            <AnimatedPressable feedback="scale" onPress={() => setShowPassword(!showPassword)}>
+            <AnimatedPressable
+              feedback="scale"
+              onPress={() => setShowPassword(!showPassword)}
+            >
               <Feather
                 name={showPassword ? "eye-off" : "eye"}
                 size={18}
-                color={focusedField === "password" ? colors.primary : colors.mutedForeground}
+                color={
+                  focusedField === "password"
+                    ? colors.primary
+                    : colors.mutedForeground
+                }
               />
             </AnimatedPressable>
           </View>
@@ -168,15 +227,25 @@ export function AuthScreen() {
             <View
               style={[
                 styles.errorBox,
-                { backgroundColor: colors.destructive + "1A", borderColor: colors.destructive + "33" },
+                {
+                  backgroundColor: colors.destructive + "1A",
+                  borderColor: colors.destructive + "33",
+                },
               ]}
             >
-              <Feather name="alert-circle" size={14} color={colors.destructive} />
-              <Text style={[styles.errorText, { color: colors.destructive }]}>{error}</Text>
+              <Feather
+                name="alert-circle"
+                size={14}
+                color={colors.destructive}
+              />
+              <Text style={[styles.errorText, { color: colors.destructive }]}>
+                {error}
+              </Text>
             </View>
           )}
 
-          <AnimatedPressable feedback="scale"
+          <AnimatedPressable
+            feedback="scale"
             style={[styles.btn, { backgroundColor: colors.primary }]}
             onPress={handleSubmit}
             disabled={loading || googleLoading}
@@ -184,18 +253,25 @@ export function AuthScreen() {
             {loading ? (
               <ActivityIndicator color={colors.primaryForeground} />
             ) : (
-              <Text style={[styles.btnText, { color: colors.primaryForeground }]}>
+              <Text
+                style={[styles.btnText, { color: colors.primaryForeground }]}
+              >
                 {mode === "login" ? "Sign In" : "Create Account"}
               </Text>
             )}
           </AnimatedPressable>
 
-          <AnimatedPressable feedback="scale"
+          <AnimatedPressable
+            feedback="scale"
             onPress={toggleMode}
             style={styles.switchRow}
           >
-            <Text style={[styles.switchText, { color: colors.mutedForeground }]}>
-              {mode === "login" ? "Don't have an account? " : "Already have an account? "}
+            <Text
+              style={[styles.switchText, { color: colors.mutedForeground }]}
+            >
+              {mode === "login"
+                ? "Don't have an account? "
+                : "Already have an account? "}
             </Text>
             <Text style={[styles.switchLink, { color: colors.primary }]}>
               {mode === "login" ? "Sign Up" : "Sign In"}
@@ -219,8 +295,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 16,
   },
-  appName: { fontSize: 34, fontFamily: "Inter_700Bold", letterSpacing: -1.2, marginBottom: 6 },
-  tagline: { fontSize: 15, fontFamily: "Inter_400Regular", letterSpacing: -0.2 },
+  appName: {
+    fontSize: 34,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: -1.2,
+    marginBottom: 6,
+  },
+  tagline: {
+    fontSize: 15,
+    fontFamily: "Inter_400Regular",
+    letterSpacing: -0.2,
+  },
   form: { gap: 12 },
   googleBtn: {
     flexDirection: "row",
@@ -231,7 +316,11 @@ const styles = StyleSheet.create({
     borderRadius: THEME.radius,
     borderWidth: 1.5,
   },
-  googleBtnText: { fontSize: 15, fontFamily: "Inter_600SemiBold", letterSpacing: -0.2 },
+  googleBtnText: {
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: -0.2,
+  },
   divider: {
     flexDirection: "row",
     alignItems: "center",
@@ -265,9 +354,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 4,
   },
-  btnText: { fontSize: 16, fontFamily: "Inter_600SemiBold", letterSpacing: -0.3 },
+  btnText: {
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: -0.3,
+  },
   switchRow: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
   switchText: { fontSize: 14, fontFamily: "Inter_400Regular" },
   switchLink: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
 });
-

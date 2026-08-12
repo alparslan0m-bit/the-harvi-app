@@ -29,7 +29,10 @@ export function QuizReviewScreen({
   const wrongCount = totalCount - correctCount;
 
   return (
-    <Animated.View entering={FadeIn.duration(200)} style={{ flex: 1, backgroundColor: colors.background }}>
+    <Animated.View
+      entering={FadeIn.duration(200)}
+      style={{ flex: 1, backgroundColor: colors.background }}
+    >
       {/* ── Header ── */}
       <View
         style={[

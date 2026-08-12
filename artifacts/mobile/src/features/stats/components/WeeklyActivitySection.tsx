@@ -7,8 +7,6 @@ import { useColors, type PaletteFamily } from "@/src/shared/hooks/useColors";
 import { UserStats } from "@/src/shared/types";
 import { THEME } from "@/src/shared/constants/theme";
 
-
-
 /** Soft shadow for white cards — §3.1 */
 const SOFT_SHADOW = Platform.select({
   ios: {
@@ -21,25 +19,22 @@ const SOFT_SHADOW = Platform.select({
   default: {},
 });
 
-export function WeeklyActivitySection({ weekData }: { weekData: UserStats["weekly_activity"] }): React.ReactElement {
+export function WeeklyActivitySection({
+  weekData,
+}: {
+  weekData: UserStats["weekly_activity"];
+}): React.ReactElement {
   const colors = useColors();
   const skyPalette = colors.statCardFamilies[1] as PaletteFamily;
   const total = weekData.reduce((s, d) => s + d.count, 0);
   return (
     <View
-      style={[
-        styles.section,
-        { backgroundColor: colors.card },
-        SOFT_SHADOW,
-      ]}
+      style={[styles.section, { backgroundColor: colors.card }, SOFT_SHADOW]}
     >
       <View style={styles.sectionHeader}>
         <View style={styles.sectionTitleRow}>
           <View
-            style={[
-              styles.sectionIcon,
-              { backgroundColor: skyPalette.fill },
-            ]}
+            style={[styles.sectionIcon, { backgroundColor: skyPalette.fill }]}
           >
             <Feather name="calendar" size={14} color={skyPalette.solid} />
           </View>
@@ -52,7 +47,13 @@ export function WeeklyActivitySection({ weekData }: { weekData: UserStats["weekl
         </Text>
       </View>
       <View style={{ marginTop: 24 }}>
-        <WeeklyChart data={weekData.map(d => ({ day: d.day, count: d.count, isToday: !!d.isToday }))} />
+        <WeeklyChart
+          data={weekData.map((d) => ({
+            day: d.day,
+            count: d.count,
+            isToday: !!d.isToday,
+          }))}
+        />
       </View>
     </View>
   );

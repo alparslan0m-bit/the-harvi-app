@@ -104,7 +104,10 @@ export function StatsScreen() {
       </View>
 
       <Animated.View
-        style={[styles.animatedContent, { opacity: fadeAnim, transform: [{ translateY }] }]}
+        style={[
+          styles.animatedContent,
+          { opacity: fadeAnim, transform: [{ translateY }] },
+        ]}
       >
         {isLoading && (
           <View style={styles.center}>
@@ -192,4 +195,3 @@ const styles = StyleSheet.create({
   },
   content: { paddingTop: 12 },
 });
-

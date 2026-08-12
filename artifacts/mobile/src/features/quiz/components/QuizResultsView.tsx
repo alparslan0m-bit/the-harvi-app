@@ -1,11 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -15,7 +10,11 @@ import { COLORS, THEME } from "@/src/shared/constants/theme";
 import { useQuizResultsAnimation } from "@/src/features/quiz/hooks/useQuizResultsAnimation";
 import { ScoreRing } from "./ScoreRing";
 import { StatPill } from "./StatPill";
-import { getGrade, getRingColor, getTitle } from "@/src/features/quiz/utils/quizHelpers";
+import {
+  getGrade,
+  getRingColor,
+  getTitle,
+} from "@/src/features/quiz/utils/quizHelpers";
 
 export interface ResultsViewProps {
   score: number;
@@ -105,10 +104,7 @@ export function ResultsView({
         >
           <AnimatedPressable
             feedback="scale"
-            style={[
-              styles.btn,
-              { backgroundColor: colors.primary },
-            ]}
+            style={[styles.btn, { backgroundColor: colors.primary }]}
             onPress={onRetry}
           >
             <Feather name="refresh-cw" size={18} color="#fff" />

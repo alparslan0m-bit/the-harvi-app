@@ -4,12 +4,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 
 import { supabase } from "@/src/shared/services/supabase";
-import { ContentAccessEntry, ContentAccessEntrySchema } from "@/src/shared/types/schemas";
+import {
+  ContentAccessEntry,
+  ContentAccessEntrySchema,
+} from "@/src/shared/types/schemas";
 import { z } from "zod";
 
 const ACCESS_CACHE_KEY = (uid: string) => `harvi:access:${uid}`;
 
-async function readCachedAccess(userId: string): Promise<Map<string, ContentAccessEntry> | null> {
+async function readCachedAccess(
+  userId: string,
+): Promise<Map<string, ContentAccessEntry> | null> {
   try {
     const raw = await AsyncStorage.getItem(ACCESS_CACHE_KEY(userId));
     if (!raw) return null;
@@ -27,7 +32,10 @@ async function readCachedAccess(userId: string): Promise<Map<string, ContentAcce
   }
 }
 
-async function writeCachedAccess(userId: string, map: Map<string, ContentAccessEntry>): Promise<void> {
+async function writeCachedAccess(
+  userId: string,
+  map: Map<string, ContentAccessEntry>,
+): Promise<void> {
   try {
     const obj = Object.fromEntries(map.entries());
     await AsyncStorage.setItem(ACCESS_CACHE_KEY(userId), JSON.stringify(obj));
@@ -36,9 +44,12 @@ async function writeCachedAccess(userId: string, map: Map<string, ContentAccessE
   }
 }
 
-export async function fetchContentAccess(userId: string): Promise<Map<string, ContentAccessEntry>> {
+export async function fetchContentAccess(
+  userId: string,
+): Promise<Map<string, ContentAccessEntry>> {
   const net = await NetInfo.fetch();
-  const isOnline = (net.isConnected ?? false) && net.isInternetReachable !== false;
+  const isOnline =
+    (net.isConnected ?? false) && net.isInternetReachable !== false;
 
   if (!isOnline) {
     const cached = await readCachedAccess(userId);
@@ -49,9 +60,9 @@ export async function fetchContentAccess(userId: string): Promise<Map<string, Co
   try {
     const rpcPromise = supabase.rpc("get_content_access_map");
     const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-      setTimeout(() => reject(new Error("timeout")), 10000)
+      setTimeout(() => reject(new Error("timeout")), 10000),
     );
-    
+
     const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);
     if (error) throw error;
 

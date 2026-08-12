@@ -19,7 +19,7 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
 
-  const males   = AVATARS.filter((a) => a.id.startsWith("male_"));
+  const males = AVATARS.filter((a) => a.id.startsWith("male_"));
   const females = AVATARS.filter((a) => a.id.startsWith("female_"));
 
   return (
@@ -30,13 +30,22 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
       onRequestClose={onClose}
     >
       {/* Dim backdrop */}
-      <AnimatedPressable feedback="scale" style={styles.backdrop} onPress={onClose} />
+      <AnimatedPressable
+        feedback="scale"
+        style={styles.backdrop}
+        onPress={onClose}
+      />
 
       {/* Sheet */}
-      <View style={[styles.sheet, {
-        backgroundColor: colors.background,
-        paddingBottom: insets.bottom + 16,
-      }]}>
+      <View
+        style={[
+          styles.sheet,
+          {
+            backgroundColor: colors.background,
+            paddingBottom: insets.bottom + 16,
+          },
+        ]}
+      >
         {/* Handle */}
         <View style={[styles.handle, { backgroundColor: colors.border }]} />
 
@@ -60,12 +69,15 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
               const selected = current === avatar.id;
               const C = avatar.component;
               return (
-                <AnimatedPressable feedback="scale"
+                <AnimatedPressable
+                  feedback="scale"
                   key={avatar.id}
                   style={[
                     styles.avatarCell,
                     {
-                      backgroundColor: selected ? colors.primary + "18" : colors.card,
+                      backgroundColor: selected
+                        ? colors.primary + "18"
+                        : colors.card,
                       borderColor: selected ? colors.primary : colors.border,
                       borderWidth: selected ? 2.5 : 1,
                     },
@@ -77,7 +89,12 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
                 >
                   <C size={72} />
                   {selected && (
-                    <View style={[styles.checkBadge, { backgroundColor: colors.primary }]}>
+                    <View
+                      style={[
+                        styles.checkBadge,
+                        { backgroundColor: colors.primary },
+                      ]}
+                    >
                       <Feather name="check" size={10} color="#fff" />
                     </View>
                   )}
@@ -87,7 +104,12 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
           </View>
 
           {/* Female section */}
-          <Text style={[styles.groupLabel, { color: colors.mutedForeground, marginTop: 8 }]}>
+          <Text
+            style={[
+              styles.groupLabel,
+              { color: colors.mutedForeground, marginTop: 8 },
+            ]}
+          >
             FEMALE DOCTOR
           </Text>
           <View style={styles.grid}>
@@ -95,12 +117,15 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
               const selected = current === avatar.id;
               const C = avatar.component;
               return (
-                <AnimatedPressable feedback="scale"
+                <AnimatedPressable
+                  feedback="scale"
                   key={avatar.id}
                   style={[
                     styles.avatarCell,
                     {
-                      backgroundColor: selected ? colors.primary + "18" : colors.card,
+                      backgroundColor: selected
+                        ? colors.primary + "18"
+                        : colors.card,
                       borderColor: selected ? colors.primary : colors.border,
                       borderWidth: selected ? 2.5 : 1,
                     },
@@ -112,7 +137,12 @@ export function AvatarPicker({ visible, current, onSelect, onClose }: Props) {
                 >
                   <C size={72} />
                   {selected && (
-                    <View style={[styles.checkBadge, { backgroundColor: colors.primary }]}>
+                    <View
+                      style={[
+                        styles.checkBadge,
+                        { backgroundColor: colors.primary },
+                      ]}
+                    >
                       <Feather name="check" size={10} color="#fff" />
                     </View>
                   )}

@@ -32,7 +32,7 @@ export function useScreenAnimation(scrollRef?: React.RefObject<ScrollView>) {
         }, 50);
         return () => clearTimeout(timer);
       }
-    }, [fadeAnim, scrollRef])
+    }, [fadeAnim, scrollRef]),
   );
 
   return { fadeAnim, translateY };

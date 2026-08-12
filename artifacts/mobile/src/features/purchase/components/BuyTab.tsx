@@ -24,8 +24,18 @@ export const BuyTab = React.memo(function BuyTab({
   productId?: string | undefined;
   moduleId: string;
   priceDisplay: string;
-  buyModule: (moduleId: string, rcPackage: PurchasesPackage) => Promise<{ success: boolean; cancelled?: boolean; error?: string | undefined }>;
-  restorePurchase: (moduleId: string, productId: string) => Promise<{ success: boolean; error?: string | undefined }>;
+  buyModule: (
+    moduleId: string,
+    rcPackage: PurchasesPackage,
+  ) => Promise<{
+    success: boolean;
+    cancelled?: boolean;
+    error?: string | undefined;
+  }>;
+  restorePurchase: (
+    moduleId: string,
+    productId: string,
+  ) => Promise<{ success: boolean; error?: string | undefined }>;
   status: PurchaseStatus;
   onSuccess: (msg: string) => void;
   colors: ThemeColors;
@@ -123,7 +133,9 @@ export const BuyTab = React.memo(function BuyTab({
             disabled={isBuyDisabled}
             loading={isLoading}
             icon="shopping-bag"
-            label={Platform.OS === "web" ? "Not available on web" : "Purchase Now"}
+            label={
+              Platform.OS === "web" ? "Not available on web" : "Purchase Now"
+            }
             colors={colors}
           />
         </Animated.View>
@@ -142,11 +154,11 @@ export const BuyTab = React.memo(function BuyTab({
 
       {Platform.OS !== "web" && productId && (
         <Animated.View entering={FadeInDown.duration(300).delay(350)}>
-          <AnimatedPressable feedback="opacity"
+          <AnimatedPressable
+            feedback="opacity"
             style={styles.restoreBtn}
             onPress={handleRestore}
             disabled={isLoading}
-            
           >
             <Text style={[styles.restoreBtnText, { color: colors.primary }]}>
               Restore Purchases

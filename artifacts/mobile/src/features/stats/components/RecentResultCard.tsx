@@ -28,18 +28,32 @@ export function RecentResultCard({ result }: Props): React.ReactElement {
   const mint = colors.statCardFamilies[3] as PaletteFamily;
   const sunshine = colors.streakFamily;
   const palette =
-    result.score >= 80 ? mint :
-    result.score >= 50 ? sunshine :
-    { fill: colors.muted, solid: colors.mutedForeground, ink: colors.mutedForeground };
+    result.score >= 80
+      ? mint
+      : result.score >= 50
+        ? sunshine
+        : {
+            fill: colors.muted,
+            solid: colors.mutedForeground,
+            ink: colors.mutedForeground,
+          };
 
-  const formattedDate = new Date(result.created_at).toLocaleDateString("en-GB", {
-    day: "numeric", month: "short", year: "numeric",
-  });
+  const formattedDate = new Date(result.created_at).toLocaleDateString(
+    "en-GB",
+    {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    },
+  );
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card }, SOFT_SHADOW]}>
       <View style={styles.left}>
-        <Text style={[styles.name, { color: colors.foreground }]} numberOfLines={1}>
+        <Text
+          style={[styles.name, { color: colors.foreground }]}
+          numberOfLines={1}
+        >
           {result.lecture_name}
         </Text>
         <Text style={[styles.date, { color: colors.mutedForeground }]}>

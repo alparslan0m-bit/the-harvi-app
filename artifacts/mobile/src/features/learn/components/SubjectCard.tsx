@@ -1,7 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-
 import { useColors } from "@/src/shared/hooks/useColors";
 import { THEME } from "@/src/shared/constants/theme";
 import { Subject } from "@/src/shared/types";
@@ -15,8 +14,6 @@ interface Props {
   isFreePreview?: boolean;
   onPress: () => void;
 }
-
-
 
 export function SubjectCard({
   subject,

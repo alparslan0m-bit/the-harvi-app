@@ -42,10 +42,10 @@ export function StreakCard({ streak }: { streak: number }): React.ReactElement {
     if (streak > 0) {
       zapScale.value = withSequence(
         withTiming(1.18, { duration: 400, easing: Easing.out(Easing.quad) }),
-        withTiming(1, { duration: 400, easing: Easing.in(Easing.quad) })
+        withTiming(1, { duration: 400, easing: Easing.in(Easing.quad) }),
       );
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [streak]);
 
   const zapStyle = useAnimatedStyle(() => ({
@@ -87,7 +87,9 @@ export function StreakCard({ streak }: { streak: number }): React.ReactElement {
         </View>
         <View style={styles.numCol}>
           <Text style={[styles.num, { color: numColor }]}>{streak}</Text>
-          <Text style={[styles.label, { color: textColor, opacity: 0.75 }]}>day streak</Text>
+          <Text style={[styles.label, { color: textColor, opacity: 0.75 }]}>
+            day streak
+          </Text>
         </View>
       </View>
       <Text style={[styles.message, { color: textColor, opacity: 0.8 }]}>
@@ -118,7 +120,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   numCol: { alignItems: "flex-start" },
-  num: { fontSize: 28, fontFamily: "Nunito_800ExtraBold", letterSpacing: -1, lineHeight: 32 },
+  num: {
+    fontSize: 28,
+    fontFamily: "Nunito_800ExtraBold",
+    letterSpacing: -1,
+    lineHeight: 32,
+  },
   label: { fontSize: 12, fontFamily: "Inter_500Medium", marginTop: 1 },
-  message: { flex: 1, fontSize: 13, fontFamily: "Inter_500Medium", lineHeight: 18, textAlign: "right" },
+  message: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    lineHeight: 18,
+    textAlign: "right",
+  },
 });

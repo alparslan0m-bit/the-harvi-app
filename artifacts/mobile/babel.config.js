@@ -17,9 +17,7 @@ module.exports = function (api) {
        * Strip all console.* calls in production builds.
        * Keeps console.error so crash reports still surface in tools like Sentry.
        */
-      ...(isProd
-        ? [["transform-remove-console", { exclude: ["error"] }]]
-        : []),
+      ...(isProd ? [["transform-remove-console", { exclude: ["error"] }]] : []),
     ],
   };
 };

@@ -22,7 +22,13 @@ export const CodeTab = React.memo(function CodeTab({
   onSuccess,
   colors,
 }: {
-  submitCode: (code: string) => Promise<{ success: boolean; itemName?: string | undefined; error?: string | undefined }>;
+  submitCode: (
+    code: string,
+  ) => Promise<{
+    success: boolean;
+    itemName?: string | undefined;
+    error?: string | undefined;
+  }>;
   status: PurchaseStatus;
   error: string | null;
   onSuccess: (msg: string) => void;
@@ -82,10 +88,7 @@ export const CodeTab = React.memo(function CodeTab({
         ]}
       >
         <TextInput
-          style={[
-            styles.codeInput,
-            { color: colors.foreground },
-          ]}
+          style={[styles.codeInput, { color: colors.foreground }]}
           placeholder="XXXX-XXXX-XXXX-XXXX"
           placeholderTextColor={colors.mutedForeground}
           value={codeInput}

@@ -26,19 +26,28 @@ export function MasteryBar({ subject, mastery }: Props) {
   }));
 
   const color =
-    mastery >= 80 ? colors.success :
-    mastery >= 50 ? colors.warning :
-    colors.mutedForeground;
+    mastery >= 80
+      ? colors.success
+      : mastery >= 50
+        ? colors.warning
+        : colors.mutedForeground;
 
   return (
     <View style={styles.row}>
-      <Text style={[styles.subject, { color: colors.foreground }]} numberOfLines={1}>
+      <Text
+        style={[styles.subject, { color: colors.foreground }]}
+        numberOfLines={1}
+      >
         {subject}
       </Text>
       <View style={[styles.track, { backgroundColor: colors.muted }]}>
-        <Animated.View style={[styles.fill, { backgroundColor: color }, barStyle]} />
+        <Animated.View
+          style={[styles.fill, { backgroundColor: color }, barStyle]}
+        />
       </View>
-      <Text style={[styles.pct, { color: colors.mutedForeground }]}>{mastery}%</Text>
+      <Text style={[styles.pct, { color: colors.mutedForeground }]}>
+        {mastery}%
+      </Text>
     </View>
   );
 }
