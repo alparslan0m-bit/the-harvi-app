@@ -5,6 +5,7 @@ import NetInfo from "@react-native-community/netinfo";
 
 import { getQueue } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
+import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import { z } from "zod";
 
 const PROGRESS_CACHE_KEY = (uid: string) => `harvi:progress:${uid}`;
@@ -111,8 +112,7 @@ export async function fetchCompletedLectures(
   // Check connectivity BEFORE any Supabase call.
   // Without this, an offline app waits up to 30 s for the request to fail.
   const net = await NetInfo.fetch();
-  const isOnline =
-    (net.isConnected ?? false) && net.isInternetReachable !== false;
+  const isOnline = isDeviceOnline(net);
 
   if (!isOnline) {
     return serveFromCache(userId);

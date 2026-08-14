@@ -1,7 +1,7 @@
 # Conventions
 
 > **Auto-generated** by `docs/extractors/conventions.js`.
-> Generated at 2026-08-14T16:53:12.575Z
+> Generated at 2026-08-14T17:41:49.173Z
 > Structural patterns extracted from the codebase. Follow these when adding new code.
 
 ## 📁 Feature Folder Structure

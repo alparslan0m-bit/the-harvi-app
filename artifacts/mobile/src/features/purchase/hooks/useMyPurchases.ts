@@ -4,6 +4,7 @@ import NetInfo from "@react-native-community/netinfo";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/src/shared/store/authStore";
 import { supabase } from "@/src/shared/services/supabase";
+import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 
 import { Purchase, PurchaseSchema } from "@/src/shared/types/schemas";
 import { z } from "zod";
@@ -42,8 +43,7 @@ async function writeCachedPurchases(
 
 async function fetchMyPurchases(userId: string): Promise<Purchase[]> {
   const net = await NetInfo.fetch();
-  const isOnline =
-    (net.isConnected ?? false) && net.isInternetReachable !== false;
+  const isOnline = isDeviceOnline(net);
 
   if (!isOnline) {
     const cached = await readCachedPurchases(userId);

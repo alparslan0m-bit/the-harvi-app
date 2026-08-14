@@ -13,6 +13,7 @@ import {
   memCache as bestScoreMemCache,
   warmed as bestScoreWarmed,
 } from "@/src/features/learn/services/bestScoreService";
+import { clearAllUserCaches } from "@/src/shared/utils/cacheUtils";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -108,6 +109,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   signOut: async () => {
+    const uid = useAuthStore.getState().user?.id;
+    if (uid) {
+      await clearAllUserCaches(uid);
+    }
     await supabase.auth.signOut();
     useCacheStore.getState().clearAll();
     progressMemCache.clear();

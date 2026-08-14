@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 
 import { supabase } from "@/src/shared/services/supabase";
+import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import {
   Lecture,
   Module,
@@ -208,8 +209,7 @@ async function buildHierarchyFromRemote(): Promise<Year[]> {
 
 export async function fetchHierarchy(): Promise<Year[]> {
   const net = await NetInfo.fetch();
-  const isOnline =
-    (net.isConnected ?? false) && net.isInternetReachable !== false;
+  const isOnline = isDeviceOnline(net);
 
   if (!isOnline) {
     const cached = await readCachedHierarchy();

@@ -1,7 +1,7 @@
 # Cache Map
 
 > **Auto-generated** by `docs/extractors/cache-map.js`.
-> Generated at 2026-08-14T16:53:11.992Z
+> Generated at 2026-08-14T17:41:48.968Z
 > Every AsyncStorage and SecureStore key in the codebase.
 
 ## Summary

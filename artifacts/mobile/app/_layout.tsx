@@ -15,10 +15,10 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
 
-import { ErrorBoundary } from "@/src/shared/components";
+import { ErrorBoundary, OfflineBanner } from "@/src/shared/components";
 import { AuthProvider, useAuth } from "@/src/shared/store/authStore";
 import { PurchaseProvider } from "@/src/shared/store/purchaseStore";
-import { SyncProvider } from "@/src/shared/store/syncStore";
+import { SyncProvider, useSyncStore } from "@/src/shared/store/syncStore";
 import { ThemeProvider } from "@/src/shared/store/themeStore";
 
 SplashScreen.preventAutoHideAsync();
@@ -32,6 +32,19 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function GlobalOfflineBanner() {
+  const isOnline = useSyncStore((s) => s.isOnline);
+  const pendingCount = useSyncStore((s) => s.pendingCount);
+  const isSyncing = useSyncStore((s) => s.isSyncing);
+  return (
+    <OfflineBanner
+      isOnline={isOnline}
+      pendingCount={pendingCount}
+      isSyncing={isSyncing}
+    />
+  );
+}
 
 function RootLayoutNav({
   fontsLoaded,
@@ -52,7 +65,8 @@ function RootLayoutNav({
   if (loading) return null;
 
   return (
-    <Stack
+    <>
+      <Stack
       screenOptions={{
         headerShown: false,
         animation: "fade",
@@ -79,6 +93,8 @@ function RootLayoutNav({
         options={{ headerShown: true, title: "Not Found" }}
       />
     </Stack>
+    <GlobalOfflineBanner />
+    </>
   );
 }
 

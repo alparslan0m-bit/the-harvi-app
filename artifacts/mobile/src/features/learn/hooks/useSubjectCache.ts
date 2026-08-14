@@ -20,6 +20,7 @@ import { Alert } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import NetInfo from "@react-native-community/netinfo";
+import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 
 import {
   getLectureCacheMeta,
@@ -112,7 +113,7 @@ export function useSubjectCache(
     if (!subject || downloading.current) return;
 
     const net = await NetInfo.fetch();
-    if (!net.isConnected) {
+    if (!isDeviceOnline(net)) {
       Alert.alert("Offline", "You must be online to download subjects.");
       return;
     }

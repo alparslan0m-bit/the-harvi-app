@@ -10,6 +10,20 @@ import { z } from "zod";
 
 const QUEUE_KEY = "harvi:quiz_queue";
 
+let queueLock: Promise<void> = Promise.resolve();
+
+async function withQueueLock<T>(fn: () => Promise<T>): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    queueLock = queueLock.then(async () => {
+      try {
+        resolve(await fn());
+      } catch (e) {
+        reject(e);
+      }
+    });
+  });
+}
+
 export function generateUUID(): string {
   if (
     typeof crypto !== "undefined" &&
@@ -61,9 +75,11 @@ export async function enqueueQuizResult(
   item: Omit<PendingQuizResult, "localId">,
   providedLocalId?: string,
 ): Promise<void> {
-  const queue = await readQueue();
-  queue.push({ ...item, localId: providedLocalId ?? generateUUID() });
-  await writeQueue(queue);
+  return withQueueLock(async () => {
+    const queue = await readQueue();
+    queue.push({ ...item, localId: providedLocalId ?? generateUUID() });
+    await writeQueue(queue);
+  });
 }
 
 export async function getQueue(): Promise<PendingQuizResult[]> {
@@ -72,14 +88,18 @@ export async function getQueue(): Promise<PendingQuizResult[]> {
 
 /** Remove successfully-synced items by localId */
 export async function removeSynced(localIds: string[]): Promise<void> {
-  const queue = await readQueue();
-  await writeQueue(queue.filter((i) => !localIds.includes(i.localId)));
+  return withQueueLock(async () => {
+    const queue = await readQueue();
+    await writeQueue(queue.filter((i) => !localIds.includes(i.localId)));
+  });
 }
 
 /** Clear all pending results for a specific user */
 export async function clearQueueForUser(userId: string): Promise<void> {
-  const queue = await readQueue();
-  await writeQueue(queue.filter((i) => i.userId !== userId));
+  return withQueueLock(async () => {
+    const queue = await readQueue();
+    await writeQueue(queue.filter((i) => i.userId !== userId));
+  });
 }
 
 /** How many items are pending */

@@ -13,6 +13,7 @@ import { z } from "zod";
 
 import { getQueue } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
+import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -127,8 +128,7 @@ async function serveFromCache(userId: string): Promise<BestScoreMap> {
 export async function fetchBestScores(userId: string): Promise<BestScoreMap> {
   // Fast offline short-circuit
   const net = await NetInfo.fetch();
-  const isOnline =
-    (net.isConnected ?? false) && net.isInternetReachable !== false;
+  const isOnline = isDeviceOnline(net);
 
   if (!isOnline) {
     return serveFromCache(userId);

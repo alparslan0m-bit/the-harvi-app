@@ -5,6 +5,7 @@ import NetInfo from "@react-native-community/netinfo";
 
 import { getQueue } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
+import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import { UserStats, UserStatsSchema } from "@/src/shared/types/schemas";
 import { useCacheStore } from "@/src/shared/store/cacheStore";
 import { fetchHierarchy } from "@/src/features/learn/services/hierarchyService";
@@ -383,8 +384,7 @@ async function serveFromCache(userId: string): Promise<UserStats> {
 
 export async function fetchStats(userId: string): Promise<UserStats> {
   const net = await NetInfo.fetch();
-  const isOnline =
-    (net.isConnected ?? false) && net.isInternetReachable !== false;
+  const isOnline = isDeviceOnline(net);
 
   if (!isOnline) {
     return serveFromCache(userId);

@@ -1,7 +1,7 @@
 # Navigation Map
 
 > **Auto-generated** by `docs/extractors/navigation-map.js`.
-> Generated at 2026-08-14T16:53:15.051Z
+> Generated at 2026-08-14T17:41:50.007Z
 > Maps the Expo Router file structure to the underlying feature components.
 
 ## 🗺️ Route Tree

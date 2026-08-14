@@ -30,6 +30,7 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
 
   const queryClient = useQueryClient();
   const isOnline = useSyncStore((s) => s.isOnline);
+  const pendingCount = useSyncStore((s) => s.pendingCount);
 
   const handleClearHistory = () => {
     if (!isOnline) {
@@ -120,6 +121,26 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
   };
 
   const handleInternalSignOut = async () => {
+    if (pendingCount > 0) {
+      Alert.alert(
+        "Un-synced Results",
+        `You have ${pendingCount} offline quiz result${pendingCount === 1 ? "" : "s"} waiting to sync. Signing out now will permanently delete them.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Sign Out Anyway",
+            style: "destructive",
+            onPress: async () => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              await onSignOut();
+              router.replace("/login" as Href);
+            },
+          },
+        ]
+      );
+      return;
+    }
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     await onSignOut();
     router.replace("/login" as Href);

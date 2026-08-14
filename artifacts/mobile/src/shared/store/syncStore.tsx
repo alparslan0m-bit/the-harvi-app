@@ -9,6 +9,7 @@ import {
   removeSynced,
 } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
+import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 
 interface SyncState {
   isOnline: boolean;
@@ -141,16 +142,14 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Sync initial state
     NetInfo.fetch().then((state: NetInfoState) => {
-      const online =
-        state.isConnected !== false && state.isInternetReachable !== false;
+      const online = isDeviceOnline(state);
       setIsOnline(online);
       onlineManager.setOnline(online);
     });
 
     // Subscribe to changes
     const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
-      const online =
-        state.isConnected !== false && state.isInternetReachable !== false;
+      const online = isDeviceOnline(state);
       setIsOnline(online);
       onlineManager.setOnline(online);
     });

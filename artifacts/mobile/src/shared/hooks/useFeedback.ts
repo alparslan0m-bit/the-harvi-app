@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import NetInfo from "@react-native-community/netinfo";
 
 import { supabase } from "@/src/shared/services/supabase";
+import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 
 const FEEDBACK_MIN = 1;
 const FEEDBACK_MAX = 500;
@@ -65,7 +66,7 @@ export function useFeedback(userId: string | undefined) {
     }
 
     const net = await NetInfo.fetch();
-    if (net.isConnected === false || net.isInternetReachable === false) {
+    if (!isDeviceOnline(net)) {
       setFeedbackError(
         "You are offline. Feedback requires an internet connection.",
       );

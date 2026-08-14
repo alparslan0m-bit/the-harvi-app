@@ -4,6 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 
 import { supabase } from "@/src/shared/services/supabase";
+import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import {
   ContentAccessEntry,
   ContentAccessEntrySchema,
@@ -48,8 +49,7 @@ export async function fetchContentAccess(
   userId: string,
 ): Promise<Map<string, ContentAccessEntry>> {
   const net = await NetInfo.fetch();
-  const isOnline =
-    (net.isConnected ?? false) && net.isInternetReachable !== false;
+  const isOnline = isDeviceOnline(net);
 
   if (!isOnline) {
     const cached = await readCachedAccess(userId);

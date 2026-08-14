@@ -3,6 +3,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 import { supabase } from "@/src/shared/services/supabase";
+import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import { Question } from "@/src/shared/types/schemas";
 import {
   IMAGE_URL_CANDIDATES,
@@ -37,7 +38,7 @@ AsyncStorage.getItem("harvi:quiz:fkcol").then((val) => {
  */
 export async function fetchQuestions(lectureId: string): Promise<Question[]> {
   const net = await NetInfo.fetch();
-  if (net.isConnected === false || net.isInternetReachable === false) {
+  if (!isDeviceOnline(net)) {
     throw new Error("You are offline.");
   }
 
