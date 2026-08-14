@@ -47,6 +47,13 @@ test("extractImports ignores comments and strings", () => {
   assert.deepStrictEqual(got, ["./realA", "./realB", "./realC", "./realD"]);
 });
 
+test("extractImports reports 1-based line numbers on original content", () => {
+  assert.deepStrictEqual(
+    extractImports(SRC).map((i) => i.lineNum),
+    [4, 5, 6, 7],
+  );
+});
+
 test("stripCommentsAndStrings preserves length and line positions", () => {
   const out = stripCommentsAndStrings(SRC);
   assert.strictEqual(out.length, SRC.length);
@@ -204,6 +211,19 @@ export const go = () => supabase.from('t').select('*');`,
   assert.ok(evidence, key + " must exist");
   assert.ok(evidence[0].lineNum >= 1, "evidence must carry a real line number");
   assert.match(evidence[0].snippet, /supabase\.from/);
+
+  // Audit regression (Finding 3): exactly ONE directed remote edge from this
+  // node, and no phantom client->functions attribution.
+  const REMOTES = new Set(["supabase_auth", "supabase_db", "supabase_functions"]);
+  const remoteEdges = result.verifiedArchEdges.filter(
+    (e) => e.source === "access_service" && REMOTES.has(e.target),
+  );
+  assert.strictEqual(remoteEdges.length, 1, "exactly one remote edge from access_service");
+  assert.strictEqual(remoteEdges[0].target, "supabase_db");
+  assert.ok(
+    !result.edgeEvidence.has("supabase_client->supabase_functions"),
+    "no phantom supabase_client->supabase_functions edge",
+  );
 });
 
 test("supabase_client with createClient yields implicit auth and db edges", async (t) => {
@@ -300,7 +320,7 @@ test("flow referencing a missing node is reported and forces governance to fail"
   assert.match(report, /GOVERNANCE CHECK FAILED/);
   assert.match(
     report,
-    /flows\.js references missing nodes — this file is curated and must be fixed by hand/,
+    /flows\.js is curated: fix the node references by hand/,
   );
 });
 
@@ -375,9 +395,12 @@ test("stale metadata path for local node is corrected and reported", (t) => {
   assert.strictEqual(node.path, "app/features/learn", "node path must be updated to derived path");
 });
 
-test("renderArchitectureMd and renderChartsMd handle ordered layers and unknown leftover nodes", () => {
+test("renderArchitectureMd and renderChartsMd order known layers and bucket unknowns last", () => {
   const nodes = [
+    { id: "core", label: "Core", type: "component", layer: "application", description: "core" },
+    { id: "db", label: "DB", type: "database", layer: "external", description: "db" },
     { id: "app", label: "App", type: "component", layer: "presentation", description: "app" },
+    { id: "infra", label: "Infra", type: "cache", layer: "infrastructure", description: "infra" },
     { id: "ghost", label: "Ghost", type: "unknown", layer: "unknown", description: "ghost" },
   ];
   const flows = [];
@@ -393,11 +416,37 @@ test("renderArchitectureMd and renderChartsMd handle ordered layers and unknown 
   const md = renderArchitectureMd(nodes, flows, orderedLayers);
   assert.match(md, /### PRESENTATION LAYER/);
   assert.match(md, /### OTHER LAYER/);
+  const layerOrder = [
+    "### PRESENTATION LAYER",
+    "### APPLICATION LAYER",
+    "### INFRASTRUCTURE LAYER",
+    "### EXTERNAL LAYER",
+    "### OTHER LAYER",
+  ];
+  const positions = layerOrder.map((h) => md.indexOf(h));
+  assert.ok(positions.every((p) => p !== -1), "all layer headings present: " + positions);
+  assert.ok(
+    positions.every((p, i) => i === 0 || p > positions[i - 1]),
+    "known layers in order, unknown bucket last: " + positions,
+  );
 
   const chartsMd = renderChartsMd(nodes, [], orderedLayers, layerClasses);
   assert.match(chartsMd, /classDef unknown/);
   assert.match(chartsMd, /subgraph MISC/);
   assert.match(chartsMd, /ghost\["Ghost"\]:::unknown/);
+  const subgraphOrder = [
+    "subgraph PRESENTATION",
+    "subgraph APPLICATION",
+    "subgraph INFRASTRUCTURE",
+    "subgraph EXTERNAL",
+    "subgraph MISC",
+  ];
+  const cPositions = subgraphOrder.map((h) => chartsMd.indexOf(h));
+  assert.ok(cPositions.every((p) => p !== -1), "all subgraphs present: " + cPositions);
+  assert.ok(
+    cPositions.every((p, i) => i === 0 || p > cPositions[i - 1]),
+    "subgraphs in layer order with MISC last: " + cPositions,
+  );
 });
 
 
