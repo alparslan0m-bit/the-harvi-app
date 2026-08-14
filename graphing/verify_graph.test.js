@@ -3,7 +3,7 @@ const assert = require("node:assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { runGovernance, walk, stripCommentsAndStrings, extractImports, renderReport, detectRemoteUsage, computeExitCode, writeOutputs } = require("./verify_graph");
+const { runGovernance, walk, stripCommentsAndStrings, extractImports, renderReport, detectRemoteUsage, computeExitCode, writeOutputs, renderArchitectureMd, renderChartsMd } = require("./verify_graph");
 const projectRoot = path.resolve(__dirname, "..");
 
 // makeFixtureTree(layout) -> root (tmp dir); caller runs rmSync in t.after().
@@ -374,4 +374,30 @@ test("stale metadata path for local node is corrected and reported", (t) => {
   const node = result.verifiedNodes.find((n) => n.id === "learn_feature");
   assert.strictEqual(node.path, "app/features/learn", "node path must be updated to derived path");
 });
+
+test("renderArchitectureMd and renderChartsMd handle ordered layers and unknown leftover nodes", () => {
+  const nodes = [
+    { id: "app", label: "App", type: "component", layer: "presentation", description: "app" },
+    { id: "ghost", label: "Ghost", type: "unknown", layer: "unknown", description: "ghost" },
+  ];
+  const flows = [];
+  const orderedLayers = ["presentation", "application", "infrastructure", "external"];
+  const layerClasses = {
+    presentation: "fill:#f9f",
+    application: "fill:#bbf",
+    infrastructure: "fill:#bfb",
+    external: "fill:#fbb",
+    unknown: "fill:#666,stroke:#999,stroke-width:1px,stroke-dasharray: 5 5",
+  };
+
+  const md = renderArchitectureMd(nodes, flows, orderedLayers);
+  assert.match(md, /### PRESENTATION LAYER/);
+  assert.match(md, /### OTHER LAYER/);
+
+  const chartsMd = renderChartsMd(nodes, [], orderedLayers, layerClasses);
+  assert.match(chartsMd, /classDef unknown/);
+  assert.match(chartsMd, /subgraph MISC/);
+  assert.match(chartsMd, /ghost\["Ghost"\]:::unknown/);
+});
+
 
