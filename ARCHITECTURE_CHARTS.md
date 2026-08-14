@@ -167,5 +167,18 @@ flowchart LR
   quiz_feature --> offline_queue
   stats_feature --> stats_service
   sync_store --> offline_queue
+  access_service --> shared_utils
+  auth_store --> shared_utils
+  best_score_service --> shared_utils
+  hierarchy_service --> shared_utils
+  learn_feature --> shared_utils
+  progress_service --> shared_utils
+  purchase_feature --> shared_utils
+  question_service --> shared_utils
+  shared_utils --> async_storage
+  shared_utils --> netinfo
+  shared_utils --> offline_queue
+  stats_service --> shared_utils
+  sync_store --> shared_utils
 ```
 

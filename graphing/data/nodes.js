@@ -297,5 +297,12 @@ module.exports = [
     "type": "external",
     "layer": "external",
     "description": "Google OAuth provider accessed via expo-web-browser openAuthSessionAsync. Supabase initiates the OAuth flow, browser handles consent, app receives code/tokens via deep link redirect"
+  },
+  {
+    "id": "shared_utils",
+    "label": "Shared Utils",
+    "type": "unknown",
+    "layer": "unknown",
+    "description": "Auto-discovered node: shared_utils"
   }
 ];

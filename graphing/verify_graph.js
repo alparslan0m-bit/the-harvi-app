@@ -101,6 +101,10 @@ const nodeMapping = {
   error_boundary: [
     "artifacts/mobile/src/shared/components/ErrorBoundary.tsx",
   ],
+  shared_utils: [
+    "artifacts/mobile/src/shared/utils/netInfo.ts",
+    "artifacts/mobile/src/shared/utils/cacheUtils.ts",
+  ],
 };
 
 // External packages → node IDs (discovered from import statements)

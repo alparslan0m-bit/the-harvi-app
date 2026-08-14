@@ -832,6 +832,110 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/syncStore.tsx"
   },
   {
+    "id": "e105",
+    "source": "access_service",
+    "target": "shared_utils",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/accessService.ts"
+  },
+  {
+    "id": "e106",
+    "source": "auth_store",
+    "target": "shared_utils",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
+  },
+  {
+    "id": "e107",
+    "source": "best_score_service",
+    "target": "shared_utils",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/bestScoreService.ts"
+  },
+  {
+    "id": "e108",
+    "source": "hierarchy_service",
+    "target": "shared_utils",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/hierarchyService.ts"
+  },
+  {
+    "id": "e109",
+    "source": "learn_feature",
+    "target": "shared_utils",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useSubjectCache.ts"
+  },
+  {
+    "id": "e110",
+    "source": "progress_service",
+    "target": "shared_utils",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/progressService.ts"
+  },
+  {
+    "id": "e111",
+    "source": "purchase_feature",
+    "target": "shared_utils",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/purchase/hooks/useMyPurchases.ts"
+  },
+  {
+    "id": "e112",
+    "source": "question_service",
+    "target": "shared_utils",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/quiz/services/questionService.ts"
+  },
+  {
+    "id": "e113",
+    "source": "shared_utils",
+    "target": "async_storage",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/utils/cacheUtils.ts"
+  },
+  {
+    "id": "e114",
+    "source": "shared_utils",
+    "target": "netinfo",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/utils/netInfo.ts"
+  },
+  {
+    "id": "e115",
+    "source": "shared_utils",
+    "target": "offline_queue",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/utils/cacheUtils.ts"
+  },
+  {
+    "id": "e116",
+    "source": "stats_service",
+    "target": "shared_utils",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/stats/services/statsService.ts"
+  },
+  {
+    "id": "e117",
+    "source": "sync_store",
+    "target": "shared_utils",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/syncStore.tsx"
+  },
+  {
     "source": "react_query",
     "target": "theme_store",
     "label": "Flow triggers"
