@@ -1,3 +1,9 @@
+/**
+ * @file ErrorFallback.tsx
+ * @description Safe fallback screen component displayed when an unhandled runtime error is caught by `ErrorBoundary`.
+ * Provides a user-friendly recovery action (`reloadAppAsync()`) and a dev-only modal to inspect 
+ * the exact exception message and stack trace.
+ */
 import { Feather } from "@expo/vector-icons";
 import { reloadAppAsync } from "expo";
 import React, { useState } from "react";
@@ -15,11 +21,20 @@ import { useColors } from "@/src/shared/hooks/useColors";
 import { THEME } from "@/src/shared/constants/theme";
 import { AnimatedPressable } from "@/src/shared/components";
 
+/** Props for the ErrorFallback UI component */
 export type ErrorFallbackProps = {
+  /** The caught JavaScript Error instance */
   error: Error;
+  /** Callback to clear the error state in the parent boundary */
   resetError: () => void;
 };
 
+/**
+ * Renders the error fallback recovery view with an optional developer stack trace inspector.
+ * 
+ * @param props - Component props
+ * @returns Error fallback screen element
+ */
 export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   const colors = useColors();
   const insets = useSafeAreaInsets();

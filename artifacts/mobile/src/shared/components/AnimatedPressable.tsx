@@ -1,3 +1,9 @@
+/**
+ * @file AnimatedPressable.tsx
+ * @description A touch-interactive pressable primitive built on Reanimated 3 and Expo Haptics.
+ * Transparently respects system `useReducedMotion()` settings, automatically falling back from scale 
+ * transforms to subtle opacity shifts to satisfy accessibility guidelines.
+ */
 import * as Haptics from "expo-haptics";
 import React from "react";
 import {
@@ -22,6 +28,7 @@ const PRESS_OUT_DURATION = 150;
 const SCALE_ACTIVE = 0.96;
 const OPACITY_ACTIVE = 0.85;
 
+/** Supported haptic feedback vibration patterns */
 export type HapticFeedbackType =
   | "none"
   | "light"
@@ -29,14 +36,26 @@ export type HapticFeedbackType =
   | "success"
   | "error";
 
+/** Props for the AnimatedPressable component */
 export interface AnimatedPressableProps extends Omit<PressableProps, "style"> {
+  /** Visual feedback mode on touch down ("scale" compression, "opacity" dim, or "none") */
   feedback?: "scale" | "opacity" | "none";
+  /** Haptic feedback pattern triggered on press in */
   haptics?: HapticFeedbackType;
+  /** Component style */
   style?: StyleProp<ViewStyle>;
+  /** Inner element content */
   children?: React.ReactNode;
+  /** Target opacity when `disabled` is true (defaults to 0.5) */
   disabledOpacity?: number;
 }
 
+/**
+ * Enhanced pressable component providing spring micro-interactions, haptics, and accessibility fallbacks.
+ * 
+ * @param props - AnimatedPressableProps
+ * @returns Reanimated pressable component
+ */
 export function AnimatedPressable({
   feedback = "opacity",
   haptics = "none",

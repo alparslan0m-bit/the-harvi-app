@@ -1,17 +1,30 @@
+/**
+ * @file ErrorBoundary.tsx
+ * @description React Class Component error boundary wrapper.
+ * Catches unhandled JS runtime exceptions rendered in child component trees, logs error details,
+ * and renders a safe fallback UI (`ErrorFallback`) to prevent total application crashes.
+ */
 import React, { Component, ComponentType, PropsWithChildren } from "react";
 
 import { ErrorFallback, ErrorFallbackProps } from "./ErrorFallback";
 
+/** Props for the React ErrorBoundary component */
 export type ErrorBoundaryProps = PropsWithChildren<{
+  /** Optional custom fallback component to render when an exception is caught */
   FallbackComponent?: ComponentType<ErrorFallbackProps>;
+  /** Optional logging callback invoked when an error is caught in the component tree */
   onError?: (error: Error, stackTrace: string) => void;
 }>;
 
+/** Internal state tracking caught rendering errors */
 type ErrorBoundaryState = { error: Error | null };
 
 /**
- * This is a special case for for using the class components. Error boundaries must be class components because React only provides error boundary functionality through lifecycle methods (componentDidCatch and getDerivedStateFromError) which are not available in functional components.
- * https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary
+ * Class Component handling React rendering error boundaries.
+ * Class components are required here because React only provides error boundary functionality 
+ * through static `getDerivedStateFromError` and `componentDidCatch` lifecycle methods.
+ * 
+ * @see https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary
  */
 export class ErrorBoundary extends Component<
   ErrorBoundaryProps,

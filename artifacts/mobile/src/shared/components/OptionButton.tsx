@@ -1,3 +1,8 @@
+/**
+ * @file OptionButton.tsx
+ * @description Interactive quiz answer option component featuring Reanimated keyframe shake animations 
+ * for incorrect choices, soft pastel state highlights (Mint for correct, Coral for wrong), and letter badges (A, B, C, D).
+ */
 import { Feather } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -13,13 +18,26 @@ import { useColors } from "@/src/shared/hooks/useColors";
 import { AnsweredState } from "@/src/shared/types";
 import { AnimatedPressable } from "@/src/shared/components";
 
+/**
+ * Interface defining the properties for rendering an interactive quiz option button.
+ */
 interface Props {
+  /** The localized plain-text body of the option */
   text: string;
+  /** Zero-based positional index of the option (0 = A, 1 = B, 2 = C, etc.) */
   index: number;
+  /** Active quiz answer state object (containing selected and correct option indices), or null if pending */
   answered?: AnsweredState | null;
+  /** Callback fired when the user selects this option before an answer is revealed */
   onSelect: (i: number) => void;
 }
 
+/**
+ * Renders an animated quiz option button with contextual feedback and letter badge.
+ * 
+ * @param props - Component props
+ * @returns Animated option button element
+ */
 export function OptionButton({ text, index, answered, onSelect }: Props) {
   const colors = useColors();
   const translateX = useSharedValue(0);

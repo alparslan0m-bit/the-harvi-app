@@ -1,3 +1,8 @@
+/**
+ * @file OfflineBanner.tsx
+ * @description Floating status banner component that slides down from top of screen to visually report device offline state,
+ * active quiz synchronization progress, or queued pending sync counts.
+ */
 import { Feather } from "@expo/vector-icons";
 import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -12,12 +17,24 @@ import { useColors } from "@/src/shared/hooks/useColors";
 import { THEME } from "@/src/shared/constants/theme";
 import { useSyncStore } from "@/src/shared/store/syncStore";
 
+/**
+ * Interface defining the properties for the network status banner display.
+ */
 interface Props {
+  /** Whether the device currently has active network/internet reachability */
   isOnline: boolean;
+  /** Number of offline quiz results currently queued in AsyncStorage waiting to sync */
   pendingCount: number;
+  /** Whether the sync engine is actively uploading queued items to Supabase */
   isSyncing: boolean;
 }
 
+/**
+ * Renders an animated floating indicator displaying offline status, queued count, or sync progress.
+ * 
+ * @param props - Component props
+ * @returns Reanimated top status banner
+ */
 export function OfflineBanner({ isOnline, pendingCount, isSyncing }: Props) {
   const colors = useColors();
   const translateY = useSharedValue(-60);
@@ -105,6 +122,10 @@ const styles = StyleSheet.create({
   },
 });
 
+/**
+ * Self-contained wrapper component that automatically connects the `OfflineBanner` UI 
+ * to global network status state from `useSyncStore`. Mount in the root layout.
+ */
 export function GlobalOfflineBanner() {
   const isOnline = useSyncStore((s) => s.isOnline);
   const pendingCount = useSyncStore((s) => s.pendingCount);
