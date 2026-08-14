@@ -1,7 +1,7 @@
 # Offline Behavior
 
 > **Auto-generated** by `docs/extractors/offline-behavior.js`.
-> Generated at 2026-08-14T16:31:58.730Z
+> Generated at 2026-08-14T16:53:15.505Z
 > Documents what each feature does when the device is offline.
 
 ## 📡 Feature Offline Capability Matrix
@@ -10,12 +10,12 @@
 |---------|----------------|----------------|---------------|-----------|---------------|
 | **auth** | 0 | ❌ | ❌ | ❌ | ❌ |
 | **learn** | 5 | ✅ | ✅ | ✅ | ✅ |
-| **profile** | 2 | ✅ | ❌ | ❌ | ✅ |
+| **profile** | 2 | ❌ | ❌ | ❌ | ✅ |
 | **purchase** | 0 | ✅ | ❌ | ❌ | ✅ |
-| **quiz** | 1 | ✅ | ❌ | ❌ | ✅ |
+| **quiz** | 1 | ✅ | ✅ | ❌ | ✅ |
 | **shared** | 1 | ❌ | ❌ | ❌ | ✅ |
-| **shared_services** | 0 | ✅ | ✅ | ❌ | ❌ |
-| **shared_stores** | 13 | ✅ | ✅ | ✅ | ✅ |
+| **shared_services** | 0 | ❌ | ✅ | ❌ | ❌ |
+| **shared_stores** | 13 | ❌ | ✅ | ✅ | ✅ |
 | **stats** | 2 | ✅ | ✅ | ✅ | ✅ |
 
 ## 🔍 Detailed Offline Patterns
@@ -31,7 +31,7 @@
 
 ### quiz
 
-- **Network error → AsyncStorage fallback** — `artifacts/mobile/src/features/quiz/services/questionCache.ts`
+- **Offline queue (enqueue → sync later)** — `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts`
 
 ### shared_services
 
@@ -41,7 +41,6 @@
 
 - **Memory cache (memCache)** — `artifacts/mobile/src/shared/store/authStore.tsx`
 - **Offline queue (enqueue → sync later)** — `artifacts/mobile/src/shared/store/syncStore.tsx`
-- **Network error → AsyncStorage fallback** — `artifacts/mobile/src/shared/store/themeStore.tsx`
 
 ### stats
 

@@ -89,9 +89,9 @@ function parseMigrations() {
           continue;
         }
 
-        // Column definition
+        // Column definition (ignore commas inside parentheses for types like NUMERIC(5,2))
         const colMatch = line.match(
-          /^(\w+)\s+(.+?)(?=\s+(?:DEFAULT|REFERENCES|CHECK|NOT\s+NULL|PRIMARY\s+KEY|UNIQUE)|,|$)/i,
+          /^(\w+)\s+(.+?)(?=\s+(?:DEFAULT|REFERENCES|CHECK|NOT\s+NULL|PRIMARY\s+KEY|UNIQUE)|,(?![^()]*\))|$)/i,
         );
         if (colMatch && !line.match(/^(CONSTRAINT|UNIQUE|PRIMARY|CHECK|FOREIGN)\s/i)) {
           const colName = colMatch[1];
@@ -274,7 +274,8 @@ const SQL_TO_ZOD_ALIASES = {
 };
 
 const INTENTIONAL_MISMATCHES = [
-  "price_cents", "external_id", "streak", "weekly_activity", "question_count"
+  "price_cents", "external_id", "streak", "weekly_activity", "question_count",
+  "created_at", "updated_at"
 ];
 
 function crossReference(tables, zodSchemas) {
@@ -346,11 +347,8 @@ function generate() {
     md += `| Type | Schema | Table | Field |\n`;
     md += `|------|--------|-------|-------|\n`;
     for (const m of mismatches) {
-      const label =
-        m.type === "zod_only"
-          ? "🟡 In Zod, not in SQL"
-          : "🔴 In SQL, not in Zod";
-      md += `| ${label} | ${m.schema} | ${m.table} | \`${m.field}\` |\n`;
+      const icon = m.issue === "Missing in SQL" ? "🟡" : "🔴";
+      md += `| ${icon} ${m.issue} | ${m.schema} | ${m.table} | \`${m.field}\` |\n`;
     }
     md += `\n`;
   } else {

@@ -150,6 +150,15 @@ function detectOperations(files, keyDefs) {
     const relPath = path.relative(projectRoot, file).replace(/\\/g, "/");
 
     for (const keyDef of keyDefs) {
+      // Fix Generic Constant Collision (R4): ignore cross-file usage for generic names
+      if (
+        keyDef.constName &&
+        ["CACHE_KEY", "QUEUE_KEY", "KEY"].includes(keyDef.constName) &&
+        relPath !== keyDef.file
+      ) {
+        continue;
+      }
+
       // Check if this file references the constant name or the key string
       const searchTerms = [keyDef.key];
       if (keyDef.constName) searchTerms.push(keyDef.constName);

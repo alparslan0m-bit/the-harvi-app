@@ -3,7 +3,7 @@
  *  DOCS GENERATOR ORCHESTRATOR
  * ============================================================================
  *
- *  Runs all 7 doc extractors in sequence, generating the final markdown files
+ *  Runs all 9 doc extractors in sequence, generating the final markdown files
  *  in the project root.
  *  Run:  node docs/generate.js or pnpm run docs:generate
  * ============================================================================

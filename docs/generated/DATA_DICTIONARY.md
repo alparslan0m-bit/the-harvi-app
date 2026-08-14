@@ -1,45 +1,33 @@
 # Data Dictionary
 
 > **Auto-generated** by `docs/extractors/data-dictionary.js`.
-> Generated at 2026-08-14T16:31:55.718Z
+> Generated at 2026-08-14T16:53:13.070Z
 > Parses SQL migrations and Zod schemas, then cross-references them for drift.
 
 ## ⚠️ Schema Drift Warnings
 
 | Type | Schema | Table | Field |
 |------|--------|-------|-------|
-| 🔴 In SQL, not in Zod | ModuleSchema | modules | `created_at` |
-| 🔴 In SQL, not in Zod | ModuleSchema | modules | `updated_at` |
-| 🔴 In SQL, not in Zod | LectureSchema | lectures | `order_index` |
-| 🔴 In SQL, not in Zod | LectureSchema | lectures | `created_at` |
-| 🔴 In SQL, not in Zod | LectureSchema | lectures | `updated_at` |
-| 🔴 In SQL, not in Zod | SubjectSchema | subjects | `created_at` |
-| 🔴 In SQL, not in Zod | SubjectSchema | subjects | `updated_at` |
-| 🔴 In SQL, not in Zod | YearSchema | years | `order` |
-| 🔴 In SQL, not in Zod | YearSchema | years | `created_at` |
-| 🔴 In SQL, not in Zod | YearSchema | years | `updated_at` |
-| 🔴 In SQL, not in Zod | QuestionSchema | questions | `lecture_id` |
-| 🔴 In SQL, not in Zod | QuestionSchema | questions | `question_order` |
-| 🔴 In SQL, not in Zod | QuestionSchema | questions | `created_at` |
-| 🔴 In SQL, not in Zod | QuestionSchema | questions | `updated_at` |
-| 🔴 In SQL, not in Zod | QuizResultSchema | quiz_results | `lecture_name` |
-| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `total_questions` |
-| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `day` |
-| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `count` |
-| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `isToday` |
-| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `user_id` |
-| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `total_questions_answered` |
-| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `correct_answers` |
-| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `current_streak` |
-| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `longest_streak` |
-| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `last_quiz_date` |
-| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `updated_at` |
-| 🔴 In SQL, not in Zod | PurchaseSchema | purchases | `user_id` |
-| 🔴 In SQL, not in Zod | PurchaseSchema | purchases | `payment_id` |
-| 🔴 In SQL, not in Zod | PurchaseSchema | purchases | `payment_session_id` |
-| 🔴 In SQL, not in Zod | PurchaseSchema | purchases | `provider` |
-| 🔴 In SQL, not in Zod | PurchaseSchema | purchases | `updated_at` |
-| 🔴 In SQL, not in Zod | PurchaseSchema | purchases | `store_transaction_id` |
+| 🔴 Missing in Zod schema | LectureSchema | lectures | `order_index` |
+| 🟡 Missing in SQL | YearSchema | years | `order` |
+| 🔴 Missing in Zod schema | QuestionSchema | questions | `lecture_id` |
+| 🔴 Missing in Zod schema | QuestionSchema | questions | `question_order` |
+| 🟡 Missing in SQL | QuizResultSchema | quiz_results | `lecture_name` |
+| 🟡 Missing in SQL | UserStatsSchema | user_stats | `total_questions` |
+| 🟡 Missing in SQL | UserStatsSchema | user_stats | `day` |
+| 🟡 Missing in SQL | UserStatsSchema | user_stats | `count` |
+| 🟡 Missing in SQL | UserStatsSchema | user_stats | `isToday` |
+| 🔴 Missing in Zod schema | UserStatsSchema | user_stats | `user_id` |
+| 🔴 Missing in Zod schema | UserStatsSchema | user_stats | `total_questions_answered` |
+| 🔴 Missing in Zod schema | UserStatsSchema | user_stats | `correct_answers` |
+| 🔴 Missing in Zod schema | UserStatsSchema | user_stats | `current_streak` |
+| 🔴 Missing in Zod schema | UserStatsSchema | user_stats | `longest_streak` |
+| 🔴 Missing in Zod schema | UserStatsSchema | user_stats | `last_quiz_date` |
+| 🔴 Missing in Zod schema | PurchaseSchema | purchases | `user_id` |
+| 🔴 Missing in Zod schema | PurchaseSchema | purchases | `payment_id` |
+| 🔴 Missing in Zod schema | PurchaseSchema | purchases | `payment_session_id` |
+| 🔴 Missing in Zod schema | PurchaseSchema | purchases | `provider` |
+| 🔴 Missing in Zod schema | PurchaseSchema | purchases | `store_transaction_id` |
 
 ## 📦 Tables
 
@@ -142,7 +130,7 @@ _Source: `20260401000000_harvi_master_baseline.sql`_
 | `total_quizzes` | INTEGER |  | ✅ | 0 | — | — |
 | `total_questions_answered` | INTEGER |  | ✅ | 0 | — | — |
 | `correct_answers` | INTEGER |  | ✅ | 0 | — | — |
-| `average_score` | NUMERIC(5 |  | ✅ | 0.00 | — | — |
+| `average_score` | NUMERIC(5,2) |  | ✅ | 0.00 | — | — |
 | `best_score` | INTEGER |  | ✅ | 0 | — | — |
 | `current_streak` | INTEGER |  | ✅ | 0 | — | — |
 | `longest_streak` | INTEGER |  | ✅ | 0 | — | — |
@@ -187,7 +175,7 @@ _Source: `20260401000000_harvi_master_baseline.sql`_
 | `lecture_id` | UUID |  | ✅ | — | → lectures.id | — |
 | `unique_students` | INTEGER |  |  | 0 | — | — |
 | `total_attempts` | INTEGER |  |  | 0 | — | — |
-| `average_score` | NUMERIC(5 |  |  | 0.00 | — | — |
+| `average_score` | NUMERIC(5,2) |  |  | 0.00 | — | — |
 | `last_updated` | TIMESTAMPTZ |  |  | now() | — | — |
 
 

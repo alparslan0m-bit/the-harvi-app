@@ -1,7 +1,7 @@
 # Cache Map
 
 > **Auto-generated** by `docs/extractors/cache-map.js`.
-> Generated at 2026-08-14T16:31:54.736Z
+> Generated at 2026-08-14T16:53:11.992Z
 > Every AsyncStorage and SecureStore key in the codebase.
 
 ## Summary
@@ -15,7 +15,7 @@
 |-------------|-----------|------------|---------|------------|
 | `harvi:access:{id}` | `artifacts/mobile/src/features/learn/services/accessService.ts` | read, write | `accessService.ts` | `accessService.ts` |
 | `harvi:avatar` | `artifacts/mobile/src/features/profile/hooks/useProfileEdit.ts` | read, write | `useProfileEdit.ts` | `useProfileEdit.ts` |
-| `harvi:bestScores:{id}` | `artifacts/mobile/src/features/learn/services/bestScoreService.ts` | read, write, delete | `bestScoreService.ts`, `statsService.ts` | `bestScoreService.ts`, `statsService.ts` |
+| `harvi:bestScores:{id}` | `artifacts/mobile/src/features/learn/services/bestScoreService.ts` | read, write, delete | `bestScoreService.ts` | `bestScoreService.ts` |
 | `harvi:displayName` | `artifacts/mobile/src/features/profile/hooks/useProfileEdit.ts` | read, write | `useProfileEdit.ts` | `useProfileEdit.ts` |
 | `harvi:hierarchy` | `artifacts/mobile/src/features/learn/services/hierarchyService.ts` | read, write | `hierarchyService.ts` | `hierarchyService.ts` |
 | `harvi:progress:{id}` | `artifacts/mobile/src/features/learn/services/progressService.ts` | read, write, delete | `progressService.ts` | `progressService.ts` |
@@ -23,7 +23,7 @@
 | `harvi:qcache:{id}` | `artifacts/mobile/src/features/quiz/services/questionCache.ts` | read, write, delete | `questionCache.ts` | `questionCache.ts` |
 | `harvi:quiz:fkcol` | `artifacts/mobile/src/features/quiz/services/questionService.ts` | read, write | `questionService.ts` | `questionService.ts` |
 | `harvi:quiz_queue` | `artifacts/mobile/src/shared/services/offlineQueue.ts` | read, write | `offlineQueue.ts` | `offlineQueue.ts` |
-| `harvi:stats:{id}` | `artifacts/mobile/src/features/stats/services/statsService.ts` | read, write, delete | `bestScoreService.ts`, `statsService.ts` | `bestScoreService.ts`, `statsService.ts` |
+| `harvi:stats:{id}` | `artifacts/mobile/src/features/stats/services/statsService.ts` | read, write, delete | `statsService.ts` | `statsService.ts` |
 | `harvi:theme` | `artifacts/mobile/src/shared/store/themeStore.tsx` | read, write | `themeStore.tsx` | `themeStore.tsx` |
 
 ## 🔒 SecureStore Keys

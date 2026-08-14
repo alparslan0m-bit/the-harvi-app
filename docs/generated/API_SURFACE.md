@@ -1,7 +1,7 @@
 # API Surface
 
 > **Auto-generated** by `docs/extractors/api-surface.js`.
-> Generated at 2026-08-14T16:31:53.536Z
+> Generated at 2026-08-14T16:53:11.575Z
 > Every Supabase call in the codebase, mapped to file and line.
 
 ## Summary

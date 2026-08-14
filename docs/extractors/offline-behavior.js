@@ -106,6 +106,7 @@ function analyzeOfflinePatterns(files) {
     // Pattern: try supabase → catch → fall back to AsyncStorage
     if (
       content.includes("AsyncStorage") &&
+      content.includes("supabase") &&
       (content.includes("catch") || content.includes("fallback") || content.includes("offline"))
     ) {
       features[feature].hasAsyncStorageFallback = true;
@@ -122,7 +123,7 @@ function analyzeOfflinePatterns(files) {
     // ── Offline queue pattern ────────────────────────────────────────────
     // Only flag files that actively ENQUEUE or FLUSH — not barrel re-exports
     if (
-      content.match(/\benqueue\b|getQueue\(|flushQueue\(|QUEUE_KEY\s*=/) ||
+      content.match(/\benqueue\w*\(|getQueue\(|flushQueue\(|QUEUE_KEY\s*=/) ||
       (content.includes("quiz_queue") && content.match(/\bpush\b|\bsplice\b|\bshift\b/))
     ) {
       features[feature].hasOfflineQueue = true;
