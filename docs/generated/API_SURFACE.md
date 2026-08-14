@@ -1,13 +1,14 @@
 # API Surface
 
 > **Auto-generated** by `docs/extractors/api-surface.js`.
+> Generated at 2026-08-14T16:31:53.536Z
 > Every Supabase call in the codebase, mapped to file and line.
 
 ## Summary
 
 | Type | Count |
 |------|-------|
-| Database queries | 10 |
+| Database queries | 15 |
 | RPC calls | 3 |
 | Edge function invocations | 1 |
 | Auth method calls | 10 |
@@ -33,10 +34,24 @@
 |-----------|------|------|---------------|--------|
 | SELECT | `artifacts/mobile/src/features/learn/services/hierarchyService.ts` | 92 | * | — |
 
+### purchases
+
+| Operation | File | Line | Columns/Shape | Filter |
+|-----------|------|------|---------------|--------|
+| SELECT | `artifacts/mobile/src/features/purchase/hooks/useMyPurchases.ts` | 55 | id, module_id, amount_cents, currency, status, created_at | .eq("status") |
+
+### questions
+
+| Operation | File | Line | Columns/Shape | Filter |
+|-----------|------|------|---------------|--------|
+| SELECT | `artifacts/mobile/src/features/quiz/services/questionService.ts` | 47 | * | — |
+
 ### quiz_results
 
 | Operation | File | Line | Columns/Shape | Filter |
 |-----------|------|------|---------------|--------|
+| SELECT | `artifacts/mobile/src/features/learn/services/bestScoreService.ts` | 138 | lecture_id, score | .eq("user_id") |
+| SELECT | `artifacts/mobile/src/features/learn/services/progressService.ts` | 126 | col | .eq("user_id") |
 | DELETE | `artifacts/mobile/src/features/profile/components/AccountActions.tsx` | 56 | — | .eq("user_id") |
 | INSERT | `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts` | 147 | — | — |
 | INSERT | `artifacts/mobile/src/shared/store/syncStore.tsx` | 83 | — | — |
@@ -52,6 +67,7 @@
 | Operation | File | Line | Columns/Shape | Filter |
 |-----------|------|------|---------------|--------|
 | DELETE | `artifacts/mobile/src/features/profile/components/AccountActions.tsx` | 57 | — | .eq("user_id") |
+| SELECT | `artifacts/mobile/src/features/stats/services/statsService.ts` | 397 | * | .eq("user_id") |
 
 ### years
 

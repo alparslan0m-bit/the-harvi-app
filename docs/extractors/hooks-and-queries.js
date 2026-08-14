@@ -67,7 +67,7 @@ function extractQueryHooks(files) {
       // Try to extract staleTime
       const afterMatch = content.substring(
         match.index,
-        match.index + 500,
+        match.index + 2000,
       );
       const staleMatch = afterMatch.match(
         /staleTime:\s*(\d+(?:\s*\*\s*\d+)*)/,
@@ -112,19 +112,19 @@ function extractInvalidations(files) {
     const content = fs.readFileSync(file, "utf8");
     const relPath = path.relative(projectRoot, file).replace(/\\/g, "/");
 
-    // queryClient.invalidateQueries({ queryKey: ["xxx"] })
+    // queryClient.invalidateQueries({ queryKey: ["xxx", ...] })
     const invalidateRegex =
-      /queryClient\.invalidateQueries\(\s*\{\s*queryKey:\s*\[\s*["'](\w+)["']\s*\]/g;
+      /queryClient\.invalidateQueries\(\s*\{\s*queryKey:\s*\[\s*["'](\w+)["'][\s\S]*?\]/g;
     let match;
     while ((match = invalidateRegex.exec(content)) !== null) {
       const lineNum =
         content.substring(0, match.index).split("\n").length;
       const queryKey = match[1];
 
-      // Find enclosing function
+      // Find enclosing exported function (ignores internal helpers like timeoutPromise)
       const beforeMatch = content.substring(0, match.index);
       const funcMatch = beforeMatch.match(
-        /(?:export\s+)?(?:function|const)\s+(\w+)/g,
+        /export\s+(?:function|const)\s+(\w+)/g,
       );
       const enclosingFunc = funcMatch
         ? funcMatch[funcMatch.length - 1].match(
@@ -140,9 +140,9 @@ function extractInvalidations(files) {
       });
     }
 
-    // queryClient.setQueriesData({ queryKey: ["xxx"] }, ...)
+    // queryClient.setQueriesData({ queryKey: ["xxx", ...] }, ...)
     const setDataRegex =
-      /queryClient\.setQueriesData\(\s*\{\s*queryKey:\s*\[\s*["'](\w+)["']\s*\]/g;
+      /queryClient\.setQueriesData\(\s*\{\s*queryKey:\s*\[\s*["'](\w+)["'][\s\S]*?\]/g;
     while ((match = setDataRegex.exec(content)) !== null) {
       const lineNum =
         content.substring(0, match.index).split("\n").length;
@@ -157,7 +157,7 @@ function extractInvalidations(files) {
 
     // queryClient.removeQueries
     const removeRegex =
-      /queryClient\.removeQueries\(\s*\{\s*queryKey:\s*\[\s*["'](\w+)["']\s*\]/g;
+      /queryClient\.removeQueries\(\s*\{\s*queryKey:\s*\[\s*["'](\w+)["'][\s\S]*?\]/g;
     while ((match = removeRegex.exec(content)) !== null) {
       const lineNum =
         content.substring(0, match.index).split("\n").length;
@@ -186,12 +186,12 @@ function extractCustomHooks(files) {
     const relPath = path.relative(projectRoot, file).replace(/\\/g, "/");
 
     // export function useXxx(params)
-    const hookRegex =
-      /export\s+function\s+(use\w+)\s*\(([^)]*)\)/g;
+    // Use non-greedy match until the closing parenthesis before the function body bracket
+    const hookRegex = /export\s+(?:function|const)\s+(use\w+)\s*(?:=\s*(?:\([^)]*\)\s*=>\s*)?)?\(([\s\S]*?)\)\s*(?::\s*[^{=]+)?\s*(?:=>\s*)?\{/g;
     let match;
     while ((match = hookRegex.exec(content)) !== null) {
-      const name = match[1];
-      const params = match[2].trim();
+      const hookName = match[1];
+      const params = match[2].replace(/\s+/g, " ").trim() || "—";
       const lineNum =
         content.substring(0, match.index).split("\n").length;
 
@@ -241,7 +241,7 @@ function extractCustomHooks(files) {
         : "—";
 
       hooks.push({
-        name,
+        name: hookName,
         params: params || "—",
         file: relPath,
         line: lineNum,
@@ -267,6 +267,7 @@ function generate() {
   let md = `# Hooks & Queries
 
 > **Auto-generated** by \`docs/extractors/hooks-and-queries.js\`.
+> Generated at ${new Date().toISOString()}
 > Maps the full React Query key space and custom hook dependency tree.
 
 `;
@@ -334,6 +335,7 @@ module.exports = { generate, name: "HOOKS_AND_QUERIES.md" };
 
 if (require.main === module) {
   const md = generate();
-  fs.writeFileSync(path.join(projectRoot, "HOOKS_AND_QUERIES.md"), md);
-  console.log("✅ HOOKS_AND_QUERIES.md generated");
+  fs.mkdirSync(path.join(projectRoot, "docs", "generated"), { recursive: true });
+  fs.writeFileSync(path.join(projectRoot, "docs", "generated", "HOOKS_AND_QUERIES.md"), md);
+  console.log("✅ docs/generated/HOOKS_AND_QUERIES.md generated");
 }

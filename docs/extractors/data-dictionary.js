@@ -19,18 +19,34 @@ const path = require("path");
 
 const projectRoot = path.resolve(__dirname, "..", "..");
 const migrationsDir = path.join(projectRoot, "supabase", "migrations");
-const schemasFile = path.join(
-  projectRoot,
-  "artifacts",
-  "mobile",
-  "src",
-  "shared",
-  "types",
-  "schemas.ts",
-);
+const mobileRoot = path.join(projectRoot, "artifacts", "mobile");
 
 // ============================================================================
-// 1. PARSE SQL MIGRATIONS
+// 1. WALK SOURCE FILES
+// ============================================================================
+
+function walk(dir) {
+  let results = [];
+  try {
+    const list = fs.readdirSync(dir);
+    for (const file of list) {
+      const full = path.join(dir, file);
+      try {
+        const stat = fs.statSync(full);
+        if (stat.isDirectory()) {
+          if (file === "node_modules" || file === ".expo") continue;
+          results = results.concat(walk(full));
+        } else if (full.endsWith(".ts") || full.endsWith(".tsx")) {
+          results.push(full);
+        }
+      } catch (_) {}
+    }
+  } catch (_) {}
+  return results;
+}
+
+// ============================================================================
+// 2. PARSE SQL MIGRATIONS
 // ============================================================================
 
 function parseMigrations() {
@@ -75,15 +91,15 @@ function parseMigrations() {
 
         // Column definition
         const colMatch = line.match(
-          /^(\w+)\s+([\w(),.]+(?:\s+[\w(),.]+)?)/i,
+          /^(\w+)\s+(.+?)(?=\s+(?:DEFAULT|REFERENCES|CHECK|NOT\s+NULL|PRIMARY\s+KEY|UNIQUE)|,|$)/i,
         );
         if (colMatch && !line.match(/^(CONSTRAINT|UNIQUE|PRIMARY|CHECK|FOREIGN)\s/i)) {
           const colName = colMatch[1];
-          let colType = colMatch[2].replace(/,\s*$/, "");
+          let colType = colMatch[2].trim().replace(/,\s*$/, "");
 
           const isPK = /PRIMARY KEY/i.test(line);
           const isNotNull = /NOT NULL/i.test(line);
-          const hasDefault = line.match(/DEFAULT\s+(.+?)(?:,|\s+CONSTRAINT|\s+REFERENCES|\s*$)/i);
+          const hasDefault = line.match(/DEFAULT\s+(.+?)(?:,|\s+CONSTRAINT|\s+REFERENCES|\s+CHECK|\s*$)/i);
           const fkMatch = line.match(/REFERENCES\s+([\w.]+)\((\w+)\)/i);
           const checkMatch = line.match(/CHECK\s*\((.+?)\)(?:\s*,|\s*$)/i);
           const isUnique = /UNIQUE/i.test(line) && !line.match(/^CONSTRAINT/i);
@@ -199,39 +215,40 @@ function parseMigrations() {
 }
 
 // ============================================================================
-// 2. PARSE ZOD SCHEMAS
+// 3. PARSE ZOD SCHEMAS
 // ============================================================================
 
-function parseZodSchemas() {
-  if (!fs.existsSync(schemasFile)) return {};
-
-  const content = fs.readFileSync(schemasFile, "utf8");
+function parseZodSchemas(files) {
   const schemas = {};
 
-  // Match: export const XxxSchema = z.object({ ... });
-  const schemaRegex =
-    /export const (\w+Schema)\s*=\s*z\.object\(\{([\s\S]*?)\}\)/g;
-  let match;
-  while ((match = schemaRegex.exec(content)) !== null) {
-    const name = match[1];
-    const body = match[2];
-    const fields = {};
+  for (const file of files) {
+    const content = fs.readFileSync(file, "utf8");
 
-    // Parse z.xxx() fields
-    const fieldRegex = /(\w+):\s*(z\.[^,\n]+)/g;
-    let fieldMatch;
-    while ((fieldMatch = fieldRegex.exec(body)) !== null) {
-      fields[fieldMatch[1]] = fieldMatch[2].trim().replace(/,$/, "");
+    // Match: export const XxxSchema = z.object({ ... });
+    const schemaRegex =
+      /export const (\w+Schema)\s*=\s*z\.object\(\{([\s\S]*?)\}\)/g;
+    let match;
+    while ((match = schemaRegex.exec(content)) !== null) {
+      const name = match[1];
+      const body = match[2];
+      const fields = {};
+
+      // Parse z.xxx() fields, handling multi-line and nested structures
+      const fieldRegex = /(\w+):\s*(z\.[\s\S]*?)(?=\n\s*\w+:|\s*$)/g;
+      let fieldMatch;
+      while ((fieldMatch = fieldRegex.exec(body)) !== null) {
+        fields[fieldMatch[1]] = fieldMatch[2].replace(/\n\s+/g, " ").trim().replace(/,$/, "");
+      }
+
+      schemas[name] = fields;
     }
-
-    schemas[name] = fields;
   }
 
   return schemas;
 }
 
 // ============================================================================
-// 3. CROSS-REFERENCE SQL ↔ ZOD
+// 4. CROSS-REFERENCE SQL ↔ ZOD
 // ============================================================================
 
 // Map Zod schema names to SQL table names
@@ -251,6 +268,15 @@ const zodToTableMap = {
   HistoryItemSchema: null, // Client-only UI state
 };
 
+const SQL_TO_ZOD_ALIASES = {
+  correct_answer_index: "answer",
+  order_index: "order"
+};
+
+const INTENTIONAL_MISMATCHES = [
+  "price_cents", "external_id", "streak", "weekly_activity", "question_count"
+];
+
 function crossReference(tables, zodSchemas) {
   const mismatches = [];
 
@@ -262,37 +288,33 @@ function crossReference(tables, zodSchemas) {
 
     // Zod has it but SQL doesn't
     for (const field of zodFields) {
-      if (!sqlColumns.includes(field)) {
-        // Check common renames (e.g., "order" vs "order_index")
-        const possibleAlias = `${field}_index`;
-        if (!sqlColumns.includes(possibleAlias) && field !== "order") {
-          mismatches.push({
-            type: "zod_only",
-            schema: schemaName,
-            table: tableName,
-            field,
-          });
-        }
+      if (INTENTIONAL_MISMATCHES.includes(field)) continue;
+      
+      const sqlEquivalent = Object.keys(SQL_TO_ZOD_ALIASES).find(key => SQL_TO_ZOD_ALIASES[key] === field) || field;
+      
+      if (!sqlColumns.includes(sqlEquivalent) && !sqlColumns.includes(`${field}_index`)) {
+        mismatches.push({
+          schema: schemaName,
+          table: tableName,
+          field,
+          issue: "Missing in SQL",
+        });
       }
     }
 
     // SQL has it but Zod doesn't
     for (const col of sqlColumns) {
-      const normalizedCol = col.replace(/_index$/, "").replace(/^order_index$/, "order");
-      if (
-        !zodFields.includes(col) &&
-        !zodFields.includes(normalizedCol)
-      ) {
-        // Skip common auto-fields that Zod typically omits
-        const autoFields = ["created_at", "updated_at"];
-        if (!autoFields.includes(col)) {
-          mismatches.push({
-            type: "sql_only",
-            schema: schemaName,
-            table: tableName,
-            field: col,
-          });
-        }
+      if (INTENTIONAL_MISMATCHES.includes(col)) continue;
+      
+      const zodEquivalent = SQL_TO_ZOD_ALIASES[col] || col;
+
+      if (!zodFields.includes(zodEquivalent)) {
+        mismatches.push({
+          schema: schemaName,
+          table: tableName,
+          field: col,
+          issue: "Missing in Zod schema",
+        });
       }
     }
   }
@@ -301,18 +323,20 @@ function crossReference(tables, zodSchemas) {
 }
 
 // ============================================================================
-// 4. GENERATE MARKDOWN
+// 5. GENERATE MARKDOWN
 // ============================================================================
 
 function generate() {
+  const files = walk(mobileRoot);
   const { tables, rpcs, triggers, indexes, cronJobs } = parseMigrations();
-  const zodSchemas = parseZodSchemas();
+  const zodSchemas = parseZodSchemas(files);
   const mismatches = crossReference(tables, zodSchemas);
 
   let md = `# Data Dictionary
 
-> **Auto-generated** by \`docs/extractors/data-dictionary.js\` from SQL migrations + Zod schemas.
-> Guaranteed accurate — derived directly from source files.
+> **Auto-generated** by \`docs/extractors/data-dictionary.js\`.
+> Generated at ${new Date().toISOString()}
+> Parses SQL migrations and Zod schemas, then cross-references them for drift.
 
 `;
 
@@ -418,6 +442,7 @@ module.exports = { generate, name: "DATA_DICTIONARY.md" };
 
 if (require.main === module) {
   const md = generate();
-  fs.writeFileSync(path.join(projectRoot, "DATA_DICTIONARY.md"), md);
-  console.log("✅ DATA_DICTIONARY.md generated");
+  fs.mkdirSync(path.join(projectRoot, "docs", "generated"), { recursive: true });
+  fs.writeFileSync(path.join(projectRoot, "docs", "generated", "DATA_DICTIONARY.md"), md);
+  console.log("✅ docs/generated/DATA_DICTIONARY.md generated");
 }

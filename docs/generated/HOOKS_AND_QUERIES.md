@@ -1,6 +1,7 @@
 # Hooks & Queries
 
 > **Auto-generated** by `docs/extractors/hooks-and-queries.js`.
+> Generated at 2026-08-14T16:31:57.898Z
 > Maps the full React Query key space and custom hook dependency tree.
 
 ## 🔑 Query Keys
@@ -12,7 +13,7 @@
 | `["content_access", user?.id]` | `useModuleAccess()` | `artifacts/mobile/src/features/learn/hooks/useModuleAccess.ts` | 1000 * 60 * 5 |
 | `["progress", user?.id]` | `useProgress()` | `artifacts/mobile/src/features/learn/hooks/useProgress.ts` | 1000 * 60 * 10 |
 | `["my_purchases", user?.id]` | `useMyPurchases()` | `artifacts/mobile/src/features/purchase/hooks/useMyPurchases.ts` | 1000 * 60 * 10 |
-| `["quiz", lectureId, QUIZ_CACHE_VERSION]` | `useQuizQuestions()` | `artifacts/mobile/src/features/quiz/hooks/useQuiz.ts` | default |
+| `["quiz", lectureId, QUIZ_CACHE_VERSION]` | `useQuizQuestions()` | `artifacts/mobile/src/features/quiz/hooks/useQuiz.ts` | 0 |
 | `["stats", userId]` | `useStats()` | `artifacts/mobile/src/features/stats/hooks/useStats.ts` | 1000 * 60 * 10 |
 
 ## 🔄 Invalidation Chains
@@ -21,35 +22,35 @@ _When X happens, which query caches get busted?_
 
 | Trigger | Invalidates | Type | File:Line |
 |---------|------------|------|----------|
-| invalidateAccess (purchaseStore.tsx) | `content_access` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:37` |
-| invalidateAccess (purchaseStore.tsx) | `my_purchases` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:38` |
-| invalidateAccess (purchaseStore.tsx) | `hierarchy` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:39` |
-| invalidateAccess (purchaseStore.tsx) | `quiz` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:40` |
+| AccountActions (AccountActions.tsx) | `stats` | invalidate | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:87` |
+| AccountActions (AccountActions.tsx) | `progress` | invalidate | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:88` |
+| AccountActions (AccountActions.tsx) | `lectureBestScores` | invalidate | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:89` |
 | removeQueries (cache clear) (AccountActions.tsx) | `quiz` | remove | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:111` |
-| result (useQuizSession.ts) | `progress` | invalidate | `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts:207` |
-| result (useQuizSession.ts) | `stats` | invalidate | `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts:208` |
-| result (useQuizSession.ts) | `lectureBestScores` | invalidate | `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts:209` |
 | setQueriesData (optimistic) (AccountActions.tsx) | `stats` | optimistic | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:80` |
 | setQueriesData (optimistic) (AccountActions.tsx) | `progress` | optimistic | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:81` |
 | setQueriesData (optimistic) (AccountActions.tsx) | `lectureBestScores` | optimistic | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:82` |
 | setQueriesData (optimistic) (AccountActions.tsx) | `quiz` | optimistic | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:110` |
-| timeoutPromise (AccountActions.tsx) | `stats` | invalidate | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:87` |
-| timeoutPromise (AccountActions.tsx) | `progress` | invalidate | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:88` |
-| timeoutPromise (AccountActions.tsx) | `lectureBestScores` | invalidate | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:89` |
-| timeoutPromise (syncStore.tsx) | `stats` | invalidate | `artifacts/mobile/src/shared/store/syncStore.tsx:119` |
-| timeoutPromise (syncStore.tsx) | `progress` | invalidate | `artifacts/mobile/src/shared/store/syncStore.tsx:120` |
+| usePurchaseActions (purchaseStore.tsx) | `content_access` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:37` |
+| usePurchaseActions (purchaseStore.tsx) | `my_purchases` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:38` |
+| usePurchaseActions (purchaseStore.tsx) | `hierarchy` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:39` |
+| usePurchaseActions (purchaseStore.tsx) | `quiz` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:40` |
+| useQuizSession (useQuizSession.ts) | `progress` | invalidate | `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts:207` |
+| useQuizSession (useQuizSession.ts) | `stats` | invalidate | `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts:208` |
+| useQuizSession (useQuizSession.ts) | `lectureBestScores` | invalidate | `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts:209` |
+| useSyncActions (syncStore.tsx) | `stats` | invalidate | `artifacts/mobile/src/shared/store/syncStore.tsx:119` |
+| useSyncActions (syncStore.tsx) | `progress` | invalidate | `artifacts/mobile/src/shared/store/syncStore.tsx:120` |
 
 ## 📊 Per-Key Invalidation Summary
 
 | Query Key | Invalidated By |
 |-----------|---------------|
-| `content_access` | invalidateAccess |
-| `hierarchy` | invalidateAccess |
-| `lectureBestScores` | timeoutPromise, setQueriesData (optimistic), result |
-| `my_purchases` | invalidateAccess |
-| `progress` | timeoutPromise, setQueriesData (optimistic), result |
-| `quiz` | setQueriesData (optimistic), removeQueries (cache clear), invalidateAccess |
-| `stats` | timeoutPromise, setQueriesData (optimistic), result |
+| `content_access` | usePurchaseActions |
+| `hierarchy` | usePurchaseActions |
+| `lectureBestScores` | AccountActions, setQueriesData (optimistic), useQuizSession |
+| `my_purchases` | usePurchaseActions |
+| `progress` | AccountActions, setQueriesData (optimistic), useQuizSession, useSyncActions |
+| `quiz` | setQueriesData (optimistic), removeQueries (cache clear), usePurchaseActions |
+| `stats` | AccountActions, setQueriesData (optimistic), useQuizSession, useSyncActions |
 
 ## 🪝 Custom Hooks
 

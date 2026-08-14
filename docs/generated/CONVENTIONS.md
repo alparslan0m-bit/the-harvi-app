@@ -1,6 +1,7 @@
 # Conventions
 
 > **Auto-generated** by `docs/extractors/conventions.js`.
+> Generated at 2026-08-14T16:31:55.367Z
 > Structural patterns extracted from the codebase. Follow these when adding new code.
 
 ## 📁 Feature Folder Structure
@@ -40,7 +41,7 @@ Every store follows: **Zustand create** + **Provider component** + **useXxx hook
 | Store | Zustand | Provider | Hook | AsyncStorage | Supabase | QueryClient |
 |-------|---------|----------|------|-------------|----------|-------------|
 | `authStore` | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-| `cacheStore` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `cacheStore` | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
 | `purchaseStore` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
 | `syncStore` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
 | `themeStore` | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
@@ -58,9 +59,7 @@ Services use a three-tier cache strategy: **memCache → AsyncStorage → Supaba
 | `questionCache` | ❌ | ✅ | ❌ | ❌ | ❌ |
 | `questionService` | ❌ | ✅ | ❌ | ✅ | ❌ |
 | `statsService` | ✅ | ✅ | ✅ | ✅ | ❌ |
-| `index` | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `offlineQueue` | ❌ | ✅ | ❌ | ❌ | ❌ |
-| `supabase` | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 ## 📦 Import Conventions
 

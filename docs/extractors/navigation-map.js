@@ -64,13 +64,13 @@ function buildRouteTree(dir, prefix = "") {
       let component = null;
       let componentSource = null;
 
-      // Check for re-export: export { default } from "..."
+      // Check for re-export: export { default } from "..." or export { Name as default } from "..."
       const reExportMatch = content.match(
-        /export\s*\{\s*(?:default\s+as\s+default|default)\s*\}\s*from\s*["']([^"']+)["']/,
+        /export\s*\{\s*(?:(\w+)\s+as\s+default|default)\s*\}\s*from\s*["']([^"']+)["']/
       );
       if (reExportMatch) {
-        componentSource = reExportMatch[1];
-        component = componentSource.split("/").pop();
+        componentSource = reExportMatch[2];
+        component = reExportMatch[1] ? reExportMatch[1] : componentSource.split("/").pop();
       }
 
       // Check for export default
@@ -236,7 +236,8 @@ function generate() {
   let md = `# Navigation Map
 
 > **Auto-generated** by \`docs/extractors/navigation-map.js\`.
-> Complete Expo Router navigation tree derived from the \`app/\` directory.
+> Generated at ${new Date().toISOString()}
+> Maps the Expo Router file structure to the underlying feature components.
 
 `;
 
@@ -285,6 +286,7 @@ module.exports = { generate, name: "NAVIGATION_MAP.md" };
 
 if (require.main === module) {
   const md = generate();
-  fs.writeFileSync(path.join(projectRoot, "NAVIGATION_MAP.md"), md);
-  console.log("✅ NAVIGATION_MAP.md generated");
+  fs.mkdirSync(path.join(projectRoot, "docs", "generated"), { recursive: true });
+  fs.writeFileSync(path.join(projectRoot, "docs", "generated", "NAVIGATION_MAP.md"), md);
+  console.log("✅ docs/generated/NAVIGATION_MAP.md generated");
 }

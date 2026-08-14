@@ -1,37 +1,38 @@
 # Navigation Map
 
 > **Auto-generated** by `docs/extractors/navigation-map.js`.
-> Complete Expo Router navigation tree derived from the `app/` directory.
+> Generated at 2026-08-14T16:31:58.130Z
+> Maps the Expo Router file structure to the underlying feature components.
 
 ## 🗺️ Route Tree
 
 ```
 app/
 ├── (auth)/
-│   ├── callback.tsx
-│   └── login.tsx
+│   ├── callback.tsx → AuthCallbackScreen (@/src/features/auth)
+│   └── login.tsx → AuthScreen (@/src/features/auth)
 ├── (main)/
 │   ├── (tabs)/
 │   │   ├── (learn)/
 │   │   │   ├── module/
-│   │   │   │   └── :id.tsx
+│   │   │   │   └── :id.tsx → ModuleScreen (@/src/features/learn)
 │   │   │   ├── subject/
-│   │   │   │   └── :id.tsx
+│   │   │   │   └── :id.tsx → SubjectScreen (@/src/features/learn)
 │   │   │   ├── year/
-│   │   │   │   └── :id.tsx
+│   │   │   │   └── :id.tsx → YearScreen (@/src/features/learn)
 │   │   │   ├── _layout.tsx → Stack navigator
-│   │   │   └── index.tsx
+│   │   │   └── index.tsx → LearnScreen (@/src/features/learn)
 │   │   ├── _layout.tsx → Tabs navigator
-│   │   ├── profile.tsx
-│   │   └── stats.tsx
+│   │   ├── profile.tsx → ProfileScreen (@/src/features/profile)
+│   │   └── stats.tsx → StatsScreen (@/src/features/stats)
 │   ├── profile/
-│   │   └── edit.tsx
+│   │   └── edit.tsx → EditProfileScreen (@/src/features/profile)
 │   ├── purchase/
-│   │   └── :moduleId.tsx
+│   │   └── :moduleId.tsx → PurchaseScreen (@/src/features/purchase)
 │   ├── quiz/
-│   │   └── :lectureId.tsx
+│   │   └── :lectureId.tsx → QuizScreen (@/src/features/quiz)
 │   └── stats/
-│       └── mastery.tsx
+│       └── mastery.tsx → MasteryScreen (@/src/features/stats)
 ├── _layout.tsx → Stack navigator
 └── +not-found.tsx → 404 fallback
 ```
@@ -48,18 +49,18 @@ app/
 
 | Route | Component | Source | Dynamic? |
 |-------|-----------|--------|----------|
-| `/callback` | — | `—` |  |
-| `/login` | — | `—` |  |
-| `/module/[id]` | — | `—` | ✅ |
-| `/subject/[id]` | — | `—` | ✅ |
-| `/year/[id]` | — | `—` | ✅ |
-| `/` | — | `—` |  |
-| `/profile` | — | `—` |  |
-| `/stats` | — | `—` |  |
-| `/profile/edit` | — | `—` |  |
-| `/purchase/[moduleId]` | — | `—` | ✅ |
-| `/quiz/[lectureId]` | — | `—` | ✅ |
-| `/stats/mastery` | — | `—` |  |
+| `/callback` | AuthCallbackScreen | `@/src/features/auth` |  |
+| `/login` | AuthScreen | `@/src/features/auth` |  |
+| `/module/[id]` | ModuleScreen | `@/src/features/learn` | ✅ |
+| `/subject/[id]` | SubjectScreen | `@/src/features/learn` | ✅ |
+| `/year/[id]` | YearScreen | `@/src/features/learn` | ✅ |
+| `/` | LearnScreen | `@/src/features/learn` |  |
+| `/profile` | ProfileScreen | `@/src/features/profile` |  |
+| `/stats` | StatsScreen | `@/src/features/stats` |  |
+| `/profile/edit` | EditProfileScreen | `@/src/features/profile` |  |
+| `/purchase/[moduleId]` | PurchaseScreen | `@/src/features/purchase` | ✅ |
+| `/quiz/[lectureId]` | QuizScreen | `@/src/features/quiz` | ✅ |
+| `/stats/mastery` | MasteryScreen | `@/src/features/stats` |  |
 
 ## 📊 Summary
 

@@ -62,7 +62,7 @@ function parseSupabaseCalls(files) {
       .replace(/\\/g, "/");
 
     // ── supabase.from("table") ───────────────────────────────────────────
-    const fromRegex = /supabase\.from\(\s*["'](\w+)["']\s*\)/g;
+    const fromRegex = /supabase[\s\n]*\.from\(\s*["'](\w+)["']\s*\)/g;
     let match;
     while ((match = fromRegex.exec(content)) !== null) {
       const lineNum =
@@ -74,7 +74,7 @@ function parseSupabaseCalls(files) {
       let operation = "unknown";
       let queryShape = "";
 
-      const selectMatch = afterMatch.match(/\.select\(\s*["']([^"']*?)["']\s*\)/);
+      const selectMatch = afterMatch.match(/\.select\(\s*(.*?)\s*\)/);
       const insertMatch = afterMatch.match(/\.insert\(/);
       const deleteMatch = afterMatch.match(/\.delete\(/);
       const updateMatch = afterMatch.match(/\.update\(/);
@@ -82,7 +82,7 @@ function parseSupabaseCalls(files) {
 
       if (selectMatch) {
         operation = "SELECT";
-        queryShape = selectMatch[1] || "*";
+        queryShape = selectMatch[1] ? selectMatch[1].replace(/["']/g, "") : "*";
       } else if (insertMatch) {
         operation = "INSERT";
       } else if (deleteMatch) {
@@ -161,6 +161,7 @@ function generate() {
   let md = `# API Surface
 
 > **Auto-generated** by \`docs/extractors/api-surface.js\`.
+> Generated at ${new Date().toISOString()}
 > Every Supabase call in the codebase, mapped to file and line.
 
 `;
@@ -244,6 +245,7 @@ module.exports = { generate, name: "API_SURFACE.md" };
 
 if (require.main === module) {
   const md = generate();
-  fs.writeFileSync(path.join(projectRoot, "API_SURFACE.md"), md);
-  console.log("✅ API_SURFACE.md generated");
+  fs.mkdirSync(path.join(projectRoot, "docs", "generated"), { recursive: true });
+  fs.writeFileSync(path.join(projectRoot, "docs", "generated", "API_SURFACE.md"), md);
+  console.log("✅ docs/generated/API_SURFACE.md generated");
 }

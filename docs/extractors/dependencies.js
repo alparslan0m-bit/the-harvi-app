@@ -49,24 +49,38 @@ function walk(dir) {
 
 function getDependencies() {
   const pkgPath = path.join(mobileRoot, "package.json");
-  if (!fs.existsSync(pkgPath)) return [];
+  if (!fs.existsSync(pkgPath)) return { production: [], dev: [] };
 
   const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-  const allDeps = {
-    ...pkg.dependencies,
-    ...pkg.devDependencies,
-  };
 
   // Exclude common structural/tooling deps that don't need tracking
   const excluded = [
-    "react", "react-dom", "react-native", "typescript", 
+    "react", "react-dom", "react-native", "typescript",
     "expo", "expo-router", "babel-preset-expo",
     "@types/react", "@types/react-dom", "prettier",
     "@expo/cli", "react-native-web", "react-native-screens",
     "react-native-safe-area-context"
   ];
 
-  return Object.keys(allDeps).filter(d => !excluded.includes(d));
+  const production = Object.keys(pkg.dependencies || {}).filter(d => !excluded.includes(d));
+  const dev = Object.keys(pkg.devDependencies || {}).filter(d => !excluded.includes(d));
+
+  return { production, dev };
+}
+
+// Read plugins from app.json to mark them as intentionally used
+function getAppJsonPlugins() {
+  const appJsonPath = path.join(mobileRoot, "app.json");
+  if (!fs.existsSync(appJsonPath)) return new Set();
+  try {
+    const appJson = JSON.parse(fs.readFileSync(appJsonPath, "utf8"));
+    const plugins = appJson.expo?.plugins || [];
+    return new Set(
+      plugins.map(p => (Array.isArray(p) ? p[0] : p)).filter(Boolean)
+    );
+  } catch (_) {
+    return new Set();
+  }
 }
 
 // ============================================================================
@@ -94,11 +108,12 @@ function mapUsage(files, deps) {
 
     for (const d of deps) {
       // Check if file imports the dependency
-      // Handle both specific (import X from "dep") and deep (import X from "dep/utils") imports
+      // Handle specific (import X from "dep"), deep (import X from "dep/utils"), and side-effect (import "dep") imports
       const importRegex = new RegExp(`from\\s+["']${d}(?:/.*)?["']`, "g");
+      const sideEffectRegex = new RegExp(`import\\s+["']${d}(?:/.*)?["']`, "g");
       const requireRegex = new RegExp(`require\\(["']${d}(?:/.*)?["']\\)`, "g");
       
-      if (importRegex.test(content) || requireRegex.test(content)) {
+      if (importRegex.test(content) || sideEffectRegex.test(content) || requireRegex.test(content)) {
         usage[d].files.push(relPath);
         usage[d].features.add(feature);
       }
@@ -113,19 +128,30 @@ function mapUsage(files, deps) {
 // ============================================================================
 
 function generate() {
-  const deps = getDependencies();
+  const { production, dev } = getDependencies();
+  const allDeps = [...production, ...dev];
+  const appJsonPlugins = getAppJsonPlugins();
   const files = walk(mobileRoot);
-  const usage = mapUsage(files, deps);
+  const usage = mapUsage(files, allDeps);
+
+  // Mark app.json plugins as used (they link natively, not via imports)
+  for (const plugin of appJsonPlugins) {
+    if (usage[plugin] && usage[plugin].files.length === 0) {
+      usage[plugin].files.push("app.json (plugin)");
+      usage[plugin].features.add("native plugin");
+    }
+  }
 
   let md = `# Dependency Map
 
 > **Auto-generated** by \`docs/extractors/dependencies.js\`.
+> Generated at ${new Date().toISOString()}
 > Maps third-party library usage across the codebase.
 
 ## 📦 Library Usage
 
-| Dependency | Used In Features | Files Count |
-|------------|------------------|-------------|\n`;
+| Dependency | Type | Used In Features | Files Count |
+|------------|------|------------------|-------------|\n`;
 
   const unused = [];
   const used = Object.entries(usage).filter(([_, data]) => data.files.length > 0);
@@ -135,11 +161,14 @@ function generate() {
 
   for (const [dep, data] of used) {
     const features = [...data.features].join(", ");
-    md += `| \`${dep}\` | ${features} | ${data.files.length} |\n`;
+    const type = dev.includes(dep) ? "dev" : "prod";
+    md += `| \`${dep}\` | ${type} | ${features} | ${data.files.length} |\n`;
   }
   md += `\n`;
 
+  // Only flag PRODUCTION deps that are never imported anywhere
   for (const [dep, data] of Object.entries(usage)) {
+    if (!production.includes(dep)) continue; // skip dev deps
     if (data.files.length === 0) {
       // Some deps are tooling (babel plugins, etc) that aren't imported in code
       if (!dep.includes("babel") && !dep.includes("eslint") && !dep.includes("prettier") && !dep.includes("types") && !dep.includes("expo-dev-client")) {
@@ -164,6 +193,7 @@ module.exports = { generate, name: "DEPENDENCIES_MAP.md" };
 
 if (require.main === module) {
   const md = generate();
-  fs.writeFileSync(path.join(projectRoot, "DEPENDENCIES_MAP.md"), md);
-  console.log("✅ DEPENDENCIES_MAP.md generated");
+  fs.mkdirSync(path.join(projectRoot, "docs", "generated"), { recursive: true });
+  fs.writeFileSync(path.join(projectRoot, "docs", "generated", "DEPENDENCIES_MAP.md"), md);
+  console.log("✅ docs/generated/DEPENDENCIES_MAP.md generated");
 }

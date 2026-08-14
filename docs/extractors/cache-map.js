@@ -67,8 +67,8 @@ function extractKeyDefinitions(files) {
       if (
         literalKey &&
         (literalKey.includes("harvi:") ||
-          constName.toUpperCase().includes("KEY") ||
-          constName.toUpperCase().includes("CACHE"))
+          constName.toUpperCase().endsWith("KEY") ||
+          constName.toUpperCase().endsWith("QUEUE"))
       ) {
         const lineNum =
           content.substring(0, match.index).split("\n").length;
@@ -155,13 +155,13 @@ function detectOperations(files, keyDefs) {
       if (keyDef.constName) searchTerms.push(keyDef.constName);
 
       for (const term of searchTerms) {
-        if (!content.includes(term)) continue;
+        if (!content.match(new RegExp(`\\b${term}\\b`))) continue;
 
         // Check for reads
         if (
           content.match(
             new RegExp(
-              `AsyncStorage\\.(?:getItem|multiGet)\\([^)]*${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+              `AsyncStorage\\.(?:getItem|multiGet)\\([^)]*\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
             ),
           )
         ) {
@@ -173,7 +173,7 @@ function detectOperations(files, keyDefs) {
         if (
           content.match(
             new RegExp(
-              `AsyncStorage\\.(?:setItem|multiSet)\\([^)]*${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+              `AsyncStorage\\.(?:setItem|multiSet)\\([^)]*\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
             ),
           )
         ) {
@@ -185,7 +185,7 @@ function detectOperations(files, keyDefs) {
         if (
           content.match(
             new RegExp(
-              `AsyncStorage\\.(?:removeItem|multiRemove)\\([^)]*${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+              `AsyncStorage\\.(?:removeItem|multiRemove)\\([^)]*\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
             ),
           )
         ) {
@@ -255,6 +255,7 @@ function generate() {
   let md = `# Cache Map
 
 > **Auto-generated** by \`docs/extractors/cache-map.js\`.
+> Generated at ${new Date().toISOString()}
 > Every AsyncStorage and SecureStore key in the codebase.
 
 `;
@@ -311,6 +312,7 @@ module.exports = { generate, name: "CACHE_MAP.md" };
 
 if (require.main === module) {
   const md = generate();
-  fs.writeFileSync(path.join(projectRoot, "CACHE_MAP.md"), md);
-  console.log("✅ CACHE_MAP.md generated");
+  fs.mkdirSync(path.join(projectRoot, "docs", "generated"), { recursive: true });
+  fs.writeFileSync(path.join(projectRoot, "docs", "generated", "CACHE_MAP.md"), md);
+  console.log("✅ docs/generated/CACHE_MAP.md generated");
 }

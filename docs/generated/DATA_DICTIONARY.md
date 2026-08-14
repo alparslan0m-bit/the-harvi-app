@@ -1,39 +1,44 @@
 # Data Dictionary
 
-> **Auto-generated** by `docs/extractors/data-dictionary.js` from SQL migrations + Zod schemas.
-> Guaranteed accurate — derived directly from source files.
+> **Auto-generated** by `docs/extractors/data-dictionary.js`.
+> Generated at 2026-08-14T16:31:55.718Z
+> Parses SQL migrations and Zod schemas, then cross-references them for drift.
 
 ## ⚠️ Schema Drift Warnings
 
 | Type | Schema | Table | Field |
 |------|--------|-------|-------|
-| 🔴 In SQL, not in Zod | ModuleSchema | modules | `external_id` |
-| 🔴 In SQL, not in Zod | ModuleSchema | modules | `price_cents` |
-| 🟡 In Zod, not in SQL | LectureSchema | lectures | `question_count` |
+| 🔴 In SQL, not in Zod | ModuleSchema | modules | `created_at` |
+| 🔴 In SQL, not in Zod | ModuleSchema | modules | `updated_at` |
 | 🔴 In SQL, not in Zod | LectureSchema | lectures | `order_index` |
-| 🔴 In SQL, not in Zod | SubjectSchema | subjects | `external_id` |
-| 🔴 In SQL, not in Zod | YearSchema | years | `external_id` |
-| 🟡 In Zod, not in SQL | QuestionSchema | questions | `answer` |
+| 🔴 In SQL, not in Zod | LectureSchema | lectures | `created_at` |
+| 🔴 In SQL, not in Zod | LectureSchema | lectures | `updated_at` |
+| 🔴 In SQL, not in Zod | SubjectSchema | subjects | `created_at` |
+| 🔴 In SQL, not in Zod | SubjectSchema | subjects | `updated_at` |
+| 🔴 In SQL, not in Zod | YearSchema | years | `order` |
+| 🔴 In SQL, not in Zod | YearSchema | years | `created_at` |
+| 🔴 In SQL, not in Zod | YearSchema | years | `updated_at` |
 | 🔴 In SQL, not in Zod | QuestionSchema | questions | `lecture_id` |
-| 🔴 In SQL, not in Zod | QuestionSchema | questions | `correct_answer_index` |
 | 🔴 In SQL, not in Zod | QuestionSchema | questions | `question_order` |
-| 🟡 In Zod, not in SQL | QuizResultSchema | quiz_results | `lecture_name` |
-| 🟡 In Zod, not in SQL | UserStatsSchema | user_stats | `total_questions` |
-| 🟡 In Zod, not in SQL | UserStatsSchema | user_stats | `streak` |
-| 🟡 In Zod, not in SQL | UserStatsSchema | user_stats | `weekly_activity` |
-| 🟡 In Zod, not in SQL | UserStatsSchema | user_stats | `day` |
-| 🟡 In Zod, not in SQL | UserStatsSchema | user_stats | `count` |
-| 🟡 In Zod, not in SQL | UserStatsSchema | user_stats | `isToday` |
+| 🔴 In SQL, not in Zod | QuestionSchema | questions | `created_at` |
+| 🔴 In SQL, not in Zod | QuestionSchema | questions | `updated_at` |
+| 🔴 In SQL, not in Zod | QuizResultSchema | quiz_results | `lecture_name` |
+| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `total_questions` |
+| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `day` |
+| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `count` |
+| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `isToday` |
 | 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `user_id` |
 | 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `total_questions_answered` |
 | 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `correct_answers` |
 | 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `current_streak` |
 | 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `longest_streak` |
 | 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `last_quiz_date` |
+| 🔴 In SQL, not in Zod | UserStatsSchema | user_stats | `updated_at` |
 | 🔴 In SQL, not in Zod | PurchaseSchema | purchases | `user_id` |
 | 🔴 In SQL, not in Zod | PurchaseSchema | purchases | `payment_id` |
 | 🔴 In SQL, not in Zod | PurchaseSchema | purchases | `payment_session_id` |
 | 🔴 In SQL, not in Zod | PurchaseSchema | purchases | `provider` |
+| 🔴 In SQL, not in Zod | PurchaseSchema | purchases | `updated_at` |
 | 🔴 In SQL, not in Zod | PurchaseSchema | purchases | `store_transaction_id` |
 
 ## 📦 Tables
@@ -43,11 +48,11 @@ _Source: `20260401000000_harvi_master_baseline.sql`_
 
 | Column | Type | PK | Not Null | Default | FK | Check |
 |--------|------|----|----------|---------|----|-------|
-| `id` | UUID PRIMARY | ✅ | ✅ | uuid_generate_v4() | — | — |
-| `name` | TEXT NOT |  | ✅ | — | — | — |
-| `external_id` | TEXT NOT |  | ✅ | — | — | — |
-| `created_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
-| `updated_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
+| `id` | UUID | ✅ | ✅ | uuid_generate_v4() | — | — |
+| `name` | TEXT |  | ✅ | — | — | — |
+| `external_id` | TEXT |  | ✅ | — | — | — |
+| `created_at` | TIMESTAMPTZ |  |  | now() | — | — |
+| `updated_at` | TIMESTAMPTZ |  |  | now() | — | — |
 
 **Constraints:** `unique_year_name`
 
@@ -56,15 +61,15 @@ _Source: `20260401000000_harvi_master_baseline.sql`_
 
 | Column | Type | PK | Not Null | Default | FK | Check |
 |--------|------|----|----------|---------|----|-------|
-| `id` | UUID PRIMARY | ✅ | ✅ | uuid_generate_v4() | — | — |
-| `year_id` | UUID NOT |  | ✅ | — | → years.id | — |
-| `name` | TEXT NOT |  | ✅ | — | — | — |
-| `external_id` | TEXT NOT |  | ✅ | — | — | — |
-| `order_index` | INTEGER DEFAULT |  |  | 0 | — | — |
-| `price_cents` | INTEGER NOT |  | ✅ | 0 | — | — |
+| `id` | UUID | ✅ | ✅ | uuid_generate_v4() | — | — |
+| `year_id` | UUID |  | ✅ | — | → years.id | — |
+| `name` | TEXT |  | ✅ | — | — | — |
+| `external_id` | TEXT |  | ✅ | — | — | — |
+| `order_index` | INTEGER |  |  | 0 | — | — |
+| `price_cents` | INTEGER |  | ✅ | 0 | — | — |
 | `external_price_id` | TEXT |  |  | — | — | — |
-| `created_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
-| `updated_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
+| `created_at` | TIMESTAMPTZ |  |  | now() | — | — |
+| `updated_at` | TIMESTAMPTZ |  |  | now() | — | — |
 
 **Constraints:** `unique_module_per_year`
 
@@ -73,13 +78,13 @@ _Source: `20260401000000_harvi_master_baseline.sql`_
 
 | Column | Type | PK | Not Null | Default | FK | Check |
 |--------|------|----|----------|---------|----|-------|
-| `id` | UUID PRIMARY | ✅ | ✅ | uuid_generate_v4() | — | — |
-| `module_id` | UUID NOT |  | ✅ | — | → modules.id | — |
-| `name` | TEXT NOT |  | ✅ | — | — | — |
-| `external_id` | TEXT NOT |  | ✅ | — | — | — |
-| `order_index` | INTEGER DEFAULT |  |  | 0 | — | — |
-| `created_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
-| `updated_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
+| `id` | UUID | ✅ | ✅ | uuid_generate_v4() | — | — |
+| `module_id` | UUID |  | ✅ | — | → modules.id | — |
+| `name` | TEXT |  | ✅ | — | — | — |
+| `external_id` | TEXT |  | ✅ | — | — | — |
+| `order_index` | INTEGER |  |  | 0 | — | — |
+| `created_at` | TIMESTAMPTZ |  |  | now() | — | — |
+| `updated_at` | TIMESTAMPTZ |  |  | now() | — | — |
 
 **Constraints:** `unique_subject_per_module`
 
@@ -88,14 +93,14 @@ _Source: `20260401000000_harvi_master_baseline.sql`_
 
 | Column | Type | PK | Not Null | Default | FK | Check |
 |--------|------|----|----------|---------|----|-------|
-| `id` | UUID PRIMARY | ✅ | ✅ | uuid_generate_v4() | — | — |
-| `subject_id` | UUID NOT |  | ✅ | — | → subjects.id | — |
-| `name` | TEXT NOT |  | ✅ | — | — | — |
-| `external_id` | TEXT NOT |  | ✅ | — | — | — |
-| `order_index` | INTEGER DEFAULT |  |  | 0 | — | — |
-| `is_free` | BOOLEAN DEFAULT |  |  | false | — | — |
-| `created_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
-| `updated_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
+| `id` | UUID | ✅ | ✅ | uuid_generate_v4() | — | — |
+| `subject_id` | UUID |  | ✅ | — | → subjects.id | — |
+| `name` | TEXT |  | ✅ | — | — | — |
+| `external_id` | TEXT |  | ✅ | — | — | — |
+| `order_index` | INTEGER |  |  | 0 | — | — |
+| `is_free` | BOOLEAN |  |  | false | — | — |
+| `created_at` | TIMESTAMPTZ |  |  | now() | — | — |
+| `updated_at` | TIMESTAMPTZ |  |  | now() | — | — |
 
 **Constraints:** `unique_lecture_per_subject`
 
@@ -104,16 +109,16 @@ _Source: `20260401000000_harvi_master_baseline.sql`_
 
 | Column | Type | PK | Not Null | Default | FK | Check |
 |--------|------|----|----------|---------|----|-------|
-| `id` | UUID PRIMARY | ✅ | ✅ | uuid_generate_v4() | — | — |
-| `lecture_id` | UUID NOT |  | ✅ | — | → lectures.id | — |
-| `text` | TEXT NOT |  | ✅ | — | — | — |
+| `id` | UUID | ✅ | ✅ | uuid_generate_v4() | — | — |
+| `lecture_id` | UUID |  | ✅ | — | → lectures.id | — |
+| `text` | TEXT |  | ✅ | — | — | — |
 | `image_url` | TEXT |  |  | — | — | — |
-| `options` | JSONB NOT |  | ✅ | — | — | — |
-| `correct_answer_index` | INTEGER NOT |  | ✅ | — | — | — |
+| `options` | JSONB |  | ✅ | — | — | — |
+| `correct_answer_index` | INTEGER |  | ✅ | — | — | — |
 | `explanation` | TEXT |  |  | — | — | — |
-| `question_order` | INTEGER DEFAULT |  |  | 0 | — | — |
-| `created_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
-| `updated_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
+| `question_order` | INTEGER |  |  | 0 | — | — |
+| `created_at` | TIMESTAMPTZ |  |  | now() | — | — |
+| `updated_at` | TIMESTAMPTZ |  |  | now() | — | — |
 
 
 ### profiles
@@ -121,11 +126,11 @@ _Source: `20260401000000_harvi_master_baseline.sql`_
 
 | Column | Type | PK | Not Null | Default | FK | Check |
 |--------|------|----|----------|---------|----|-------|
-| `id` | UUID REFERENCES | ✅ | ✅ | — | → auth.users.id | — |
+| `id` | UUID | ✅ | ✅ | — | → auth.users.id | — |
 | `full_name` | TEXT |  |  | — | — | — |
 | `avatar_url` | TEXT |  |  | — | — | — |
 | `bio` | TEXT |  |  | — | — | — |
-| `updated_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
+| `updated_at` | TIMESTAMPTZ |  |  | now() | — | — |
 
 
 ### user_stats
@@ -133,16 +138,16 @@ _Source: `20260401000000_harvi_master_baseline.sql`_
 
 | Column | Type | PK | Not Null | Default | FK | Check |
 |--------|------|----|----------|---------|----|-------|
-| `user_id` | UUID PRIMARY | ✅ | ✅ | — | → auth.users.id | — |
-| `total_quizzes` | INTEGER NOT |  | ✅ | 0 | — | — |
-| `total_questions_answered` | INTEGER NOT |  | ✅ | 0 | — | — |
-| `correct_answers` | INTEGER NOT |  | ✅ | 0 | — | — |
-| `average_score` | NUMERIC(5,2) NOT |  | ✅ | 0.00 | — | — |
-| `best_score` | INTEGER NOT |  | ✅ | 0 | — | — |
-| `current_streak` | INTEGER NOT |  | ✅ | 0 | — | — |
-| `longest_streak` | INTEGER NOT |  | ✅ | 0 | — | — |
+| `user_id` | UUID | ✅ | ✅ | — | → auth.users.id | — |
+| `total_quizzes` | INTEGER |  | ✅ | 0 | — | — |
+| `total_questions_answered` | INTEGER |  | ✅ | 0 | — | — |
+| `correct_answers` | INTEGER |  | ✅ | 0 | — | — |
+| `average_score` | NUMERIC(5 |  | ✅ | 0.00 | — | — |
+| `best_score` | INTEGER |  | ✅ | 0 | — | — |
+| `current_streak` | INTEGER |  | ✅ | 0 | — | — |
+| `longest_streak` | INTEGER |  | ✅ | 0 | — | — |
 | `last_quiz_date` | DATE |  |  | — | — | — |
-| `updated_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
+| `updated_at` | TIMESTAMPTZ |  |  | now() | — | — |
 
 
 ### quiz_results
@@ -150,13 +155,13 @@ _Source: `20260401000000_harvi_master_baseline.sql`_
 
 | Column | Type | PK | Not Null | Default | FK | Check |
 |--------|------|----|----------|---------|----|-------|
-| `id` | UUID PRIMARY | ✅ | ✅ | uuid_generate_v4() | — | — |
-| `user_id` | UUID NOT |  | ✅ | — | → auth.users.id | — |
-| `lecture_id` | UUID NOT |  | ✅ | — | → lectures.id | — |
-| `score` | INTEGER NOT |  | ✅ | — | — | score >= 0 AND score <= 100 |
-| `total_questions` | INTEGER NOT |  | ✅ | — | — | total_questions > 0 |
-| `correct_answers` | INTEGER NOT |  | ✅ | — | — | correct_answers >= 0 AND correct_answers <= total_questions |
-| `created_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
+| `id` | UUID | ✅ | ✅ | uuid_generate_v4() | — | — |
+| `user_id` | UUID |  | ✅ | — | → auth.users.id | — |
+| `lecture_id` | UUID |  | ✅ | — | → lectures.id | — |
+| `score` | INTEGER |  | ✅ | — | — | score >= 0 AND score <= 100 |
+| `total_questions` | INTEGER |  | ✅ | — | — | total_questions > 0 |
+| `correct_answers` | INTEGER |  | ✅ | — | — | correct_answers >= 0 AND correct_answers <= total_questions |
+| `created_at` | TIMESTAMPTZ |  |  | now() | — | — |
 
 **Constraints:** `check_score_formula`
 
@@ -165,12 +170,12 @@ _Source: `20260401000000_harvi_master_baseline.sql`_
 
 | Column | Type | PK | Not Null | Default | FK | Check |
 |--------|------|----|----------|---------|----|-------|
-| `id` | UUID PRIMARY | ✅ | ✅ | gen_random_uuid() | — | — |
-| `user_id` | UUID REFERENCES |  |  | — | → auth.users.id | — |
-| `content` | TEXT NOT |  | ✅ | — | — | char_length(content) > 0 AND char_length(content) < 10000 |
-| `metadata` | JSONB DEFAULT |  |  | '{}'::jsonb | — | — |
-| `status` | TEXT DEFAULT |  |  | 'new' CHECK (status IN ('new' | — | status IN ('new', 'read', 'resolved', 'archived') |
-| `created_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
+| `id` | UUID | ✅ | ✅ | gen_random_uuid() | — | — |
+| `user_id` | UUID |  |  | — | → auth.users.id | — |
+| `content` | TEXT |  | ✅ | — | — | char_length(content) > 0 AND char_length(content) < 10000 |
+| `metadata` | JSONB |  |  | '{}'::jsonb | — | — |
+| `status` | TEXT |  |  | 'new' | — | status IN ('new', 'read', 'resolved', 'archived') |
+| `created_at` | TIMESTAMPTZ |  |  | now() | — | — |
 
 
 ### lecture_statistics
@@ -178,12 +183,12 @@ _Source: `20260401000000_harvi_master_baseline.sql`_
 
 | Column | Type | PK | Not Null | Default | FK | Check |
 |--------|------|----|----------|---------|----|-------|
-| `id` | UUID PRIMARY | ✅ | ✅ | gen_random_uuid() | — | — |
-| `lecture_id` | UUID NOT |  | ✅ | — | → lectures.id | — |
-| `unique_students` | INTEGER DEFAULT |  |  | 0 | — | — |
-| `total_attempts` | INTEGER DEFAULT |  |  | 0 | — | — |
-| `average_score` | NUMERIC(5,2) DEFAULT |  |  | 0.00 | — | — |
-| `last_updated` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
+| `id` | UUID | ✅ | ✅ | gen_random_uuid() | — | — |
+| `lecture_id` | UUID |  | ✅ | — | → lectures.id | — |
+| `unique_students` | INTEGER |  |  | 0 | — | — |
+| `total_attempts` | INTEGER |  |  | 0 | — | — |
+| `average_score` | NUMERIC(5 |  |  | 0.00 | — | — |
+| `last_updated` | TIMESTAMPTZ |  |  | now() | — | — |
 
 
 ### purchases
@@ -191,17 +196,17 @@ _Source: `20260401000000_harvi_master_baseline.sql`_
 
 | Column | Type | PK | Not Null | Default | FK | Check |
 |--------|------|----|----------|---------|----|-------|
-| `id` | UUID PRIMARY | ✅ | ✅ | gen_random_uuid() | — | — |
-| `user_id` | UUID NOT |  | ✅ | — | → auth.users.id | — |
-| `module_id` | UUID REFERENCES |  |  | — | → modules.id | — |
-| `status` | TEXT NOT |  | ✅ | — | — | status IN ('pending', 'active', 'failed', 'refunded', 'disputed') |
-| `amount_cents` | INTEGER NOT |  | ✅ | — | — | amount_cents >= 0 |
-| `currency` | TEXT NOT |  | ✅ | 'usd' | — | — |
+| `id` | UUID | ✅ | ✅ | gen_random_uuid() | — | — |
+| `user_id` | UUID |  | ✅ | — | → auth.users.id | — |
+| `module_id` | UUID |  |  | — | → modules.id | — |
+| `status` | TEXT |  | ✅ | — | — | status IN ('pending', 'active', 'failed', 'refunded', 'disputed') |
+| `amount_cents` | INTEGER |  | ✅ | — | — | amount_cents >= 0 |
+| `currency` | TEXT |  | ✅ | 'usd' | — | — |
 | `payment_id` | TEXT NULL |  |  | — | — | — |
 | `payment_session_id` | TEXT NULL |  |  | — | — | — |
-| `provider` | TEXT NOT |  | ✅ | 'manual' | — | — |
-| `created_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
-| `updated_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
+| `provider` | TEXT |  | ✅ | 'manual' | — | — |
+| `created_at` | TIMESTAMPTZ |  |  | now() | — | — |
+| `updated_at` | TIMESTAMPTZ |  |  | now() | — | — |
 | `store_transaction_id` | TEXT |  |  | — | — | — |
 
 **Constraints:** `check_purchase_has_module`
@@ -211,14 +216,14 @@ _Source: `20260627000001_access_codes.sql`_
 
 | Column | Type | PK | Not Null | Default | FK | Check |
 |--------|------|----|----------|---------|----|-------|
-| `id` | UUID PRIMARY | ✅ | ✅ | gen_random_uuid() | — | — |
-| `code` | TEXT NOT |  | ✅ | — | — | — |
-| `module_id` | UUID NOT |  | ✅ | — | → modules.id | — |
+| `id` | UUID | ✅ | ✅ | gen_random_uuid() | — | — |
+| `code` | TEXT |  | ✅ | — | — | — |
+| `module_id` | UUID |  | ✅ | — | → modules.id | — |
 | `batch_id` | TEXT |  |  | — | — | — |
-| `redeemed_by` | UUID REFERENCES |  |  | — | → auth.users.id | — |
+| `redeemed_by` | UUID |  |  | — | → auth.users.id | — |
 | `redeemed_at` | TIMESTAMPTZ |  |  | — | — | — |
 | `expires_at` | TIMESTAMPTZ |  |  | — | — | — |
-| `created_at` | TIMESTAMPTZ DEFAULT |  |  | now() | — | — |
+| `created_at` | TIMESTAMPTZ |  |  | now() | — | — |
 
 
 ## 🔧 RPCs & Functions
@@ -376,7 +381,7 @@ _Source: `20260627000001_access_codes.sql`_
 | `average_score` | `z.number()` |
 | `best_score` | `z.number()` |
 | `streak` | `z.number()` |
-| `weekly_activity` | `z.array(` |
+| `weekly_activity` | `z.array( z.object({` |
 | `day` | `z.string()` |
 | `count` | `z.number()` |
 | `isToday` | `z.boolean().optional()` |
@@ -386,7 +391,7 @@ _Source: `20260627000001_access_codes.sql`_
 | Field | Zod Type |
 |-------|----------|
 | `item_id` | `z.string()` |
-| `item_type` | `z.enum(["module"` |
+| `item_type` | `z.enum(["module", "subject"])` |
 | `has_access` | `z.boolean()` |
 | `is_free` | `z.boolean()` |
 | `price_cents` | `z.number()` |

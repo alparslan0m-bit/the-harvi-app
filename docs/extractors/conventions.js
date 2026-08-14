@@ -82,7 +82,7 @@ function analyzeStorePatterns() {
       usesZustand: content.includes("create(") || content.includes("zustand"),
       hasProvider:
         content.includes("Provider") || content.includes("function") && content.includes("Provider"),
-      hasHook: /export\s+function\s+use\w+/.test(content),
+      hasHook: /export\s+(?:function|const)\s+use\w+/.test(content),
       hasAsyncStorage: content.includes("AsyncStorage"),
       hasSupabase: content.includes("supabase"),
       hasQueryClient: content.includes("useQueryClient"),
@@ -113,6 +113,8 @@ function analyzeServicePatterns() {
             .readdirSync(full)
             .filter((f) => f.endsWith(".ts") || f.endsWith(".tsx"));
           for (const svcFile of svcFiles) {
+            // Exclude barrel/config files that aren't real services
+            if (svcFile === "index.ts" || svcFile === "supabase.ts") continue;
             const content = fs.readFileSync(
               path.join(full, svcFile),
               "utf8",
@@ -270,6 +272,7 @@ function generate() {
   let md = `# Conventions
 
 > **Auto-generated** by \`docs/extractors/conventions.js\`.
+> Generated at ${new Date().toISOString()}
 > Structural patterns extracted from the codebase. Follow these when adding new code.
 
 `;
@@ -360,6 +363,7 @@ module.exports = { generate, name: "CONVENTIONS.md" };
 
 if (require.main === module) {
   const md = generate();
-  fs.writeFileSync(path.join(projectRoot, "CONVENTIONS.md"), md);
-  console.log("✅ CONVENTIONS.md generated");
+  fs.mkdirSync(path.join(projectRoot, "docs", "generated"), { recursive: true });
+  fs.writeFileSync(path.join(projectRoot, "docs", "generated", "CONVENTIONS.md"), md);
+  console.log("✅ docs/generated/CONVENTIONS.md generated");
 }

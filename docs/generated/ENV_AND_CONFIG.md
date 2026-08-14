@@ -1,11 +1,17 @@
 # Environment & Configuration
 
 > **Auto-generated** by `docs/extractors/env-and-config.js`.
+> Generated at 2026-08-14T16:31:57.185Z
 > Maps required environment variables, Expo plugins, and build profiles.
 
 ## 🔐 Environment Variables
 
-> No `process.env.EXPO_PUBLIC_*` usage found in the codebase.
+| Variable | Used In |
+|----------|---------|
+| `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` | `purchaseStore.tsx` |
+| `EXPO_PUBLIC_REVENUECAT_IOS_KEY` | `purchaseStore.tsx` |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | `QuizImage.tsx`, `supabase.ts` |
+| `EXPO_PUBLIC_SUPABASE_URL` | `QuizImage.tsx`, `supabase.ts` |
 
 ## 📱 App Configuration (`app.json`)
 

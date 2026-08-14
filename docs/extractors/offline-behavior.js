@@ -120,10 +120,10 @@ function analyzeOfflinePatterns(files) {
     }
 
     // ── Offline queue pattern ────────────────────────────────────────────
+    // Only flag files that actively ENQUEUE or FLUSH — not barrel re-exports
     if (
-      content.includes("offlineQueue") ||
-      content.includes("quiz_queue") ||
-      content.includes("QUEUE_KEY")
+      content.match(/\benqueue\b|getQueue\(|flushQueue\(|QUEUE_KEY\s*=/) ||
+      (content.includes("quiz_queue") && content.match(/\bpush\b|\bsplice\b|\bshift\b/))
     ) {
       features[feature].hasOfflineQueue = true;
       features[feature].offlinePatterns.push({
@@ -245,6 +245,7 @@ function generate() {
   let md = `# Offline Behavior
 
 > **Auto-generated** by \`docs/extractors/offline-behavior.js\`.
+> Generated at ${new Date().toISOString()}
 > Documents what each feature does when the device is offline.
 
 `;
@@ -326,6 +327,7 @@ module.exports = { generate, name: "OFFLINE_BEHAVIOR.md" };
 
 if (require.main === module) {
   const md = generate();
-  fs.writeFileSync(path.join(projectRoot, "OFFLINE_BEHAVIOR.md"), md);
-  console.log("✅ OFFLINE_BEHAVIOR.md generated");
+  fs.mkdirSync(path.join(projectRoot, "docs", "generated"), { recursive: true });
+  fs.writeFileSync(path.join(projectRoot, "docs", "generated", "OFFLINE_BEHAVIOR.md"), md);
+  console.log("✅ docs/generated/OFFLINE_BEHAVIOR.md generated");
 }

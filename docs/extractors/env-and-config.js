@@ -55,11 +55,11 @@ function extractEnvVars(files) {
     const content = fs.readFileSync(file, "utf8");
     const relPath = path.relative(projectRoot, file).replace(/\\/g, "/");
 
-    // Match process.env.EXPO_PUBLIC_XXX
-    const envRegex = /process\.env\.(EXPO_PUBLIC_[A-Z0-9_]+)/g;
+    // Match process.env.EXPO_PUBLIC_XXX and process.env["EXPO_PUBLIC_XXX"]
+    const envRegex = /process\.env(?:\.(EXPO_PUBLIC_[A-Z0-9_]+)|\[["'](EXPO_PUBLIC_[A-Z0-9_]+)["']\])/g;
     let match;
     while ((match = envRegex.exec(content)) !== null) {
-      const v = match[1];
+      const v = match[1] || match[2];
       if (!envVars.has(v)) {
         envVars.set(v, []);
       }
@@ -124,6 +124,7 @@ function generate() {
   let md = `# Environment & Configuration
 
 > **Auto-generated** by \`docs/extractors/env-and-config.js\`.
+> Generated at ${new Date().toISOString()}
 > Maps required environment variables, Expo plugins, and build profiles.
 
 `;
@@ -199,6 +200,7 @@ module.exports = { generate, name: "ENV_AND_CONFIG.md" };
 
 if (require.main === module) {
   const md = generate();
-  fs.writeFileSync(path.join(projectRoot, "ENV_AND_CONFIG.md"), md);
-  console.log("✅ ENV_AND_CONFIG.md generated");
+  fs.mkdirSync(path.join(projectRoot, "docs", "generated"), { recursive: true });
+  fs.writeFileSync(path.join(projectRoot, "docs", "generated", "ENV_AND_CONFIG.md"), md);
+  console.log("✅ docs/generated/ENV_AND_CONFIG.md generated");
 }
