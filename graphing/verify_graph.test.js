@@ -3,8 +3,29 @@ const assert = require("node:assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { runGovernance, walk } = require("./verify_graph");
+const { runGovernance, walk, stripCommentsAndStrings, extractImports } = require("./verify_graph");
 const projectRoot = path.resolve(__dirname, "..");
+
+const SRC = `
+// from './fake'
+/* import x from './fake2' */
+import a from './realA';
+import './realB';
+const c = require('./realC');
+const d = import('./realD');
+const msg = "import './inString'";
+`;
+
+test("extractImports ignores comments and strings", () => {
+  const got = extractImports(SRC).map((i) => i.importPath);
+  assert.deepStrictEqual(got, ["./realA", "./realB", "./realC", "./realD"]);
+});
+
+test("stripCommentsAndStrings preserves length and line positions", () => {
+  const out = stripCommentsAndStrings(SRC);
+  assert.strictEqual(out.length, SRC.length);
+  assert.strictEqual(out.split("\n").length, SRC.split("\n").length);
+});
 
 test("refactor preserves committed architecture.json byte-for-byte", async (t) => {
   const result = runGovernance({
