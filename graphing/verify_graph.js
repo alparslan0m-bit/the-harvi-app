@@ -394,20 +394,25 @@ function resolveImportToNode(importPath, currentFile, opts) {
     }
   }
 
+  const isRelative = importPath.startsWith("./") || importPath.startsWith("../");
+  const isAliased = importPath.startsWith("@/");
+  if (!isRelative && !isAliased) {
+    // Bare specifier that is not in externalPackageMap: its target is never a node.
+    return { nodeId: null, reason: "external-unmapped", targetPath: importPath };
+  }
+
   // Resolve relative / alias imports to absolute path
   let fullPathBase = null;
-  if (importPath.startsWith("@/")) {
+  if (isAliased) {
     fullPathBase = path.join(
       projectRoot,
       "artifacts",
       "mobile",
       importPath.substring(2),
     );
-  } else if (importPath.startsWith(".")) {
+  } else {
     fullPathBase = path.join(path.dirname(currentFile), importPath);
   }
-
-  if (!fullPathBase) return { nodeId: null, reason: null };
 
   // Try resolve with extensions and index files
   const candidates = [
@@ -417,6 +422,7 @@ function resolveImportToNode(importPath, currentFile, opts) {
     path.join(fullPathBase, "index.ts"),
     path.join(fullPathBase, "index.tsx"),
   ];
+  let resolvedFile = null;
 
   for (const candidate of candidates) {
     if (!fs.existsSync(candidate)) continue;
@@ -433,6 +439,8 @@ function resolveImportToNode(importPath, currentFile, opts) {
     const stat = fs.statSync(candidate);
     if (!stat.isFile()) continue;
 
+    resolvedFile = resolvedFile || candidate;
+
     const content = fs.readFileSync(candidate, "utf8");
     const reExportRegex = /export\s+.*\s+from\s+['"]([^'"]+)['"]/g;
     let reMatch;
@@ -442,7 +450,12 @@ function resolveImportToNode(importPath, currentFile, opts) {
     }
   }
 
-  return { nodeId: null, reason: null };
+  if (resolvedFile) {
+    // Resolved on disk to a file, but no nodeMapping pattern covers it.
+    return { nodeId: null, reason: "resolved-unmapped", targetPath: path.resolve(resolvedFile) };
+  }
+  // No candidate exists on disk (no file, no index.*).
+  return { nodeId: null, reason: "unresolvable", targetPath: path.resolve(fullPathBase) };
 }
 
 // ============================================================================
@@ -615,6 +628,8 @@ function runGovernance({
   const edgeEvidence = new Map(); // "source->target" → { files: [{file, line, import}] }
   const discoveredExternals = new Set();
   const discoveredRemotes = new Set();
+  const droppedImports = []; // { fromNode, targetPath, reason, files:[{file,lineNum,importPath}] }
+  const droppedImportKey = new Map(); // fromNode|targetPath|reason → entry (dedup)
 
   const resolveOpts = {
     projectRoot,
@@ -635,14 +650,39 @@ function runGovernance({
     for (const { importPath, lineNum } of extractImports(content)) {
       const resolved = resolveImportToNode(importPath, file, resolveOpts);
       const toNode = resolved.nodeId;
-      if (toNode && toNode !== fromNode) {
-        const key = `${fromNode}->${toNode}`;
-        if (!edgeEvidence.has(key)) edgeEvidence.set(key, []);
-        edgeEvidence.get(key).push({
-          file: path.relative(projectRoot, file).replace(/\\/g, "/"),
-          lineNum,
-          importPath,
-        });
+      if (toNode) {
+        if (toNode !== fromNode) {
+          const key = `${fromNode}->${toNode}`;
+          if (!edgeEvidence.has(key)) edgeEvidence.set(key, []);
+          edgeEvidence.get(key).push({
+            file: path.relative(projectRoot, file).replace(/\\/g, "/"),
+            lineNum,
+            importPath,
+          });
+        }
+      } else if (resolved.reason) {
+        // Import resolved to nothing the graph covers — surface it instead of
+        // dropping silently. Advisory only: never affects hasChanges.
+        const dropKey = `${fromNode}|${resolved.targetPath}|${resolved.reason}`;
+        let drop = droppedImportKey.get(dropKey);
+        if (!drop) {
+          drop = {
+            fromNode,
+            targetPath: resolved.targetPath,
+            reason: resolved.reason,
+            files: [],
+          };
+          droppedImportKey.set(dropKey, drop);
+          droppedImports.push(drop);
+        }
+        // Cap evidence per entry to keep the report bounded.
+        if (drop.files.length < 10) {
+          drop.files.push({
+            file: path.relative(projectRoot, file).replace(/\\/g, "/"),
+            lineNum,
+            importPath,
+          });
+        }
       }
     }
 
@@ -897,6 +937,7 @@ function runGovernance({
     nodeToFiles,
     flowWarnings,
     edgeEvidence,
+    droppedImports,
     stalePatterns,
     addedNodes,
     removedNodes,
@@ -1109,6 +1150,21 @@ function renderReport(result) {
   }
   report += "\n";
 
+  // — Unmapped imports (advisory, never part of hasChanges) —
+  const droppedImports = result.droppedImports || [];
+  if (droppedImports.length > 0) {
+    const verbose = result.verbose === true;
+    report += `⚠️ UNMAPPED IMPORTS: ${droppedImports.length} (advisory)\n`;
+    const samples = verbose ? droppedImports : droppedImports.slice(0, 5);
+    samples.forEach((d) => {
+      report += `   • ${d.fromNode} -> ${d.targetPath} [${d.reason}]\n`;
+    });
+    if (!verbose && droppedImports.length > 5) {
+      report += `   ... and ${droppedImports.length - 5} more (run with --verbose to list all)\n`;
+    }
+    report += "\n";
+  }
+
   // — Flow validation —
   if (result.flowWarnings.length > 0) {
     report += "⚠️  FLOW VALIDATION WARNINGS:\n";
@@ -1159,6 +1215,7 @@ function main() {
     dataDir,
     config,
   });
+  result.verbose = process.argv.includes("--verbose");
 
   writeOutputs(result, {
     nodesPath: path.join(dataDir, "nodes.js"),
