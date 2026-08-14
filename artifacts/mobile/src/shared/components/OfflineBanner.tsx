@@ -10,6 +10,7 @@ import Animated, {
 
 import { useColors } from "@/src/shared/hooks/useColors";
 import { THEME } from "@/src/shared/constants/theme";
+import { useSyncStore } from "@/src/shared/store/syncStore";
 
 interface Props {
   isOnline: boolean;
@@ -103,3 +104,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
   },
 });
+
+export function GlobalOfflineBanner() {
+  const isOnline = useSyncStore((s) => s.isOnline);
+  const pendingCount = useSyncStore((s) => s.pendingCount);
+  const isSyncing = useSyncStore((s) => s.isSyncing);
+
+  return (
+    <OfflineBanner
+      isOnline={isOnline}
+      pendingCount={pendingCount}
+      isSyncing={isSyncing}
+    />
+  );
+}

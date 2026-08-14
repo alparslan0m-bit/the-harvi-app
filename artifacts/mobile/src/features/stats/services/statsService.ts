@@ -1,5 +1,9 @@
-// Extracted from hooks/useStats.ts — data fetching, caching, and computation.
-
+/**
+ * @file statsService.ts
+ * @description Serves as the central data engine for computing user analytics, streak tracking, 
+ * weekly charts, and subject mastery percentages. Seamlessly merges server RPC data from Supabase 
+ * with pending local offline results to maintain live, zero-latency metrics.
+ */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 
@@ -15,6 +19,9 @@ import { fetchHierarchy } from "@/src/features/learn/services/hierarchyService";
 const CACHE_KEY = (uid: string) => `harvi:stats:${uid}`;
 const DAYS = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
 
+/**
+ * Fallback empty user stats structure used when no user history is present.
+ */
 export const ZERO_STATS: UserStats = {
   total_quizzes: 0,
   total_questions: 0,
@@ -72,6 +79,11 @@ async function writeCache(userId: string, data: UserStats): Promise<void> {
 
 // ── Warm memory cache from AsyncStorage (called once per session) ────────────
 
+/**
+ * Hydrates the memory cache for user stats from AsyncStorage.
+ * 
+ * @param userId - The ID of the authenticated user
+ */
 export async function warmMemCache(userId: string): Promise<void> {
   const { warmedStats, statsCache, setWarmed, setStatsCache } =
     useCacheStore.getState();
@@ -382,6 +394,18 @@ async function serveFromCache(userId: string): Promise<UserStats> {
 
 // ── Fetch ────────────────────────────────────────────────────────────────────
 
+/**
+ * Fetches the user's complete statistical profile (streaks, weekly activity, 
+ * average scores, and subject mastery).
+ * 
+ * Integrates offline capabilities:
+ * 1. Serves immediately from local cache if offline.
+ * 2. Fetches via Supabase RPC `get_user_stats_overview` if online.
+ * 3. Applies synthetic updates from any un-synced local offline queue results.
+ * 
+ * @param userId - The ID of the authenticated user
+ * @returns A Promise resolving to the comprehensive UserStats object
+ */
 export async function fetchStats(userId: string): Promise<UserStats> {
   const net = await NetInfo.fetch();
   const isOnline = isDeviceOnline(net);
@@ -444,6 +468,11 @@ export async function fetchStats(userId: string): Promise<UserStats> {
 
 // ── Cache management ─────────────────────────────────────────────────────────
 
+/**
+ * Removes persistent stats cache for a user from disk and memory.
+ * 
+ * @param userId - The ID of the target user
+ */
 export async function clearStatsCache(userId: string) {
   try {
     await AsyncStorage.removeItem(CACHE_KEY(userId));

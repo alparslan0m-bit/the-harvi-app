@@ -1,8 +1,13 @@
-// Extracted from hooks/useQuiz.ts — pure business logic for quiz answer resolution.
-// No React dependencies.
+/**
+ * @file answerResolver.ts
+ * @description Pure, framework-agnostic business logic for resolving and parsing quiz answers and options.
+ * Provides schema candidate fallbacks to handle dynamic database structures, handles string/numeric/index/letter
+ * answer formats, and implements option and question shuffling algorithms while preserving correct answer mappings.
+ */
 
 // ── Schema field-name candidates ────────────────────────────────────────────
 
+/** Candidate column names for question body/text in legacy or dynamic DB schemas */
 export const TEXT_CANDIDATES = [
   "text",
   "question",
@@ -11,7 +16,11 @@ export const TEXT_CANDIDATES = [
   "question_text",
   "stem",
 ];
+
+/** Candidate column names for options array or object in DB schemas */
 export const OPTIONS_CANDIDATES = ["options", "answers", "choices", "opts"];
+
+/** Candidate column names for correct answer value/index in DB schemas */
 export const ANSWER_CANDIDATES = [
   "answer",
   "correct_answer",
@@ -20,6 +29,8 @@ export const ANSWER_CANDIDATES = [
   "correct_index",
   "correct_answer_index",
 ];
+
+/** Candidate column names for question explanation/rationale */
 export const EXPLANATION_CANDIDATES = [
   "explanation",
   "rationale",
@@ -29,6 +40,7 @@ export const EXPLANATION_CANDIDATES = [
   "comment",
 ];
 
+/** Candidate column names for question images */
 export const IMAGE_URL_CANDIDATES = [
   "image_url",
   "image",
@@ -42,10 +54,22 @@ export const IMAGE_URL_CANDIDATES = [
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
+/**
+ * Safely converts an unknown value to a string.
+ * @param v - Input value
+ * @returns Non-null string representation
+ */
 export function str(v: unknown): string {
   return String(v ?? "");
 }
 
+/**
+ * Picks the first existing property value from a row object matching candidate keys.
+ * 
+ * @param row - Database row object
+ * @param candidates - Ordered list of column/property names to search
+ * @returns The value of the first matching candidate key, or null
+ */
 export function pick(
   row: Record<string, unknown>,
   candidates: string[],
@@ -54,6 +78,12 @@ export function pick(
   return null;
 }
 
+/**
+ * Shuffles an array in-place using Fisher-Yates algorithm and returns a new copy.
+ * 
+ * @param arr - Array to shuffle
+ * @returns A new shuffled array
+ */
 export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -65,6 +95,12 @@ export function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+/**
+ * Normalizes raw option items (strings, numbers, structured objects) into a plain string label.
+ * 
+ * @param item - Raw option representation
+ * @returns Normalized text representation of the option
+ */
 export function extractOptionText(item: unknown): string {
   if (typeof item === "string") return item;
   if (typeof item === "number") return String(item);
@@ -86,6 +122,12 @@ export function extractOptionText(item: unknown): string {
   return str(item);
 }
 
+/**
+ * Parses and extracts a sanitized list of unique string options from raw JSON/arrays/objects.
+ * 
+ * @param raw - Raw options payload from DB (Array, JSON string, or Key-Value map)
+ * @returns An array of sanitized option strings
+ */
 export function parseOptions(raw: unknown): string[] {
   if (!raw) return [];
   let arr: unknown[] = [];
@@ -125,14 +167,19 @@ export function parseOptions(raw: unknown): string[] {
 }
 
 /**
- * Resolves the correct option index (0-based) from whatever the DB stores.
+ * Resolves the correct 0-based option index from dynamic DB values.
  *
- * Handles every common format:
- *  • 1-based integer  (1, 2, 3, 4)
- *  • 0-based integer  (0, 1, 2, 3)
- *  • Letter           ("A", "B", "C", "D")
- *  • Full option text  ("عضلة الحجاب الحاز (Diaphragm)")  ← was broken before
- *  • Numeric string   ("2", "3")
+ * Handles diverse database representation formats:
+ * - 1-based integer (1, 2, 3, 4)
+ * - 0-based integer (0, 1, 2, 3)
+ * - English letters ("A", "B", "C", "D")
+ * - Arabic letters ("أ", "ب", "ج", "د")
+ * - Exact text string matching ("Diaphragm")
+ * - Substring matching (fallback)
+ * 
+ * @param rawAnswer - Raw answer value from DB
+ * @param options - Parsed array of option strings
+ * @returns The resolved 0-based index pointing to the correct option in the options array
  */
 export function resolveAnswerIndex(
   rawAnswer: unknown,
@@ -202,6 +249,13 @@ export function resolveAnswerIndex(
   return 0;
 }
 
+/**
+ * Resolves the answer index and explanation text from a raw question record.
+ * 
+ * @param row - DB question row object
+ * @param options - Parsed options array
+ * @returns Object containing the 0-based answer index and explanation string
+ */
 export function resolveAnswer(
   row: Record<string, unknown>,
   options: string[],
@@ -212,6 +266,13 @@ export function resolveAnswer(
   return { answer: answerIndex, explanation };
 }
 
+/**
+ * Randomizes option positions while tracking and adjusting the correct index accordingly.
+ * 
+ * @param options - Original options array
+ * @param correctIndex - Original 0-based index of the correct option
+ * @returns Object containing the newly shuffled options array and updated correctIndex
+ */
 export function shuffleOptions(
   options: string[],
   correctIndex: number,

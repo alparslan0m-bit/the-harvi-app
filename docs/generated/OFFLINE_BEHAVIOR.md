@@ -1,7 +1,7 @@
 # Offline Behavior
 
 > **Auto-generated** by `docs/extractors/offline-behavior.js`.
-> Generated at 2026-08-14T18:16:08.440Z
+> Generated at 2026-08-14T18:44:28.244Z
 > Documents what each feature does when the device is offline.
 
 ## 📡 Feature Offline Capability Matrix
@@ -52,10 +52,10 @@
 _How offline data gets synced when connectivity returns:_
 
 1. **NetInfo detects connectivity change** — `artifacts/mobile/src/shared/store/syncStore.tsx`
-2. **Flush drains offline queue** — `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts`
-3. **Batch insert to supabase.from('quiz_results')** — `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts`
-4. **Invalidate query caches (stats, progress)** — `artifacts/mobile/src/features/learn/hooks/useLectureBestScores.ts`
-5. **Timeout: 10s, with backoff on failure** — `artifacts/mobile/src/shared/store/syncStore.tsx`
+2. **Flush drains offline queue** — `artifacts/mobile/src/shared/store/syncStore.tsx`
+3. **Batch insert to supabase.from('quiz_results')** — `artifacts/mobile/src/shared/store/syncStore.tsx`
+4. **Invalidate query caches (stats, progress)** — `artifacts/mobile/src/shared/store/syncStore.tsx`
+5. **Timeout: 10s, with basic backoff** — `artifacts/mobile/src/shared/store/syncStore.tsx`
 
 ## 🏗️ Cache Tiers
 

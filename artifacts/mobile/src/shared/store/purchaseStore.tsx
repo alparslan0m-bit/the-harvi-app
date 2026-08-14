@@ -1,3 +1,9 @@
+/**
+ * @file purchaseStore.tsx
+ * @description RevenueCat and In-App Purchase (IAP) orchestration store.
+ * Manages native RevenueCat SDK initialization, user identification mapping,
+ * receipt recording via Supabase Edge Functions, and activation code redemptions.
+ */
 import React, { useEffect, useCallback } from "react";
 import { create } from "zustand";
 import { Platform } from "react-native";
@@ -15,6 +21,7 @@ const REVENUECAT_IOS_KEY = process.env["EXPO_PUBLIC_REVENUECAT_IOS_KEY"] ?? "";
 const REVENUECAT_ANDROID_KEY =
   process.env["EXPO_PUBLIC_REVENUECAT_ANDROID_KEY"] ?? "";
 
+/** State model for RevenueCat readiness and customer info */
 interface PurchaseState {
   isReady: boolean;
   customerInfo: CustomerInfo | null;
@@ -22,6 +29,9 @@ interface PurchaseState {
   setCustomerInfo: (info: CustomerInfo | null) => void;
 }
 
+/**
+ * Zustand store managing RevenueCat readiness state and active customer entitlement info.
+ */
 export const usePurchaseStore = create<PurchaseState>((set) => ({
   isReady: false,
   customerInfo: null,
@@ -29,10 +39,14 @@ export const usePurchaseStore = create<PurchaseState>((set) => ({
   setCustomerInfo: (info) => set({ customerInfo: info }),
 }));
 
+/**
+ * Custom hook providing actions for executing purchases, code redemptions, and restores.
+ */
 export function usePurchaseActions() {
   const queryClient = useQueryClient();
   const setCustomerInfo = usePurchaseStore((s) => s.setCustomerInfo);
 
+  /** Invalidates React Query caches related to module access and user purchases */
   const invalidateAccess = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ["content_access"] });
     await queryClient.invalidateQueries({ queryKey: ["my_purchases"] });
@@ -40,6 +54,7 @@ export function usePurchaseActions() {
     await queryClient.invalidateQueries({ queryKey: ["quiz"] });
   }, [queryClient]);
 
+  /** Invokes the `record-iap` Edge Function to record the transaction server-side */
   const recordIAP = useCallback(
     async (params: {
       moduleId: string;
@@ -69,6 +84,12 @@ export function usePurchaseActions() {
     [],
   );
 
+  /**
+   * Executes a package purchase via RevenueCat and records the transaction in Supabase.
+   * 
+   * @param moduleId - The target module ID
+   * @param rcPackage - The selected RevenueCat package
+   */
   const purchaseModule = useCallback(
     async (moduleId: string, rcPackage: PurchasesPackage) => {
       try {
@@ -93,6 +114,11 @@ export function usePurchaseActions() {
     [recordIAP, invalidateAccess, setCustomerInfo],
   );
 
+  /**
+   * Redeems a promo activation code via the Supabase `redeem_access_code` RPC function.
+   * 
+   * @param code - The promotional activation string
+   */
   const redeemCode = useCallback(
     async (code: string) => {
       try {
@@ -135,6 +161,7 @@ export function usePurchaseActions() {
     [invalidateAccess],
   );
 
+  /** Restores previous purchases from App Store / Play Store */
   const restorePurchases = useCallback(async () => {
     if (Platform.OS === "web") return;
     try {
@@ -145,6 +172,7 @@ export function usePurchaseActions() {
     }
   }, [setCustomerInfo]);
 
+  /** Restores a specific module purchase and syncs server state */
   const restoreModule = useCallback(
     async (moduleId: string, productId: string) => {
       if (Platform.OS === "web")
@@ -191,6 +219,10 @@ export function usePurchaseActions() {
   );
 }
 
+/**
+ * Provider that configures native RevenueCat SDK and maps Supabase User IDs to RevenueCat App User IDs.
+ * Should wrap the root navigator.
+ */
 export function PurchaseProvider({ children }: { children: React.ReactNode }) {
   const user = useAuth((s) => s.user);
   const setIsReady = usePurchaseStore((s) => s.setIsReady);

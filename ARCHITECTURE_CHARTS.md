@@ -180,5 +180,6 @@ flowchart LR
   shared_utils --> offline_queue
   stats_service --> shared_utils
   sync_store --> shared_utils
+  offline_banner --> sync_store
 ```
 

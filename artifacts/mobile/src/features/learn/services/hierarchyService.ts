@@ -1,5 +1,9 @@
-// Extracted from hooks/useHierarchy.ts — data fetching, FK detection, and caching.
-
+/**
+ * @file hierarchyService.ts
+ * @description Handles fetching, caching, and assembling the learning hierarchy 
+ * (Years -> Modules -> Subjects -> Lectures) from Supabase.
+ * Includes dynamic foreign key detection to adapt to various database schemas.
+ */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 
@@ -47,6 +51,16 @@ function num(v: unknown): number {
   return Number(v ?? 0);
 }
 
+/**
+ * Dynamically detects the foreign key column name used in a database row
+ * by matching it against a list of known candidates.
+ * 
+ * @param row - A single record returned from Supabase
+ * @param candidates - An array of possible foreign key column names
+ * @param table - The name of the table (used for error logging)
+ * @returns The resolved foreign key column name
+ * @throws {Error} If no matching candidate is found in the row
+ */
 function detectFK(
   row: Record<string, unknown>,
   candidates: string[],
@@ -63,6 +77,12 @@ function detectFK(
   );
 }
 
+/**
+ * Reads and validates the locally cached hierarchy from AsyncStorage.
+ * Uses Zod to ensure the cached payload exactly matches the expected frontend schema.
+ * 
+ * @returns A Promise resolving to the cached hierarchy, or null if empty/invalid
+ */
 async function readCachedHierarchy(): Promise<Year[] | null> {
   try {
     const raw = await AsyncStorage.getItem(HIERARCHY_CACHE_KEY);
@@ -79,6 +99,11 @@ async function readCachedHierarchy(): Promise<Year[] | null> {
   }
 }
 
+/**
+ * Persists the fully assembled hierarchy to local storage for offline access.
+ * 
+ * @param data - The complete Year array to cache
+ */
 async function writeCachedHierarchy(data: Year[]): Promise<void> {
   try {
     await AsyncStorage.setItem(HIERARCHY_CACHE_KEY, JSON.stringify(data));
@@ -87,6 +112,15 @@ async function writeCachedHierarchy(data: Year[]): Promise<void> {
   }
 }
 
+/**
+ * Fetches all hierarchy tables from Supabase concurrently and assembles them 
+ * into a deeply nested tree structure (Year -> Module -> Subject -> Lecture).
+ * 
+ * Includes a strict 10-second timeout to prevent infinite loading states on poor networks.
+ * 
+ * @returns A Promise resolving to the fully constructed and sorted hierarchy tree
+ * @throws {Error} If the network request times out or a Supabase error occurs
+ */
 async function buildHierarchyFromRemote(): Promise<Year[]> {
   const queries = Promise.all([
     supabase.from("years").select("*"),
@@ -207,6 +241,16 @@ async function buildHierarchyFromRemote(): Promise<Year[]> {
   });
 }
 
+/**
+ * Main entry point for fetching the course hierarchy.
+ * Orchestrates the offline-first fallback logic:
+ * 1. If offline, serves immediately from local cache.
+ * 2. If online, attempts a network fetch and caches the result.
+ * 3. If online but the network request fails/times out, falls back to the cache.
+ * 
+ * @returns A Promise resolving to the complete learning hierarchy
+ * @throws {Error} If the device is offline and no cache exists, or if a fetch fails with no cache
+ */
 export async function fetchHierarchy(): Promise<Year[]> {
   const net = await NetInfo.fetch();
   const isOnline = isDeviceOnline(net);

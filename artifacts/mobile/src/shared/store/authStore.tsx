@@ -1,3 +1,9 @@
+/**
+ * @file authStore.tsx
+ * @description Global authentication state management and orchestration.
+ * Integrates Supabase Auth with Zustand, handling session persistence,
+ * OAuth flows (Google), and deep link interception for auth callbacks.
+ */
 import React, { useEffect } from "react";
 import { create } from "zustand";
 import { Session, User } from "@supabase/supabase-js";
@@ -17,6 +23,9 @@ import { clearAllUserCaches } from "@/src/shared/utils/cacheUtils";
 
 WebBrowser.maybeCompleteAuthSession();
 
+/**
+ * Interface defining the properties and actions of the authentication state.
+ */
 interface AuthState {
   session: Session | null;
   user: User | null;
@@ -37,18 +46,42 @@ interface AuthState {
   signOut: () => Promise<void>;
 }
 
+/**
+ * Parses URL query parameters or hash fragments from an OAuth redirect URL.
+ * 
+ * @param url - The full redirect URL containing the OAuth payload
+ * @returns A URLSearchParams instance containing the parsed parameters
+ */
 function parseOAuthUrl(url: string): URLSearchParams {
   const hashPart = url.split("#")[1] ?? "";
   const queryPart = url.split("?")[1]?.split("#")[0] ?? "";
   return new URLSearchParams(hashPart || queryPart);
 }
 
+/**
+ * Zustand store managing the user's authentication session and providing login/logout actions.
+ * State changes here dictate the root navigation switch between the Auth stack and Main App stack.
+ */
 export const useAuthStore = create<AuthState>((set) => ({
   session: null,
   user: null,
   loading: true,
+
+  /**
+   * Updates the internal session state.
+   * 
+   * @param session - The new Supabase session object, or null to clear it
+   */
   setSession: (session) =>
     set({ session, user: session?.user ?? null, loading: false }),
+
+  /**
+   * Authenticates a user using email and password.
+   * 
+   * @param email - The user's email address
+   * @param password - The user's password
+   * @returns An object containing an error message if the sign-in failed, or null if successful
+   */
   signIn: async (email, password) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -56,10 +89,25 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
     return { error: error?.message ?? null };
   },
+
+  /**
+   * Registers a new user using email and password.
+   * 
+   * @param email - The user's email address
+   * @param password - The user's password
+   * @returns An object containing an error message if the sign-up failed, or null if successful
+   */
   signUp: async (email, password) => {
     const { error } = await supabase.auth.signUp({ email, password });
     return { error: error?.message ?? null };
   },
+
+  /**
+   * Initiates the Google OAuth flow using Expo WebBrowser.
+   * Seamlessly handles redirect URLs and token exchange upon return to the app.
+   * 
+   * @returns An object indicating success, cancellation, or providing an error message
+   */
   signInWithGoogle: async () => {
     try {
       const redirectTo = Linking.createURL("callback");
@@ -108,6 +156,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
+  /**
+   * Signs the current user out.
+   * Completely purges all local state, invalidates caches, and removes persistent 
+   * offline data specific to this user to guarantee a clean slate and preserve security.
+   */
   signOut: async () => {
     const uid = useAuthStore.getState().user?.id;
     if (uid) {
@@ -122,6 +175,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 }));
 
+/**
+ * Global provider that orchestrates Supabase session hydration and lifecycle tracking.
+ * It mounts listeners for deep links (to catch OAuth redirect callbacks) and listens 
+ * to Supabase's `onAuthStateChange` to automatically clear caches upon unauthorized/logout events.
+ * 
+ * Must wrap the root navigation of the app.
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setSession = useAuthStore((s) => s.setSession);
 
@@ -174,6 +234,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/**
+ * A selective hook for consuming the Auth store.
+ * 
+ * @param selector - A function to extract the desired slice of state
+ * @returns The selected state slice
+ * 
+ * @example
+ * ```tsx
+ * const user = useAuth(state => state.user);
+ * ```
+ */
 export function useAuth<T>(selector: (state: AuthState) => T): T {
   return useAuthStore(selector);
 }

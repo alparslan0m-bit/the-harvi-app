@@ -172,8 +172,12 @@ function detectSyncPipeline(files) {
     const content = fs.readFileSync(file, "utf8");
     const relPath = path.relative(projectRoot, file).replace(/\\/g, "/");
 
-    // Detect sync trigger (NetInfo subscribe)
-    if (content.includes("NetInfo") && content.includes("subscribe")) {
+    // Step 1 — Sync trigger: file that subscribes to NetInfo (owns the listener).
+    // Requires addEventListener — not just any file that does a one-shot NetInfo.fetch().
+    if (
+      content.includes("NetInfo") &&
+      content.includes("addEventListener")
+    ) {
       steps.push({
         order: 1,
         description: "NetInfo detects connectivity change",
@@ -181,10 +185,13 @@ function detectSyncPipeline(files) {
       });
     }
 
-    // Detect flush function
+    // Step 2 — Flush: file that DEFINES a flush function AND imports getQueue.
+    // A regex confirms the function declaration, preventing false matches from files
+    // that merely call flush() as an imported reference (e.g. useQuizSession).
+    const definesFlush = /(?:async\s+function\s+flush\b|const\s+flush\s*=\s*(?:async|useCallback))/.test(content);
     if (
-      content.includes("flush") &&
-      (content.includes("offlineQueue") || content.includes("getQueue"))
+      definesFlush &&
+      (content.includes("getQueue") || content.includes("offlineQueue"))
     ) {
       steps.push({
         order: 2,
@@ -193,11 +200,12 @@ function detectSyncPipeline(files) {
       });
     }
 
-    // Detect batch insert
+    // Step 3 — Batch insert: file that inserts into quiz_results AND defines the flush loop
+    // (not a file that does a single foreground insert on quiz finish).
     if (
       content.includes("quiz_results") &&
       content.includes("insert") &&
-      (content.includes("flush") || content.includes("sync"))
+      definesFlush
     ) {
       steps.push({
         order: 3,
@@ -206,10 +214,11 @@ function detectSyncPipeline(files) {
       });
     }
 
-    // Detect invalidation after sync
+    // Step 4 — Cache invalidation: file that calls invalidateQueries AND owns the flush
+    // (not a file that invalidates after its own local operation like a quiz finish).
     if (
       content.includes("invalidateQueries") &&
-      (content.includes("flush") || content.includes("sync"))
+      definesFlush
     ) {
       steps.push({
         order: 4,
@@ -218,13 +227,28 @@ function detectSyncPipeline(files) {
       });
     }
 
-    // Detect timeout/backoff
-    if (content.includes("timeout") || content.includes("backoff")) {
-      const timeoutMatch = content.match(/(\d+)\s*(?:\*\s*1000)?.*timeout/i);
+    // Step 5 — Timeout in the sync owner only. Do NOT claim backoff unless the word
+    // "backoff" or "exponential" is literally present — a timeout alone is not backoff.
+    if (definesFlush && content.includes("timeout")) {
+      const timeoutMatch = content.match(/setTimeout[^,]*,\s*(\d+)/);
+      const hasBackoff = content.includes("backoff");
+      const isExponential = content.includes("exponential");
       if (timeoutMatch) {
+        const ms = parseInt(timeoutMatch[1], 10);
+        const label = ms >= 1000 ? `${ms / 1000}s` : `${ms}ms`;
+        
+        let desc = `Timeout: ${label}`;
+        if (isExponential) {
+          desc += `, with exponential backoff`;
+        } else if (hasBackoff) {
+          desc += `, with basic backoff`;
+        } else {
+          desc += ` cooldown between flush attempts (no backoff)`;
+        }
+        
         steps.push({
           order: 5,
-          description: `Timeout: ${timeoutMatch[1]}s, with backoff on failure`,
+          description: desc,
           file: relPath,
         });
       }

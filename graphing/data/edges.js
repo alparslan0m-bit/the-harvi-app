@@ -936,6 +936,14 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/syncStore.tsx"
   },
   {
+    "id": "e118",
+    "source": "offline_banner",
+    "target": "sync_store",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/components/OfflineBanner.tsx"
+  },
+  {
     "source": "react_query",
     "target": "theme_store",
     "label": "Flow triggers"

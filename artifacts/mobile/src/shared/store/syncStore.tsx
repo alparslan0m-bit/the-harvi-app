@@ -1,3 +1,9 @@
+/**
+ * @file syncStore.tsx
+ * @description Orchestrates the offline-first synchronization engine.
+ * It tracks network connectivity, manages the background syncing state,
+ * and handles the batch uploading of queued quiz results to Supabase.
+ */
 import React, { useEffect, useCallback, useRef } from "react";
 import { create } from "zustand";
 import { useQueryClient, onlineManager } from "@tanstack/react-query";
@@ -11,6 +17,9 @@ import {
 import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 
+/**
+ * Interface representing the global synchronization state.
+ */
 interface SyncState {
   isOnline: boolean;
   isSyncing: boolean;
@@ -20,6 +29,10 @@ interface SyncState {
   setPendingCount: (count: number) => void;
 }
 
+/**
+ * Zustand store for managing global synchronization UI state.
+ * Used by components to display "Offline" banners or "Syncing..." indicators.
+ */
 export const useSyncStore = create<SyncState>((set) => ({
   isOnline: true,
   isSyncing: false,
@@ -29,19 +42,36 @@ export const useSyncStore = create<SyncState>((set) => ({
   setPendingCount: (count) => set({ pendingCount: count }),
 }));
 
+/**
+ * Custom hook providing actions to interact with the sync engine.
+ * 
+ * @returns An object containing `refreshCount` to update the pending UI badge,
+ * and `flush` to manually or automatically trigger a queue upload.
+ */
 export function useSyncActions() {
   const queryClient = useQueryClient();
   const user = useAuth((s) => s.user);
   const setPendingCount = useSyncStore((s) => s.setPendingCount);
   const setIsSyncing = useSyncStore((s) => s.setIsSyncing);
+  
+  // Use refs to prevent concurrent flushes and implement simple rate limiting
   const flushing = useRef(false);
   const lastFlushTime = useRef<number>(0);
 
+  /**
+   * Updates the global pending count based on the current user's offline queue.
+   */
   const refreshCount = useCallback(async () => {
     const n = await getPendingCount(user?.id);
     setPendingCount(n);
   }, [user, setPendingCount]);
 
+  /**
+   * Flushes the offline queue by sequentially uploading pending results to Supabase.
+   * - Implements a 30-second backoff upon network/timeout failures.
+   * - Uses `Promise.race` for a strict 10s per-item timeout.
+   * - Handles Postgres duplicate/conflict errors gracefully (e.g., 23505).
+   */
   const flush = useCallback(async () => {
     if (flushing.current || !user) return;
 
@@ -133,6 +163,13 @@ export function useSyncActions() {
   return { refreshCount, flush };
 }
 
+/**
+ * Global provider that mounts the network listeners and orchestration logic.
+ * It bridges `NetInfo` with React Query's `onlineManager`, and automatically 
+ * triggers a queue flush when the device comes back online.
+ * 
+ * Should be mounted high in the React tree (e.g., inside `_layout.tsx`).
+ */
 export function SyncProvider({ children }: { children: React.ReactNode }) {
   const isOnline = useSyncStore((s) => s.isOnline);
   const setIsOnline = useSyncStore((s) => s.setIsOnline);

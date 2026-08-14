@@ -1,5 +1,9 @@
-// Extracted from hooks/useProgress.ts — data fetching, caching, and queue merging.
-
+/**
+ * @file progressService.ts
+ * @description Manages fetching, caching, and merging of user progress (completed lectures).
+ * Seamlessly merges data from three sources: the Supabase backend, the local AsyncStorage cache, 
+ * and the offline sync queue to provide immediate, optimistic UI updates without waiting for network.
+ */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 
@@ -21,6 +25,10 @@ const FK_CANDIDATES = [
 
 // ── Module-level memory cache (survives re-renders, cleared on app restart) ──
 
+/**
+ * Fast, synchronous memory cache of completed lecture IDs per user.
+ * Avoids the async overhead of reading from AsyncStorage on every UI render.
+ */
 export const memCache = new Map<string, Set<string>>();
 export const warmed = new Set<string>();
 
@@ -42,7 +50,13 @@ async function readCache(userId: string): Promise<Set<string> | null> {
   }
 }
 
-/** Write the completed-IDs set to AsyncStorage + memCache (best-effort). */
+/** 
+ * Writes the completed-IDs set to AsyncStorage for offline persistence, 
+ * and immediately updates the in-memory cache for synchronous reads.
+ * 
+ * @param userId - The ID of the authenticated user
+ * @param ids - A Set of completed lecture string IDs
+ */
 export async function writeProgressCache(
   userId: string,
   ids: Set<string>,
@@ -59,9 +73,13 @@ export async function writeProgressCache(
 }
 
 /**
- * Merge a newly-completed lectureId into the on-device progress cache
- * so the lecture card flips to "done" the instant a quiz finishes —
- * even before the result is synced to Supabase.
+ * Optimistically merges a newly-completed lecture into the on-device progress cache.
+ * 
+ * This allows the UI (like a lecture card) to flip to a "done" state the instant a quiz finishes —
+ * even before the result is uploaded to Supabase or placed in the offline queue.
+ * 
+ * @param userId - The ID of the authenticated user
+ * @param lectureId - The ID of the newly completed lecture
  */
 export async function optimisticallyMarkComplete(
   userId: string,
@@ -75,6 +93,12 @@ export async function optimisticallyMarkComplete(
 
 // ── Warm memory cache from AsyncStorage (called once per session) ────────────
 
+/**
+ * Warms the synchronous memory cache by pulling the persisted dataset from AsyncStorage.
+ * Typically called once per session during application bootstrap or user login.
+ * 
+ * @param userId - The ID of the authenticated user
+ */
 export async function warmMemCache(userId: string): Promise<void> {
   if (warmed.has(userId)) return;
   warmed.add(userId);
@@ -105,6 +129,17 @@ async function serveFromCache(userId: string): Promise<Set<string>> {
 
 // ── Online fetch ─────────────────────────────────────────────────────────────
 
+/**
+ * Fetches the user's completed lectures from Supabase.
+ * 
+ * Implements an aggressive offline-first strategy:
+ * 1. Explicitly checks connectivity using `NetInfo` before attempting a network request.
+ * 2. On a network timeout or failure, seamlessly falls back to the local cache.
+ * 3. Merges any pending offline queue items into the final result so the user's view of progress is always accurate.
+ * 
+ * @param userId - The ID of the authenticated user
+ * @returns A Set of completed lecture IDs
+ */
 export async function fetchCompletedLectures(
   userId: string,
 ): Promise<Set<string>> {
@@ -191,7 +226,12 @@ export async function fetchCompletedLectures(
 
 // ── Cache management ─────────────────────────────────────────────────────────
 
-/** Force clear all progress cache for a user (used during 'Clear History'). */
+/** 
+ * Purges all progress caches for a specific user from both memory and AsyncStorage.
+ * Invoked during destructive actions like user logout or manual cache clearing.
+ * 
+ * @param userId - The ID of the authenticated user
+ */
 export async function clearProgressCache(userId: string) {
   try {
     await AsyncStorage.removeItem(PROGRESS_CACHE_KEY(userId));

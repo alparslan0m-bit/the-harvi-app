@@ -1,8 +1,24 @@
+/**
+ * @file netInfo.ts
+ * @description Utility functions for inspecting and evaluating device network connectivity state.
+ */
 import { NetInfoState } from "@react-native-community/netinfo";
 
 /**
- * Shared utility to determine if the device is online based on NetInfo state.
- * Treats `null` values as online to prevent false negatives during initialization.
+ * Determines whether the device currently has active network and internet reachability.
+ * 
+ * Safely handles null or initializing states by evaluating both `isConnected` and `isInternetReachable` flags.
+ * 
+ * @param state - The current NetInfoState returned by `@react-native-community/netinfo`
+ * @returns `true` if connected and internet is reachable, `false` otherwise
+ * 
+ * @example
+ * ```ts
+ * const state = await NetInfo.fetch();
+ * if (isDeviceOnline(state)) {
+ *   // Safe to make network requests
+ * }
+ * ```
  */
 export function isDeviceOnline(state: NetInfoState | null): boolean {
   if (!state) return false;

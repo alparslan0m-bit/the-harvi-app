@@ -1,25 +1,42 @@
+/**
+ * @file supabase.ts
+ * @description Configures and exports the Supabase client instance.
+ * Provides a custom chunking storage adapter for Expo SecureStore to bypass the iOS 2KB limit.
+ */
 import * as SecureStore from "expo-secure-store";
 import { createClient } from "@supabase/supabase-js";
 import { Platform } from "react-native";
 import "react-native-url-polyfill/auto";
 
-/**
- * SecureStore adapter for Supabase auth session storage.
- *
- * Supabase session tokens can exceed the ~2 KB per-entry limit on iOS,
- * so large values are transparently chunked across multiple entries.
- *
- * On web (no SecureStore) we fall back to localStorage — acceptable because
- * the web bundle is a dev/preview build, not distributed publicly.
- */
-
 const CHUNK_SIZE = 1800; // safely under the 2 048-byte iOS SecureStore limit
 
+/**
+ * Generates a storage key for a specific chunk index.
+ * 
+ * @param key - The original root key for the data
+ * @param index - The zero-based chunk index
+ * @returns The suffixed key used for storing the chunk
+ */
 function chunkKey(key: string, index: number) {
   return `${key}.__chunk_${index}`;
 }
 
+/**
+ * A custom storage adapter for Supabase Authentication that securely persists session tokens.
+ * 
+ * Supabase session tokens (which include large JWTs and refresh tokens) can easily exceed 
+ * the ~2 KB per-entry limit on iOS Keychain. This adapter transparently chunks large string 
+ * payloads across multiple SecureStore entries.
+ * 
+ * On web builds (used for development), it seamlessly falls back to `localStorage`.
+ */
 const SecureStoreAdapter = {
+  /**
+   * Retrieves and reconstructs a potentially chunked string from SecureStore.
+   * 
+   * @param key - The root key to retrieve
+   * @returns A Promise resolving to the full reconstructed string, or null if not found
+   */
   async getItem(key: string): Promise<string | null> {
     if (Platform.OS === "web") return localStorage.getItem(key);
 
@@ -39,6 +56,12 @@ const SecureStoreAdapter = {
     return SecureStore.getItemAsync(key);
   },
 
+  /**
+   * Securely saves a string to SecureStore, chunking it if it exceeds `CHUNK_SIZE`.
+   * 
+   * @param key - The root key to save under
+   * @param value - The full string payload to persist
+   */
   async setItem(key: string, value: string): Promise<void> {
     if (Platform.OS === "web") {
       localStorage.setItem(key, value);
@@ -63,6 +86,11 @@ const SecureStoreAdapter = {
     }
   },
 
+  /**
+   * Removes a key (and all its associated chunks, if any) from SecureStore.
+   * 
+   * @param key - The root key to remove
+   */
   async removeItem(key: string): Promise<void> {
     if (Platform.OS === "web") {
       localStorage.removeItem(key);
@@ -85,6 +113,10 @@ const SecureStoreAdapter = {
 const supabaseUrl = process.env["EXPO_PUBLIC_SUPABASE_URL"]!;
 const supabaseAnonKey = process.env["EXPO_PUBLIC_SUPABASE_ANON_KEY"]!;
 
+/**
+ * The initialized Supabase client singleton used throughout the application.
+ * Configured with auto-refreshing tokens and the chunking SecureStore adapter.
+ */
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: SecureStoreAdapter,

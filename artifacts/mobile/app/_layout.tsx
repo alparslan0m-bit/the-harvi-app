@@ -15,7 +15,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
 
-import { ErrorBoundary, OfflineBanner } from "@/src/shared/components";
+import { ErrorBoundary, GlobalOfflineBanner } from "@/src/shared/components";
 import { AuthProvider, useAuth } from "@/src/shared/store/authStore";
 import { PurchaseProvider } from "@/src/shared/store/purchaseStore";
 import { SyncProvider, useSyncStore } from "@/src/shared/store/syncStore";
@@ -33,18 +33,6 @@ const queryClient = new QueryClient({
   },
 });
 
-function GlobalOfflineBanner() {
-  const isOnline = useSyncStore((s) => s.isOnline);
-  const pendingCount = useSyncStore((s) => s.pendingCount);
-  const isSyncing = useSyncStore((s) => s.isSyncing);
-  return (
-    <OfflineBanner
-      isOnline={isOnline}
-      pendingCount={pendingCount}
-      isSyncing={isSyncing}
-    />
-  );
-}
 
 function RootLayoutNav({
   fontsLoaded,
