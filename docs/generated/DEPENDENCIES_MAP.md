@@ -1,7 +1,7 @@
 # Dependency Map
 
 > **Auto-generated** by `docs/extractors/dependencies.js`.
-> Generated at 2026-08-14T21:56:42.216Z
+> Generated at 2026-08-14T22:26:53.210Z
 > Maps third-party library usage across the codebase.
 
 ## 📦 Library Usage

@@ -1,7 +1,7 @@
 # Hooks & Queries
 
 > **Auto-generated** by `docs/extractors/hooks-and-queries.js`.
-> Generated at 2026-08-14T21:56:42.576Z
+> Generated at 2026-08-14T22:26:53.850Z
 > Maps the full React Query key space and custom hook dependency tree.
 
 ## 🔑 Query Keys
