@@ -1,7 +1,7 @@
 # Conventions
 
 > **Auto-generated** by `docs/extractors/conventions.js`.
-> Generated at 2026-08-14T17:41:49.173Z
+> Generated at 2026-08-14T21:56:41.693Z
 > Structural patterns extracted from the codebase. Follow these when adding new code.
 
 ## 📁 Feature Folder Structure
@@ -63,7 +63,7 @@ Services use a three-tier cache strategy: **memCache → AsyncStorage → Supaba
 
 ## 📦 Import Conventions
 
-- **Alias imports (`@/`):** 253 usages across 131 files
+- **Alias imports (`@/`):** 266 usages across 133 files
 - **Relative imports (`./`):** 173 usages
 - **Convention:** Use `@/` for cross-feature imports, `./` for intra-directory
 

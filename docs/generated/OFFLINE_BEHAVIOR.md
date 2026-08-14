@@ -1,7 +1,7 @@
 # Offline Behavior
 
 > **Auto-generated** by `docs/extractors/offline-behavior.js`.
-> Generated at 2026-08-14T18:44:28.244Z
+> Generated at 2026-08-14T21:56:42.900Z
 > Documents what each feature does when the device is offline.
 
 ## 📡 Feature Offline Capability Matrix

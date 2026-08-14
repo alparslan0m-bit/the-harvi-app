@@ -1,7 +1,7 @@
 # Hooks & Queries
 
 > **Auto-generated** by `docs/extractors/hooks-and-queries.js`.
-> Generated at 2026-08-14T17:41:49.928Z
+> Generated at 2026-08-14T21:56:42.576Z
 > Maps the full React Query key space and custom hook dependency tree.
 
 ## 🔑 Query Keys
@@ -22,23 +22,23 @@ _When X happens, which query caches get busted?_
 
 | Trigger | Invalidates | Type | File:Line |
 |---------|------------|------|----------|
-| AccountActions (AccountActions.tsx) | `stats` | invalidate | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:87` |
-| AccountActions (AccountActions.tsx) | `progress` | invalidate | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:88` |
-| AccountActions (AccountActions.tsx) | `lectureBestScores` | invalidate | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:89` |
-| removeQueries (cache clear) (AccountActions.tsx) | `quiz` | remove | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:111` |
-| setQueriesData (optimistic) (AccountActions.tsx) | `stats` | optimistic | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:80` |
-| setQueriesData (optimistic) (AccountActions.tsx) | `progress` | optimistic | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:81` |
-| setQueriesData (optimistic) (AccountActions.tsx) | `lectureBestScores` | optimistic | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:82` |
-| setQueriesData (optimistic) (AccountActions.tsx) | `quiz` | optimistic | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:110` |
-| usePurchaseActions (purchaseStore.tsx) | `content_access` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:37` |
-| usePurchaseActions (purchaseStore.tsx) | `my_purchases` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:38` |
-| usePurchaseActions (purchaseStore.tsx) | `hierarchy` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:39` |
-| usePurchaseActions (purchaseStore.tsx) | `quiz` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:40` |
+| AccountActions (AccountActions.tsx) | `stats` | invalidate | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:88` |
+| AccountActions (AccountActions.tsx) | `progress` | invalidate | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:89` |
+| AccountActions (AccountActions.tsx) | `lectureBestScores` | invalidate | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:90` |
+| removeQueries (cache clear) (AccountActions.tsx) | `quiz` | remove | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:112` |
+| setQueriesData (optimistic) (AccountActions.tsx) | `stats` | optimistic | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:81` |
+| setQueriesData (optimistic) (AccountActions.tsx) | `progress` | optimistic | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:82` |
+| setQueriesData (optimistic) (AccountActions.tsx) | `lectureBestScores` | optimistic | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:83` |
+| setQueriesData (optimistic) (AccountActions.tsx) | `quiz` | optimistic | `artifacts/mobile/src/features/profile/components/AccountActions.tsx:111` |
+| usePurchaseActions (purchaseStore.tsx) | `content_access` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:51` |
+| usePurchaseActions (purchaseStore.tsx) | `my_purchases` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:52` |
+| usePurchaseActions (purchaseStore.tsx) | `hierarchy` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:53` |
+| usePurchaseActions (purchaseStore.tsx) | `quiz` | invalidate | `artifacts/mobile/src/shared/store/purchaseStore.tsx:54` |
 | useQuizSession (useQuizSession.ts) | `progress` | invalidate | `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts:207` |
 | useQuizSession (useQuizSession.ts) | `stats` | invalidate | `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts:208` |
 | useQuizSession (useQuizSession.ts) | `lectureBestScores` | invalidate | `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts:209` |
-| useSyncActions (syncStore.tsx) | `stats` | invalidate | `artifacts/mobile/src/shared/store/syncStore.tsx:119` |
-| useSyncActions (syncStore.tsx) | `progress` | invalidate | `artifacts/mobile/src/shared/store/syncStore.tsx:120` |
+| useSyncActions (syncStore.tsx) | `stats` | invalidate | `artifacts/mobile/src/shared/store/syncStore.tsx:150` |
+| useSyncActions (syncStore.tsx) | `progress` | invalidate | `artifacts/mobile/src/shared/store/syncStore.tsx:151` |
 
 ## 📊 Per-Key Invalidation Summary
 
