@@ -3,7 +3,7 @@ const assert = require("node:assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { runGovernance, walk, stripCommentsAndStrings, extractImports, renderReport, detectRemoteUsage } = require("./verify_graph");
+const { runGovernance, walk, stripCommentsAndStrings, extractImports, renderReport, detectRemoteUsage, computeExitCode, writeOutputs } = require("./verify_graph");
 const projectRoot = path.resolve(__dirname, "..");
 
 // makeFixtureTree(layout) -> root (tmp dir); caller runs rmSync in t.after().
@@ -264,4 +264,91 @@ supabase.auth.getSession();
   const auth = usage.find((u) => u.remoteId === "supabase_auth");
   assert.strictEqual(auth.lineNum, 3);
   assert.match(auth.snippet, /supabase\.auth\.getSession/);
+});
+
+// Node metadata is pre-placed at the exact bytes the engine generates, so the
+// fixture has zero node/edge/pattern deltas and `hasChanges` on the ghost flow
+// is attributable solely to flowWarnings.
+const STABLE_NODES_JS = [
+  `module.exports = [`,
+  `  {`,
+  `    "id": "app",`,
+  `    "label": "App",`,
+  `    "type": "component",`,
+  `    "layer": "app",`,
+  `    "description": "app"`,
+  `  }`,
+  `];`,
+  ``,
+].join("\n");
+
+test("flow referencing a missing node is reported and forces governance to fail", (t) => {
+  const root = makeFixtureTree({
+    "app/_layout.tsx": `// app`,
+    "data/nodes.js": STABLE_NODES_JS,
+    "data/edges.js": `module.exports = [];\n`,
+    "data/flows.js": `module.exports = [{ id: "f1", name: "Ghost Flow", steps: [{ order: 1, node: "ghost", action: "x" }] }];`,
+  });
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const result = runFixtureGovernance(root, { app: ["app/_layout.tsx"] });
+  assert.ok(result.flowWarnings.length > 0, "flowWarnings must surface the missing node");
+  assert.strictEqual(result.flowWarnings[0].missingNode, "ghost");
+  assert.strictEqual(result.flowWarnings[0].flowName, "Ghost Flow");
+  assert.strictEqual(result.hasChanges, true, "hasChanges must fail on a flow warning");
+
+  const report = renderReport(result);
+  assert.match(report, /GOVERNANCE CHECK FAILED/);
+  assert.match(
+    report,
+    /flows\.js references missing nodes — this file is curated and must be fixed by hand/,
+  );
+});
+
+test("computeExitCode folds changedPaths into the governance verdict", () => {
+  assert.strictEqual(computeExitCode({ hasChanges: false }, ["a"]), true);
+  assert.strictEqual(computeExitCode({ hasChanges: true }, []), true);
+  assert.strictEqual(computeExitCode({ hasChanges: false }, []), false);
+});
+
+test("writeOutputs reports changedPaths on first write and none on identical re-write", (t) => {
+  const root = makeFixtureTree({
+    "app/_layout.tsx": `// app`,
+  });
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const dataDir = path.join(root, "data");
+  fs.mkdirSync(dataDir, { recursive: true });
+  const result = runFixtureGovernance(root, { app: ["app/_layout.tsx"] });
+  const paths = {
+    nodesPath: path.join(dataDir, "nodes.js"),
+    edgesPath: path.join(dataDir, "edges.js"),
+    jsonPath: path.join(root, "architecture.json"),
+    htmlPath: path.join(root, "architecture.html"),
+    mdPath: path.join(root, "ARCHITECTURE.md"),
+    chartsMdPath: path.join(root, "ARCHITECTURE_CHARTS.md"),
+  };
+
+  const first = writeOutputs(result, paths);
+  for (const expected of [
+    paths.nodesPath,
+    paths.edgesPath,
+    paths.jsonPath,
+    paths.mdPath,
+    paths.chartsMdPath,
+  ]) {
+    assert.ok(
+      first.changedPaths.includes(expected),
+      `${expected} must be reported as changed on first write`,
+    );
+  }
+
+  const second = writeOutputs(result, paths);
+  assert.deepStrictEqual(second.changedPaths, [], "identical re-write must report no changes");
+
+  fs.writeFileSync(paths.mdPath, "# Drifted\n");
+  const third = writeOutputs(result, paths);
+  assert.deepStrictEqual(
+    third.changedPaths,
+    [paths.mdPath],
+    "drifted ARCHITECTURE.md must be detected and rewritten",
+  );
 });

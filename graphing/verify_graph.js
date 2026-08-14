@@ -856,6 +856,10 @@ function runGovernance({
   //  GOVERNANCE DELTAS (report + exit code inputs)
   // ==========================================================================
 
+  // Task-6 slot: populated with { nodeId, field } for stale curated metadata.
+  // Empty today; defensive term in hasChanges is inert while empty.
+  const staleMetadataPaths = [];
+
   const oldNodeIds = new Set(existingNodes.map((n) => n.id));
   const newNodeIds = allNodeIds;
   const removedNodes = [...oldNodeIds].filter((id) => !newNodeIds.has(id));
@@ -890,7 +894,9 @@ function runGovernance({
     addedNodes.length > 0 ||
     removedEdges.length > 0 ||
     addedEdges.length > 0 ||
-    stalePatterns.length > 0;
+    stalePatterns.length > 0 ||
+    flowWarnings.length > 0 ||
+    (staleMetadataPaths && staleMetadataPaths.length > 0);
 
   return {
     verifiedNodes,
@@ -906,6 +912,7 @@ function runGovernance({
     edgeEvidence,
     droppedImports,
     stalePatterns,
+    staleMetadataPaths,
     addedNodes,
     removedNodes,
     addedEdges,
@@ -955,6 +962,12 @@ function writeOutputs(
   }
 
   return { changedPaths };
+}
+
+// Total governance verdict: any node/edge/pattern delta, flow warning, stale
+// metadata path, or on-disk artifact drift must fail the build (exit 1).
+function computeExitCode(result, changedPaths) {
+  return result.hasChanges || changedPaths.length > 0;
 }
 
 // ============================================================================
@@ -1154,6 +1167,9 @@ function renderReport(result) {
     report += "\n";
     report += "💥 GOVERNANCE CHECK FAILED — data was corrected from codebase.\n";
     report += "   Run again to verify idempotence (should exit 0 on re-run).\n";
+    if (result.flowWarnings.length > 0) {
+      report += "   ⚠️ flows.js references missing nodes — this file is curated and must be fixed by hand; the engine cannot repair it.\n";
+    }
   } else {
     report += "✅ GOVERNANCE CHECK PASSED — architecture graph matches codebase.\n";
     report += "   No changes needed. All nodes and edges verified.\n";
@@ -1184,7 +1200,7 @@ function main() {
   });
   result.verbose = process.argv.includes("--verbose");
 
-  writeOutputs(result, {
+  const { changedPaths } = writeOutputs(result, {
     nodesPath: path.join(dataDir, "nodes.js"),
     edgesPath: path.join(dataDir, "edges.js"),
     jsonPath: path.join(graphingDir, "architecture.json"),
@@ -1194,8 +1210,12 @@ function main() {
     templatePath,
   });
 
+  const shouldFail = computeExitCode(result, changedPaths);
+  // Fold the total verdict in BEFORE rendering so the report tail reflects it.
+  result.hasChanges = shouldFail;
+
   process.stdout.write(renderReport(result));
-  process.exit(result.hasChanges ? 1 : 0);
+  process.exit(shouldFail ? 1 : 0);
 }
 
 if (require.main === module) {
@@ -1214,6 +1234,7 @@ module.exports = {
   buildVerifiedEdges,
   runGovernance,
   writeOutputs,
+  computeExitCode,
   renderArchitectureMd,
   renderChartsMd,
   renderReport,
