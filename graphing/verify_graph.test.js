@@ -3,7 +3,7 @@ const assert = require("node:assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { runGovernance, walk, stripCommentsAndStrings, extractImports, renderReport, detectRemoteUsage, computeExitCode, writeOutputs, renderArchitectureMd, renderChartsMd } = require("./verify_graph");
+const { runGovernance, walk, stripCommentsAndStrings, extractImports, renderReport, detectRemoteUsage, computeExitCode, writeOutputs, renderArchitectureMd, renderChartsMd, resolveImportToNode } = require("./verify_graph");
 const projectRoot = path.resolve(__dirname, "..");
 
 // makeFixtureTree(layout) -> root (tmp dir); caller runs rmSync in t.after().
@@ -449,4 +449,81 @@ test("renderArchitectureMd and renderChartsMd order known layers and bucket unkn
   );
 });
 
+test("writeOutputs does not touch files when content is identical (mtime preserved)", (t) => {
+  const root = makeFixtureTree({
+    "app/_layout.tsx": `// app`,
+  });
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const dataDir = path.join(root, "data");
+  fs.mkdirSync(dataDir, { recursive: true });
+  const result = runFixtureGovernance(root, { app: ["app/_layout.tsx"] });
+  const paths = {
+    nodesPath: path.join(dataDir, "nodes.js"),
+    edgesPath: path.join(dataDir, "edges.js"),
+    jsonPath: path.join(root, "architecture.json"),
+    htmlPath: path.join(root, "architecture.html"),
+    mdPath: path.join(root, "ARCHITECTURE.md"),
+    chartsMdPath: path.join(root, "ARCHITECTURE_CHARTS.md"),
+  };
 
+  // First write
+  writeOutputs(result, paths);
+  const mtimeBefore = fs.statSync(paths.nodesPath).mtimeMs;
+
+  // Delay so mtime would differ if file were re-written
+  const start = Date.now();
+  while (Date.now() - start < 50) { /* spin */ }
+
+  // Second write — identical content
+  const { changedPaths } = writeOutputs(result, paths);
+  const mtimeAfter = fs.statSync(paths.nodesPath).mtimeMs;
+
+  assert.deepStrictEqual(changedPaths, [], "changedPaths must be empty");
+  assert.strictEqual(mtimeAfter, mtimeBefore, "mtime must not change when content is identical");
+});
+
+test("barrel cycle does not crash — returns resolved-unmapped", (t) => {
+  const root = makeFixtureTree({
+    "app/a/index.ts": `export { something } from '../b';\n`,
+    "app/b/index.ts": `export { something } from '../a';\n`,
+    "app/consumer.tsx": `import { something } from './a';\n`,
+  });
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+
+  const fileToNode = new Map();
+  fileToNode.set(path.join(root, "app", "consumer.tsx"), "consumer");
+
+  const opts = {
+    projectRoot: root,
+    externalPackageMap: {},
+    fileToNode,
+    classifyFile: () => null,
+    discoveredExternals: new Set(),
+  };
+
+  // Must not throw (stack overflow) — should return gracefully
+  const result = resolveImportToNode("./a", path.join(root, "app", "consumer.tsx"), opts);
+  assert.strictEqual(result.nodeId, null, "cycle must resolve to null, not crash");
+  assert.ok(
+    result.reason === "resolved-unmapped" || result.reason === "unresolvable",
+    `must report a reason, got: ${result.reason}`,
+  );
+});
+
+test("renderChartsMd emits Mermaid edge arrows for arch edges", () => {
+  const nodes = [
+    { id: "a", label: "A", type: "component", layer: "presentation", description: "a" },
+    { id: "b", label: "B", type: "service", layer: "application", description: "b" },
+  ];
+  const edges = [
+    { id: "e1", source: "a", target: "b", type: "calls", label: "calls" },
+  ];
+  const orderedLayers = ["presentation", "application"];
+  const layerClasses = {
+    presentation: "fill:#f9f",
+    application: "fill:#bbf",
+  };
+
+  const chartsMd = renderChartsMd(nodes, edges, orderedLayers, layerClasses);
+  assert.match(chartsMd, /a --> b/, "must contain the edge arrow a --> b");
+});

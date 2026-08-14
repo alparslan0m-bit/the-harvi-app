@@ -383,7 +383,8 @@ function classifyFiles(allFiles, sortedPatterns, projectRoot) {
 //  IMPORT → NODE RESOLUTION
 // ============================================================================
 
-function resolveImportToNode(importPath, currentFile, opts) {
+function resolveImportToNode(importPath, currentFile, opts, visited) {
+  if (!visited) visited = new Set();
   const { projectRoot, externalPackageMap, fileToNode, classifyFile, discoveredExternals } = opts;
 
   // Check external packages
@@ -444,9 +445,12 @@ function resolveImportToNode(importPath, currentFile, opts) {
     const content = fs.readFileSync(candidate, "utf8");
     const reExportRegex = /export\s+.*\s+from\s+['"]([^'"]+)['"]/g;
     let reMatch;
-    while ((reMatch = reExportRegex.exec(content)) !== null) {
-      const resolved = resolveImportToNode(reMatch[1], candidate, opts);
-      if (resolved.nodeId) return resolved;
+    if (!visited.has(candidate)) {
+      visited.add(candidate);
+      while ((reMatch = reExportRegex.exec(content)) !== null) {
+        const resolved = resolveImportToNode(reMatch[1], candidate, opts, visited);
+        if (resolved.nodeId) return resolved;
+      }
     }
   }
 
@@ -991,8 +995,10 @@ function writeOutputs(
     const existingContent = fs.existsSync(filePath)
       ? fs.readFileSync(filePath, "utf8")
       : "";
-    fs.writeFileSync(filePath, content);
-    if (existingContent !== content) changedPaths.push(filePath);
+    if (existingContent !== content) {
+      fs.writeFileSync(filePath, content);
+      changedPaths.push(filePath);
+    }
   }
 
   return { changedPaths };
