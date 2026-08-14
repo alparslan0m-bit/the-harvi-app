@@ -737,14 +737,6 @@ module.exports = [
   },
   {
     "id": "e93",
-    "source": "supabase_client",
-    "target": "supabase_functions",
-    "type": "calls",
-    "label": "calls",
-    "description": "Auto-discovered: artifacts/mobile/src/shared/store/purchaseStore.tsx"
-  },
-  {
-    "id": "e94",
     "source": "tab_navigator",
     "target": "error_boundary",
     "type": "calls",
@@ -752,7 +744,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/app/(main)/(tabs)/_layout.tsx"
   },
   {
-    "id": "e95",
+    "id": "e94",
     "source": "auth_store",
     "target": "best_score_service",
     "type": "calls",
@@ -760,7 +752,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
   },
   {
-    "id": "e96",
+    "id": "e95",
     "source": "auth_store",
     "target": "progress_service",
     "type": "calls",
@@ -768,7 +760,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
   },
   {
-    "id": "e97",
+    "id": "e96",
     "source": "learn_feature",
     "target": "best_score_service",
     "type": "calls",
@@ -776,7 +768,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useLectureBestScores.ts, artifacts/mobile/src/features/learn/hooks/useLectureBestScores.ts, artifacts/mobile/src/features/learn/index.ts"
   },
   {
-    "id": "e98",
+    "id": "e97",
     "source": "learn_feature",
     "target": "progress_service",
     "type": "calls",
@@ -784,7 +776,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useProgress.ts, artifacts/mobile/src/features/learn/hooks/useProgress.ts, artifacts/mobile/src/features/learn/index.ts"
   },
   {
-    "id": "e99",
+    "id": "e98",
     "source": "learn_feature",
     "target": "question_cache",
     "type": "calls",
@@ -792,7 +784,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useSubjectCache.ts"
   },
   {
-    "id": "e100",
+    "id": "e99",
     "source": "purchase_store",
     "target": "revenuecat",
     "type": "calls",
@@ -800,7 +792,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/purchaseStore.tsx"
   },
   {
-    "id": "e101",
+    "id": "e100",
     "source": "question_service",
     "target": "quiz_feature",
     "type": "calls",
@@ -808,7 +800,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/quiz/services/questionService.ts"
   },
   {
-    "id": "e102",
+    "id": "e101",
     "source": "quiz_feature",
     "target": "offline_queue",
     "type": "calls",
@@ -816,7 +808,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts"
   },
   {
-    "id": "e103",
+    "id": "e102",
     "source": "stats_feature",
     "target": "stats_service",
     "type": "calls",
@@ -824,7 +816,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/stats/hooks/useStats.ts, artifacts/mobile/src/features/stats/hooks/useStats.ts, artifacts/mobile/src/features/stats/index.ts"
   },
   {
-    "id": "e104",
+    "id": "e103",
     "source": "sync_store",
     "target": "offline_queue",
     "type": "calls",
@@ -832,7 +824,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/syncStore.tsx"
   },
   {
-    "id": "e105",
+    "id": "e104",
     "source": "access_service",
     "target": "shared_utils",
     "type": "calls",
@@ -840,7 +832,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/accessService.ts"
   },
   {
-    "id": "e106",
+    "id": "e105",
     "source": "auth_store",
     "target": "shared_utils",
     "type": "calls",
@@ -848,7 +840,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
   },
   {
-    "id": "e107",
+    "id": "e106",
     "source": "best_score_service",
     "target": "shared_utils",
     "type": "calls",
@@ -856,7 +848,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/bestScoreService.ts"
   },
   {
-    "id": "e108",
+    "id": "e107",
     "source": "hierarchy_service",
     "target": "shared_utils",
     "type": "calls",
@@ -864,7 +856,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/hierarchyService.ts"
   },
   {
-    "id": "e109",
+    "id": "e108",
     "source": "learn_feature",
     "target": "shared_utils",
     "type": "calls",
@@ -872,7 +864,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useSubjectCache.ts"
   },
   {
-    "id": "e110",
+    "id": "e109",
     "source": "progress_service",
     "target": "shared_utils",
     "type": "calls",
@@ -880,7 +872,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/progressService.ts"
   },
   {
-    "id": "e111",
+    "id": "e110",
     "source": "purchase_feature",
     "target": "shared_utils",
     "type": "calls",
@@ -888,7 +880,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/purchase/hooks/useMyPurchases.ts"
   },
   {
-    "id": "e112",
+    "id": "e111",
     "source": "question_service",
     "target": "shared_utils",
     "type": "calls",
@@ -896,7 +888,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/quiz/services/questionService.ts"
   },
   {
-    "id": "e113",
+    "id": "e112",
     "source": "shared_utils",
     "target": "async_storage",
     "type": "calls",
@@ -904,7 +896,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/utils/cacheUtils.ts"
   },
   {
-    "id": "e114",
+    "id": "e113",
     "source": "shared_utils",
     "target": "netinfo",
     "type": "calls",
@@ -912,7 +904,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/utils/netInfo.ts"
   },
   {
-    "id": "e115",
+    "id": "e114",
     "source": "shared_utils",
     "target": "offline_queue",
     "type": "calls",
@@ -920,7 +912,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/utils/cacheUtils.ts"
   },
   {
-    "id": "e116",
+    "id": "e115",
     "source": "stats_service",
     "target": "shared_utils",
     "type": "calls",
@@ -928,7 +920,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/stats/services/statsService.ts"
   },
   {
-    "id": "e117",
+    "id": "e116",
     "source": "sync_store",
     "target": "shared_utils",
     "type": "calls",
@@ -936,12 +928,84 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/syncStore.tsx"
   },
   {
-    "id": "e118",
+    "id": "e117",
     "source": "offline_banner",
     "target": "sync_store",
     "type": "calls",
     "label": "calls",
     "description": "Auto-discovered: artifacts/mobile/src/shared/components/OfflineBanner.tsx"
+  },
+  {
+    "id": "e118",
+    "source": "access_service",
+    "target": "supabase_db",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/accessService.ts"
+  },
+  {
+    "id": "e119",
+    "source": "auth_store",
+    "target": "supabase_auth",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
+  },
+  {
+    "id": "e120",
+    "source": "hierarchy_service",
+    "target": "supabase_db",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/hierarchyService.ts"
+  },
+  {
+    "id": "e121",
+    "source": "profile_feature",
+    "target": "supabase_db",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/profile/components/AccountActions.tsx"
+  },
+  {
+    "id": "e122",
+    "source": "purchase_store",
+    "target": "supabase_db",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/purchaseStore.tsx"
+  },
+  {
+    "id": "e123",
+    "source": "purchase_store",
+    "target": "supabase_functions",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/purchaseStore.tsx"
+  },
+  {
+    "id": "e124",
+    "source": "quiz_feature",
+    "target": "supabase_db",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts"
+  },
+  {
+    "id": "e125",
+    "source": "stats_service",
+    "target": "supabase_db",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/stats/services/statsService.ts"
+  },
+  {
+    "id": "e126",
+    "source": "sync_store",
+    "target": "supabase_db",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/syncStore.tsx"
   },
   {
     "source": "react_query",

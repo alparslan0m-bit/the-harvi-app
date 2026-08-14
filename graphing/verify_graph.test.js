@@ -3,7 +3,7 @@ const assert = require("node:assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { runGovernance, walk, stripCommentsAndStrings, extractImports, renderReport } = require("./verify_graph");
+const { runGovernance, walk, stripCommentsAndStrings, extractImports, renderReport, detectRemoteUsage } = require("./verify_graph");
 const projectRoot = path.resolve(__dirname, "..");
 
 // makeFixtureTree(layout) -> root (tmp dir); caller runs rmSync in t.after().
@@ -185,3 +185,83 @@ function emptyRenderResult() {
     edgesChanged: false,
   };
 }
+
+test("non-client node directly using supabase.from() gets a DB edge with line evidence", async (t) => {
+  const root = makeFixtureTree({
+    "app/_layout.tsx": `// app`,
+    "app/features/access/service.ts": `import { supabase } from '../../shared/services/supabase';
+export const go = () => supabase.from('t').select('*');`,
+    "app/shared/services/supabase.ts": `export const supabase = { from: (t) => ({ select: () => {} }) };`,
+  });
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const result = runFixtureGovernance(root, {
+    app: ["app/_layout.tsx"],
+    access_service: ["app/features/access"],
+    supabase_client: ["app/shared/services/supabase.ts"],
+  });
+  const key = "access_service->supabase_db";
+  const evidence = result.edgeEvidence.get(key);
+  assert.ok(evidence, key + " must exist");
+  assert.ok(evidence[0].lineNum >= 1, "evidence must carry a real line number");
+  assert.match(evidence[0].snippet, /supabase\.from/);
+});
+
+test("supabase_client with createClient yields implicit auth and db edges", async (t) => {
+  const root = makeFixtureTree({
+    "app/shared/services/supabase.ts": `import { createClient } from "@supabase/supabase-js";
+export const supabase = createClient(url, anonKey, { auth: { autoRefreshToken: true } });`,
+  });
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const result = runFixtureGovernance(root, {
+    supabase_client: ["app/shared/services/supabase.ts"],
+  });
+  for (const remote of ["supabase_auth", "supabase_db"]) {
+    const key = `supabase_client->${remote}`;
+    const evidence = result.edgeEvidence.get(key);
+    assert.ok(evidence, key + " must exist");
+    assert.ok(evidence[0].lineNum >= 1, "evidence must carry a real line number");
+    assert.match(evidence[0].snippet, /createClient/);
+  }
+});
+
+test("functions.invoke in a non-client node yields fromNode->supabase_functions, not supabase_client->supabase_functions", async (t) => {
+  const root = makeFixtureTree({
+    "app/features/quiz/service.ts": `import { supabase } from '../../shared/services/supabase';
+export const ping = () => supabase.functions.invoke('hello-world');`,
+    "app/shared/services/supabase.ts": `import { createClient } from "@supabase/supabase-js";
+export const supabase = createClient(url, anonKey);`,
+  });
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const result = runFixtureGovernance(root, {
+    quiz_feature: ["app/features/quiz"],
+    supabase_client: ["app/shared/services/supabase.ts"],
+  });
+  const key = "quiz_feature->supabase_functions";
+  const evidence = result.edgeEvidence.get(key);
+  assert.ok(evidence, key + " must exist");
+  assert.match(evidence[0].snippet, /functions\.invoke/);
+  assert.ok(
+    !result.edgeEvidence.has("supabase_client->supabase_functions"),
+    "wrongly-attributed supabase_client->supabase_functions must not exist",
+  );
+});
+
+test("detectRemoteUsage reports remoteId, lineNum and snippet for first match", () => {
+  const content = `const x = 1;
+supabase.from('users').select('*');
+supabase.auth.getSession();
+`;
+  const remoteNodes = {
+    supabase_auth: { patterns: [/supabase\.auth\./] },
+    supabase_db: { patterns: [/supabase\.rpc\(/, /supabase\.from\(/] },
+    supabase_functions: { patterns: [/supabase\.functions\.invoke\(/] },
+  };
+  const usage = detectRemoteUsage(content, remoteNodes);
+  assert.deepStrictEqual(usage.map((u) => u.remoteId).sort(), ["supabase_auth", "supabase_db"]);
+  const db = usage.find((u) => u.remoteId === "supabase_db");
+  assert.strictEqual(db.lineNum, 2);
+  assert.match(db.snippet, /supabase\.from/);
+  const auth = usage.find((u) => u.remoteId === "supabase_auth");
+  assert.strictEqual(auth.lineNum, 3);
+  assert.match(auth.snippet, /supabase\.auth\.getSession/);
+});

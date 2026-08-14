@@ -155,7 +155,6 @@ flowchart LR
   purchase_feature --> error_boundary
   quiz_feature --> error_boundary
   stats_feature --> error_boundary
-  supabase_client --> supabase_functions
   tab_navigator --> error_boundary
   auth_store --> best_score_service
   auth_store --> progress_service
@@ -181,5 +180,14 @@ flowchart LR
   stats_service --> shared_utils
   sync_store --> shared_utils
   offline_banner --> sync_store
+  access_service --> supabase_db
+  auth_store --> supabase_auth
+  hierarchy_service --> supabase_db
+  profile_feature --> supabase_db
+  purchase_store --> supabase_db
+  purchase_store --> supabase_functions
+  quiz_feature --> supabase_db
+  stats_service --> supabase_db
+  sync_store --> supabase_db
 ```
 

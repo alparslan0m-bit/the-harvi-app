@@ -462,9 +462,28 @@ function resolveImportToNode(importPath, currentFile, opts) {
 //  REMOTE USAGE DETECTION (stub — full implementation is a later task)
 // ============================================================================
 
-// Stub: returns []. Remote detection currently stays inline in runGovernance.
+// For each remote, find the FIRST match of any of its patterns in the content
+// and report real, 1-based line plus the trimmed text of the matched line.
 function detectRemoteUsage(content, remoteNodes) {
-  return [];
+  const usage = [];
+  for (const [remoteId, remoteConfig] of Object.entries(remoteNodes)) {
+    if (!remoteConfig || !Array.isArray(remoteConfig.patterns)) continue;
+    let matchIndex = -1;
+    for (const pattern of remoteConfig.patterns) {
+      matchIndex = content.search(pattern);
+      if (matchIndex !== -1) break;
+    }
+    if (matchIndex === -1) continue;
+    const lineStart = content.lastIndexOf("\n", matchIndex) + 1;
+    const lineEndIdx = content.indexOf("\n", matchIndex);
+    const lineEnd = lineEndIdx === -1 ? content.length : lineEndIdx;
+    usage.push({
+      remoteId,
+      lineNum: content.slice(0, matchIndex).split("\n").length,
+      snippet: content.slice(lineStart, lineEnd).trim(),
+    });
+  }
+  return usage;
 }
 
 // ============================================================================
@@ -584,7 +603,14 @@ function runGovernance({
   dataDir,
   config,
 }) {
-  const { nodeMapping, externalPackageMap, remoteNodes, orderedLayers, layerClasses } = config;
+  const {
+    nodeMapping,
+    externalPackageMap,
+    remoteNodes,
+    supabaseClientImplicitRemotes,
+    orderedLayers,
+    layerClasses,
+  } = config;
 
   // ==========================================================================
   //  LOAD EXISTING METADATA (for round-tripping descriptions/labels)
@@ -686,131 +712,72 @@ function runGovernance({
       }
     }
 
-    // Detect remote Supabase usage (supabase_auth, supabase_db, supabase_functions)
+    // Detect remote Supabase usage — a file that directly invokes a remote API
+    // edges fromNode -> remoteId with real, 1-based line evidence.
+    for (const { remoteId, lineNum, snippet } of detectRemoteUsage(content, remoteNodes)) {
+      discoveredRemotes.add(remoteId);
+      const key = `${fromNode}->${remoteId}`;
+      if (!edgeEvidence.has(key)) edgeEvidence.set(key, []);
+      edgeEvidence.get(key).push({
+        file: path.relative(projectRoot, file).replace(/\\/g, "/"),
+        lineNum,
+        snippet,
+      });
+    }
+
+    // supabase_client additionally gets implicit edges to the configured remotes
+    // (supabase_auth, supabase_db) when the client is constructed in this file.
     if (fromNode === "supabase_client") {
-      // supabase_client connects to the remote services
-      for (const [remoteId, config] of Object.entries(remoteNodes)) {
-        for (const pattern of config.patterns) {
-          if (pattern.test(content)) {
-            discoveredRemotes.add(remoteId);
-            const key = `supabase_client->${remoteId}`;
-            if (!edgeEvidence.has(key)) edgeEvidence.set(key, []);
-            edgeEvidence.get(key).push({
-              file: path.relative(projectRoot, file).replace(/\\/g, "/"),
-              lineNum: 0,
-              importPath: `[API usage: ${pattern.source}]`,
-            });
-          }
-        }
-      }
-    } else {
-      // Other nodes that call supabase APIs directly
-      for (const [remoteId, config] of Object.entries(remoteNodes)) {
-        for (const pattern of config.patterns) {
-          if (pattern.test(content)) {
-            discoveredRemotes.add(remoteId);
-          }
-        }
-      }
-    }
-  }
-
-  // Infer edges from nodes that import supabase_client AND use remote APIs
-  for (const file of allFiles) {
-    const fromNode = fileToNode.get(file);
-    if (!fromNode || fromNode === "supabase_client") continue;
-
-    // Only if this node imports supabase_client
-    const hasSupabaseEdge = edgeEvidence.has(`${fromNode}->supabase_client`);
-    if (!hasSupabaseEdge) continue;
-
-    const content = fs.readFileSync(file, "utf8");
-    for (const [remoteId, config] of Object.entries(remoteNodes)) {
-      for (const pattern of config.patterns) {
-        if (pattern.test(content)) {
+      const implicit = supabaseClientImplicitRemotes[fromNode] || [];
+      const createMatch = content.search(/createClient(?:WithOptions)?\(/);
+      if (implicit.length > 0 && createMatch !== -1) {
+        const lineStart = content.lastIndexOf("\n", createMatch) + 1;
+        const lineEndIdx = content.indexOf("\n", createMatch);
+        const lineEnd = lineEndIdx === -1 ? content.length : lineEndIdx;
+        const evidence = {
+          file: path.relative(projectRoot, file).replace(/\\/g, "/"),
+          lineNum: content.slice(0, createMatch).split("\n").length,
+          snippet: content.slice(lineStart, lineEnd).trim(),
+        };
+        for (const remoteId of implicit) {
+          const key = `${fromNode}->${remoteId}`;
+          if (edgeEvidence.has(key)) continue;
           discoveredRemotes.add(remoteId);
-          // The connection goes through supabase_client, not direct
-          // supabase_client->remote edges are already added above
+          edgeEvidence.set(key, [evidence]);
         }
       }
     }
   }
 
-  // Also add remote nodes that are reachable via the supabase_client edges
-  // The supabase_client file itself connects to auth, db, functions
-  // But we need to read the actual supabase.ts file to verify
-  const supabaseClientFile = path.join(
-    projectRoot,
-    "artifacts/mobile/src/shared/services/supabase.ts",
-  );
-  if (fs.existsSync(supabaseClientFile)) {
-    const content = fs.readFileSync(supabaseClientFile, "utf8");
-    // supabase client always connects to auth and db
-    if (content.includes("createClient")) {
-      discoveredRemotes.add("supabase_auth");
-      discoveredRemotes.add("supabase_db");
-
-      if (!edgeEvidence.has("supabase_client->supabase_auth")) {
-        edgeEvidence.set("supabase_client->supabase_auth", [
-          {
-            file: "artifacts/mobile/src/shared/services/supabase.ts",
-            lineNum: 0,
-            importPath: "[createClient implies auth connection]",
-          },
-        ]);
-      }
-      if (!edgeEvidence.has("supabase_client->supabase_db")) {
-        edgeEvidence.set("supabase_client->supabase_db", [
-          {
-            file: "artifacts/mobile/src/shared/services/supabase.ts",
-            lineNum: 0,
-            importPath: "[createClient implies DB connection]",
-          },
-        ]);
-      }
-    }
-  }
-
-  // Check if any node uses supabase.functions.invoke to discover supabase_functions
-  for (const file of allFiles) {
-    const fromNode = fileToNode.get(file);
-    if (!fromNode) continue;
-    const content = fs.readFileSync(file, "utf8");
-    if (/functions\.invoke\s*\(/.test(content)) {
-      discoveredRemotes.add("supabase_functions");
-      // The edge goes from the supabase_client to supabase_functions
-      if (!edgeEvidence.has("supabase_client->supabase_functions")) {
-        edgeEvidence.set("supabase_client->supabase_functions", [
-          {
-            file: path.relative(projectRoot, file).replace(/\\/g, "/"),
-            lineNum: 0,
-            importPath: "[functions.invoke usage]",
-          },
-        ]);
-      }
-    }
-  }
-
-  // Check supabase edge functions directory for supabase_functions node
+  // supabase_functions -> supabase_db — edge functions write to the database.
+  // Config-driven via detectRemoteUsage on the supabase_db patterns, extended
+  // with the legacy DB-access verbs (.from/.rpc/.insert) that defined this
+  // edge, because edge functions bind their client to a non-default name
+  // (supabaseAdmin) that the pure superbase.<verb> patterns cannot match.
   if (fs.existsSync(supabaseFunctionsDir)) {
     discoveredRemotes.add("supabase_functions");
-    // supabase_functions -> supabase_db edge (edge functions write to DB)
+    const fnPatterns = {
+      supabase_db: {
+        patterns: [
+          ...remoteNodes.supabase_db.patterns,
+          /\.from\(/,
+          /\.rpc\(/,
+          /\.insert\(/,
+        ],
+      },
+    };
     const fnFiles = walk(supabaseFunctionsDir);
     for (const fnFile of fnFiles) {
       const content = fs.readFileSync(fnFile, "utf8");
-      if (/\.from\(|\.rpc\(|\.insert\(/.test(content)) {
-        if (!edgeEvidence.has("supabase_functions->supabase_db")) {
-          edgeEvidence.set("supabase_functions->supabase_db", [
-            {
-              file: path
-                .relative(projectRoot, fnFile)
-                .replace(/\\/g, "/"),
-              lineNum: 0,
-              importPath: "[Edge function DB write]",
-            },
-          ]);
-        }
-      }
+      const usage = detectRemoteUsage(content, fnPatterns);
+      if (usage.length === 0) continue;
+      const key = "supabase_functions->supabase_db";
+      if (!edgeEvidence.has(key)) edgeEvidence.set(key, []);
+      edgeEvidence.get(key).push({
+        file: path.relative(projectRoot, fnFile).replace(/\\/g, "/"),
+        lineNum: usage[0].lineNum,
+        snippet: usage[0].snippet,
+      });
     }
   }
 
