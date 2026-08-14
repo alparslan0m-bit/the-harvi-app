@@ -352,3 +352,26 @@ test("writeOutputs reports changedPaths on first write and none on identical re-
     "drifted ARCHITECTURE.md must be detected and rewritten",
   );
 });
+
+test("stale metadata path for local node is corrected and reported", (t) => {
+  const root = makeFixtureTree({
+    "app/_layout.tsx": `// app`,
+    "app/features/learn/service.ts": `export const x = 1;`,
+    "data/nodes.js": `module.exports = [
+      { id: "learn_feature", label: "Learn", type: "service", layer: "application", path: "artifacts/mobile/src/old/learn/path", description: "Learn" }
+    ];`,
+    "data/edges.js": `module.exports = [];\n`,
+  });
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const result = runFixtureGovernance(root, {
+    learn_feature: ["app/features/learn"],
+  });
+  assert.strictEqual(result.staleMetadataPaths.length, 1, "must report 1 stale metadata path");
+  assert.strictEqual(result.staleMetadataPaths[0].nodeId, "learn_feature");
+  assert.strictEqual(result.staleMetadataPaths[0].curatedPath, "artifacts/mobile/src/old/learn/path");
+  assert.strictEqual(result.staleMetadataPaths[0].derivedPath, "app/features/learn");
+  assert.strictEqual(result.hasChanges, true, "hasChanges must be true when metadata path is stale");
+  const node = result.verifiedNodes.find((n) => n.id === "learn_feature");
+  assert.strictEqual(node.path, "app/features/learn", "node path must be updated to derived path");
+});
+

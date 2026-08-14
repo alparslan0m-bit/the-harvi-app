@@ -490,31 +490,63 @@ function detectRemoteUsage(content, remoteNodes) {
 //  BUILD VERIFIED NODE LIST
 // ============================================================================
 
-function buildVerifiedNodes(allNodeIds, existingNodes) {
+function buildVerifiedNodes(allNodeIds, existingNodes, opts = {}) {
+  const { sortedPatterns, projectRoot, externalPackageMap, remoteNodes } = opts;
   const existingNodeMap = new Map();
   existingNodes.forEach((n) => existingNodeMap.set(n.id, n));
+  const staleMetadataPaths = [];
+
+  const patternsByNode = new Map();
+  if (sortedPatterns) {
+    for (const { nodeId, pat } of sortedPatterns) {
+      if (!patternsByNode.has(nodeId)) patternsByNode.set(nodeId, []);
+      patternsByNode.get(nodeId).push(pat);
+    }
+  }
+
+  const isExternalOrRemote = (id) =>
+    (externalPackageMap && id in externalPackageMap) ||
+    (remoteNodes && id in remoteNodes);
 
   function buildNode(nodeId) {
     const existing = existingNodeMap.get(nodeId);
-
-    if (existing) {
-      // Round-trip existing metadata
-      return { ...existing };
+    const nodePatterns = patternsByNode.get(nodeId) || [];
+    let derivedPath = null;
+    if (nodePatterns.length > 0) {
+      derivedPath = [...nodePatterns].sort((a, b) => b.length - a.length)[0];
     }
 
-    // New node — create minimal entry
-    return {
+    if (existing) {
+      const node = { ...existing };
+      if (existing.path && derivedPath && projectRoot && !isExternalOrRemote(nodeId)) {
+        const absCurated = path.join(projectRoot, existing.path);
+        if (existing.path !== derivedPath && !fs.existsSync(absCurated)) {
+          staleMetadataPaths.push({
+            nodeId,
+            curatedPath: existing.path,
+            derivedPath,
+          });
+          node.path = derivedPath;
+        }
+      }
+      return node;
+    }
+
+    const newNode = {
       id: nodeId,
       label: nodeId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
       type: "unknown",
       layer: "unknown",
       description: `Auto-discovered node: ${nodeId}`,
     };
+    if (derivedPath && !isExternalOrRemote(nodeId)) {
+      newNode.path = derivedPath;
+    }
+    return newNode;
   }
 
-  return [...allNodeIds]
+  const verifiedNodes = [...allNodeIds]
     .sort((a, b) => {
-      // Maintain original order from existing nodes, new ones at end
       const aIdx = existingNodes.findIndex((n) => n.id === a);
       const bIdx = existingNodes.findIndex((n) => n.id === b);
       if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
@@ -523,6 +555,8 @@ function buildVerifiedNodes(allNodeIds, existingNodes) {
       return a.localeCompare(b);
     })
     .map(buildNode);
+
+  return { verifiedNodes, staleMetadataPaths };
 }
 
 // ============================================================================
@@ -791,7 +825,11 @@ function runGovernance({
     ...discoveredRemotes,
   ]);
 
-  const verifiedNodes = buildVerifiedNodes(allNodeIds, existingNodes);
+  const { verifiedNodes, staleMetadataPaths } = buildVerifiedNodes(
+    allNodeIds,
+    existingNodes,
+    { sortedPatterns, projectRoot, externalPackageMap, remoteNodes },
+  );
 
   const { verifiedArchEdges, verifiedFlowEdges, verifiedEdges } = buildVerifiedEdges(
     edgeEvidence,
@@ -855,10 +893,6 @@ function runGovernance({
   // ==========================================================================
   //  GOVERNANCE DELTAS (report + exit code inputs)
   // ==========================================================================
-
-  // Task-6 slot: populated with { nodeId, field } for stale curated metadata.
-  // Empty today; defensive term in hasChanges is inert while empty.
-  const staleMetadataPaths = [];
 
   const oldNodeIds = new Set(existingNodes.map((n) => n.id));
   const newNodeIds = allNodeIds;
@@ -1067,6 +1101,14 @@ function renderReport(result) {
     report += "⚠️  STALE PATHS REMOVED FROM NODE MAPPING:\n";
     result.stalePatterns.forEach((s) => {
       report += `   ❌ ${s.nodeId} → ${s.pattern}\n`;
+    });
+    report += "\n";
+  }
+
+  if (result.staleMetadataPaths && result.staleMetadataPaths.length > 0) {
+    report += "⚠️  STALE NODE METADATA PATHS CORRECTED:\n";
+    result.staleMetadataPaths.forEach((s) => {
+      report += `   ❌ ${s.nodeId}: "${s.curatedPath}" -> "${s.derivedPath}"\n`;
     });
     report += "\n";
   }
