@@ -12,7 +12,6 @@ flowchart LR
   classDef application fill:#60a5fa,stroke:#1e3a8a,stroke-width:2px,color:#000
   classDef infrastructure fill:#fbbf24,stroke:#78350f,stroke-width:2px,color:#000
   classDef external fill:#a1a1aa,stroke:#3f3f46,stroke-width:2px,color:#000
-
   subgraph PRESENTATION
     direction TB
     app["Mobile App Router"]:::presentation
@@ -61,6 +60,13 @@ flowchart LR
     revenuecat["RevenueCat"]:::external
     netinfo["NetInfo"]:::external
     google_oauth["Google OAuth"]:::external
+  end
+
+  classDef unknown fill:#52525b,stroke:#3f3f46,stroke-width:2px,stroke-dasharray:5 5,color:#e4e4e7
+
+  subgraph MISC
+    direction TB
+    shared_utils["Shared Utils"]:::unknown
   end
 
   app --> error_boundary

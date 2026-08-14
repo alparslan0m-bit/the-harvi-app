@@ -50,7 +50,7 @@
 - **netinfo** (React Native): Network connectivity detection. Used by syncStore (subscribe to changes), and by every service layer (fetch/addEventListener) for offline-first short-circuit before any Supabase call
 - **google_oauth** (Unknown): Google OAuth provider accessed via expo-web-browser openAuthSessionAsync. Supabase initiates the OAuth flow, browser handles consent, app receives code/tokens via deep link redirect
 
-### UNKNOWN LAYER
+### OTHER LAYER
 
 - **shared_utils** (Unknown): Auto-discovered node: shared_utils
 
