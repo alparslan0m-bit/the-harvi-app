@@ -126,7 +126,8 @@ The honest, senior-architect answer has three parts:
    - **SQLite + Drizzle** → anything you need to *query, filter, join, index, or
      transactionally mutate* (offline queue, question bank, progress ledger).
    - **AsyncStorage** → kept only for legacy keys you haven't migrated yet, or for
-     the web target where MMKV/SQLite behave differently.
+     the web target where MMKV/SQLite behave differently. **Harvi has now fully
+     retired it** — see §12.1 for the executed three-tier layout (plan.md Phases A–D).
 
 So: **yes, migrating the right subsets to MMKV and SQLite+Drizzle is a genuine win
 for Harvi — but the win is surgical, not wholesale, and the biggest risk is
@@ -291,7 +292,9 @@ Harvi's usage is a textbook (and well-architected) AsyncStorage deployment:
 - `harvi:quiz:fkcol` → question foreign-key column resolution
 
 That is ~9 distinct cache domains, many of them *per-user* namespaced. This is
-exactly the shape of a serious offline-first cache layer.
+exactly the shape of a serious offline-first cache layer. **All of these keys have
+since been migrated to SQLite/MMKV and the AsyncStorage dependency removed** — see
+§12.1 for the current storage map (plan.md Phases A–D).
 
 ### 5.2 The History You Should Know
 
@@ -1238,19 +1241,29 @@ is split by shape.
 
 ### 12.1 Current Storage Map
 
-| Key pattern | Service | Data shape | Access pattern | Verdict |
-|---|---|---|---|---|
-| `harvi:theme` | `themeStore.tsx` | string | sync-ish (one read) | → MMKV |
-| `harvi:avatar`, `harvi:displayName` | `useProfileEdit/Data.ts` | string | read/write, low freq | → MMKV |
-| `harvi:quiz_queue` | `offlineQueue.ts` | **array of objects** | **read-all + write-all** | → SQLite table (highest priority) |
-| `harvi:questionCache:<id>` | `questionCache.ts` | JSON blob | per-lecture read/write | → SQLite (or MMKV if small) |
-| `harvi:hierarchyCache` | `hierarchyService.ts` | JSON blob | read-all, then serve | → SQLite table per entity |
-| `harvi:progress:<userId>` | `progressService.ts` | Set of IDs | read-set + write-set | → SQLite ledger or MMKV set |
-| `harvi:bestScores:<userId>` | `bestScoreService.ts` | map | read-all + write-all | → SQLite or MMKV |
-| `harvi:stats:<userId>` | `statsService.ts` | JSON blob | read-all + write-all | → SQLite or MMKV |
-| `harvi:access:<userId>` | `accessService.ts` | map | read-all + write-all | → SQLite or MMKV |
-| `harvi:quiz:fkcol` | `questionService.ts` | string | read once | → MMKV |
-| (auth) | authStore / expo-secure-store | secrets | — | ✅ keep |
+**Status: the phased migration in §12.4 has been executed (plan.md Phases A–D) —
+AsyncStorage has been fully retired from `artifacts/mobile`. The current on-device
+layout is:**
+
+| Data | Service | Engine | Notes |
+|---|---|---|---|
+| Theme | `themeStore.tsx` | MMKV (`mmkv.getTheme`) | Sync read at module load — no flash |
+| Avatar, display name | `useProfileEdit/Data.ts` | MMKV (`mmkv.getAvatar/setDisplayName`) | Sync reads on focus |
+| Quiz FK-column resolution | `questionService.ts` | MMKV (`mmkv.getFkCol/setFkCol`) | Cached after first detection |
+| Hierarchy (years→modules→subjects→lectures) | `hierarchyService.ts` | SQLite (`hierarchy_*` tables) | One transaction replace |
+| Question cache (per lecture) | `questionCache.ts` | SQLite (`questions`) | Gated by `app_meta['question_cache_version']` |
+| Offline quiz queue | `offlineQueue.ts` | SQLite (`quiz_results`, pending rows) | Atomic INSERT; 30-day retention purge |
+| Progress | `progressService.ts` | SQLite (`progress`) | Replace-in-transaction |
+| Best scores | `bestScoreService.ts` | SQLite (`best_scores`) | Replace-in-transaction |
+| Stats snapshot | `statsService.ts` | SQLite (`user_stats` JSON payload row) | Documented normalization exception |
+| Content access | `accessService.ts` | SQLite (`access_map`) | Replace-in-transaction |
+| Purchases | `useMyPurchases.ts` | SQLite (`purchases`) | Replace-in-transaction |
+| Auth tokens | `authStore` | expo-secure-store | ✅ unchanged |
+
+The legacy AsyncStorage keys (`harvi:*`) are no longer read or written by any code;
+the dependency was removed from `package.json` (plan.md §11 Phase D). The old keys
+may linger on-device from prior installs but are inert — nothing imports
+`@react-native-async-storage/async-storage` anymore.
 
 ### 12.2 Line-by-Line Review of Harvi's Patterns
 
@@ -1325,6 +1338,14 @@ them. They're blobs you read whole; MMKV is a drop-in that already pays the divi
 Only move them to SQLite when you need to query them.
 
 ### 12.4 Migration Roadmap (Phased)
+
+**Status: complete.** Harvi executed this roadmap via `plan.md` (§11) — Phase A
+(foundation: deps, schema, DB plumbing, repositories, jest-expo), Phase B (SQLite
+replacement of queue + all cache services, dual-read bake window), Phase C (MMKV for
+theme/profile/fkcol), and Phase D (retirement: fallback reads removed,
+`legacyMigrator.ts` deleted, AsyncStorage removed from `package.json`). The roadmap
+below is retained as the historical plan and the reference for any future storage
+migration.
 
 **Phase 0 — Instrument and measure (1 sprint, no code behavior change).**
 - Add a thin storage interface (`ILocalStore`) in front of AsyncStorage today so

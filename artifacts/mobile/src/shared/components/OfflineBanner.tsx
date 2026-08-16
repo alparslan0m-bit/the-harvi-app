@@ -24,7 +24,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 interface Props {
   /** Whether the device currently has active network/internet reachability */
   isOnline: boolean;
-  /** Number of offline quiz results currently queued in AsyncStorage waiting to sync */
+  /** Number of offline quiz results currently queued in SQLite waiting to sync */
   pendingCount: number;
   /** Whether the sync engine is actively uploading queued items to Supabase */
   isSyncing: boolean;

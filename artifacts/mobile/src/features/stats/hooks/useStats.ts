@@ -4,8 +4,8 @@
  * Offline-first (instant):
  *  - Module-level memCache gives synchronous initialData on every mount
  *  - NetInfo check skips Supabase entirely when offline (no timeout wait)
- *  - On success   → writes full UserStats to AsyncStorage + memCache
- *  - On net error → serves last AsyncStorage snapshot + merges queue
+ *  - On success   → writes full UserStats to SQLite + memCache
+ *  - On net error → serves last SQLite snapshot + merges queue
  */
 import { useQuery } from "@tanstack/react-query";
 

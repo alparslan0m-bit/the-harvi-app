@@ -5,10 +5,8 @@
  * with pending local offline results to maintain live, zero-latency metrics.
  *
  * Phase B (plan.md §9): the persistent snapshot is the `user_stats` row (single
- * `payload` JSON column — the documented normalization exception, §4), with an
- * AsyncStorage fallback until the legacy-migration flag flips.
+ * `payload` JSON column — the documented normalization exception, §4).
  */
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 
 import { getQueue } from "@/src/shared/services/offlineQueue";
@@ -18,11 +16,9 @@ import { UserStats, UserStatsSchema } from "@/src/shared/types/schemas";
 import { useCacheStore } from "@/src/shared/store/cacheStore";
 import { fetchHierarchy } from "@/src/features/learn/services/hierarchyService";
 import { getDb } from "@/src/db/client";
-import { isLegacyMigrationDone } from "@/src/db/migrationStatus";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
-const CACHE_KEY = (uid: string) => `harvi:stats:${uid}`;
 const DAYS = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
 
 /**
@@ -60,28 +56,17 @@ export interface DbStats {
   last_quiz_date?: string | null;
 }
 
-// ── Disk helpers (SQLite canonical, AsyncStorage until migration flips) ─────
+// ── Disk helpers (SQLite canonical) ──────────────────────────────────────────
 
 async function readCache(userId: string): Promise<UserStats | null> {
-  if (await isLegacyMigrationDone()) {
-    try {
-      const db = await getDb();
-      const row = await db.$client.getFirstAsync<{ payload: string }>(
-        "SELECT payload FROM user_stats WHERE user_id = ?",
-        userId,
-      );
-      if (!row) return null;
-      const result = UserStatsSchema.safeParse(JSON.parse(row.payload));
-      return result.success ? result.data : null;
-    } catch (e) {
-      if (__DEV__) console.warn("[statsService] Error reading cache:", e);
-      return null;
-    }
-  }
   try {
-    const raw = await AsyncStorage.getItem(CACHE_KEY(userId));
-    if (!raw) return null;
-    const result = UserStatsSchema.safeParse(JSON.parse(raw));
+    const db = await getDb();
+    const row = await db.$client.getFirstAsync<{ payload: string }>(
+      "SELECT payload FROM user_stats WHERE user_id = ?",
+      userId,
+    );
+    if (!row) return null;
+    const result = UserStatsSchema.safeParse(JSON.parse(row.payload));
     return result.success ? result.data : null;
   } catch (e) {
     if (__DEV__) console.warn("[statsService] Error reading cache:", e);
@@ -101,19 +86,12 @@ async function writeCache(userId: string, data: UserStats): Promise<void> {
   } catch (e) {
     if (__DEV__) console.warn("[statsService] Error writing cache:", e);
   }
-  if (!(await isLegacyMigrationDone())) {
-    try {
-      await AsyncStorage.setItem(CACHE_KEY(userId), JSON.stringify(data));
-    } catch (e) {
-      if (__DEV__) console.warn("[statsService] Error writing cache:", e);
-    }
-  }
 }
 
-// ── Warm memory cache from AsyncStorage (called once per session) ────────────
+// ── Warm memory cache from SQLite (called once per session) ──────────────────
 
 /**
- * Hydrates the memory cache for user stats from AsyncStorage.
+ * Hydrates the memory cache for user stats from SQLite.
  * 
  * @param userId - The ID of the authenticated user
  */
@@ -512,7 +490,6 @@ export async function clearStatsCache(userId: string) {
       "DELETE FROM user_stats WHERE user_id = ?",
       userId,
     );
-    await AsyncStorage.removeItem(CACHE_KEY(userId));
     useCacheStore.getState().clearStatsCacheForUser(userId);
   } catch (error) {
     if (__DEV__)

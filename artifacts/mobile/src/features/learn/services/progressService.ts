@@ -4,20 +4,14 @@
  * Seamlessly merges data from three sources: the Supabase backend, the local SQLite cache,
  * and the offline sync queue to provide immediate, optimistic UI updates without waiting for network.
  *
- * Phase B (plan.md §9): disk cache is the `progress` table via the async db client,
- * with an AsyncStorage fallback until the legacy-migration flag flips.
+ * Phase B (plan.md §9): disk cache is the `progress` table via the async db client.
  */
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 
 import { getQueue } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
-import { z } from "zod";
 import { getDb } from "@/src/db/client";
-import { isLegacyMigrationDone } from "@/src/db/migrationStatus";
-
-const PROGRESS_CACHE_KEY = (uid: string) => `harvi:progress:${uid}`;
 
 // ── Module-level memory cache (survives re-renders, cleared on app restart) ──
 
@@ -28,31 +22,16 @@ const PROGRESS_CACHE_KEY = (uid: string) => `harvi:progress:${uid}`;
 export const memCache = new Map<string, Set<string>>();
 export const warmed = new Set<string>();
 
-// ── Disk helpers (SQLite canonical, AsyncStorage until migration flips) ─────
+// ── Disk helpers (SQLite canonical) ──────────────────────────────────────────
 
 async function readCache(userId: string): Promise<Set<string> | null> {
-  if (await isLegacyMigrationDone()) {
-    try {
-      const db = await getDb();
-      const rows = await db.$client.getAllAsync<{ lecture_id: string }>(
-        "SELECT lecture_id FROM progress WHERE user_id = ?",
-        userId,
-      );
-      return new Set(rows.map((r) => r.lecture_id));
-    } catch (e) {
-      if (__DEV__) console.warn("[progressService] readCache error:", e);
-      return null;
-    }
-  }
-  const raw = await AsyncStorage.getItem(PROGRESS_CACHE_KEY(userId));
-  if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw);
-    const result = z.array(z.string()).safeParse(parsed);
-    if (result.success) {
-      return new Set(result.data);
-    }
-    return null;
+    const db = await getDb();
+    const rows = await db.$client.getAllAsync<{ lecture_id: string }>(
+      "SELECT lecture_id FROM progress WHERE user_id = ?",
+      userId,
+    );
+    return new Set(rows.map((r) => r.lecture_id));
   } catch (e) {
     if (__DEV__) console.warn("[progressService] readCache error:", e);
     return null;
@@ -60,8 +39,8 @@ async function readCache(userId: string): Promise<Set<string> | null> {
 }
 
 /**
- * Writes the completed-IDs set to SQLite (replace-in-transaction), mirrors the
- * legacy AsyncStorage key during the bake window, and updates memCache.
+ * Writes the completed-IDs set to SQLite (replace-in-transaction) and updates
+ * memCache.
  *
  * @param userId - The ID of the authenticated user
  * @param ids - A Set of completed lecture string IDs
@@ -88,16 +67,6 @@ export async function writeProgressCache(
   } catch (e) {
     if (__DEV__) console.warn("[progressService] writeProgressCache error:", e);
   }
-  if (!(await isLegacyMigrationDone())) {
-    try {
-      await AsyncStorage.setItem(
-        PROGRESS_CACHE_KEY(userId),
-        JSON.stringify([...ids]),
-      );
-    } catch (e) {
-      if (__DEV__) console.warn("[progressService] writeProgressCache error:", e);
-    }
-  }
 }
 
 /**
@@ -119,10 +88,10 @@ export async function optimisticallyMarkComplete(
   await writeProgressCache(userId, current);
 }
 
-// ── Warm memory cache from AsyncStorage (called once per session) ────────────
+// ── Warm memory cache from SQLite (called once per session) ──────────────────
 
 /**
- * Warms the synchronous memory cache by pulling the persisted dataset from AsyncStorage.
+ * Warms the synchronous memory cache by pulling the persisted dataset from SQLite.
  * Typically called once per session during application bootstrap or user login.
  * 
  * @param userId - The ID of the authenticated user
@@ -246,8 +215,7 @@ export async function fetchCompletedLectures(
 // ── Cache management ─────────────────────────────────────────────────────────
 
 /**
- * Purges all progress caches for a specific user from SQLite, memory, and
- * (during the bake window) AsyncStorage.
+ * Purges all progress caches for a specific user from SQLite and memory.
  * Invoked during destructive actions like user logout or manual cache clearing.
  *
  * @param userId - The ID of the authenticated user
@@ -258,7 +226,6 @@ export async function clearProgressCache(userId: string) {
       "DELETE FROM progress WHERE user_id = ?",
       userId,
     );
-    await AsyncStorage.removeItem(PROGRESS_CACHE_KEY(userId));
     memCache.delete(userId);
     warmed.delete(userId);
   } catch (error) {

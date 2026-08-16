@@ -27,7 +27,7 @@ export function useQuizSession(lectureId: string) {
   const isOnline = useSyncStore((s) => s.isOnline);
   const { refreshCount, flush } = useSyncActions();
 
-  // ── Fast path: pre-load from AsyncStorage before RQ resolves ─────────────
+  // ── Fast path: pre-load from the on-device cache before RQ resolves ──────
   const [cachedQuestions, setCachedQuestions] = useState<
     Question[] | undefined
   >();

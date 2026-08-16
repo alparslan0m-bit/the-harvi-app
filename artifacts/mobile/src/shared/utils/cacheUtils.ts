@@ -3,10 +3,9 @@
  * @description Centralized utility functions for clearing and managing application-wide caches.
  *
  * Phase B (plan.md §9): `clearAllUserCaches` deletes every user-scoped row from
- * SQLite (`DELETE … WHERE user_id` across all tables) plus the legacy
- * AsyncStorage keys. MMKV global keys are untouched — they are not user-scoped.
+ * SQLite (`DELETE … WHERE user_id` across all tables) plus the offline queue.
+ * MMKV global keys are untouched — they are not user-scoped.
  */
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { clearQueueForUser } from "@/src/shared/services/offlineQueue";
 import { getDb } from "@/src/db/client";
 
@@ -22,7 +21,7 @@ import { getDb } from "@/src/db/client";
  */
 export async function clearAllUserCaches(userId: string): Promise<void> {
   // SQLite rows — best-effort; if the DB isn't open yet (e.g. logout during
-  // boot) this is skipped but the legacy cleanup below still runs.
+  // boot) this is skipped but the queue cleanup below still runs.
   try {
     const db = await getDb();
     await db.$client.withExclusiveTransactionAsync(async (txn) => {
@@ -41,15 +40,6 @@ export async function clearAllUserCaches(userId: string): Promise<void> {
 
   try {
     await clearQueueForUser(userId);
-
-    // Legacy AsyncStorage keys (still present until Phase D).
-    await AsyncStorage.multiRemove([
-      `harvi:progress:${userId}`,
-      `harvi:bestScores:${userId}`,
-      `harvi:stats:${userId}`,
-      `harvi:access:${userId}`,
-      `harvi:purchases:${userId}`,
-    ]);
   } catch (error) {
     if (__DEV__) {
       console.warn("[clearAllUserCaches] Error clearing caches:", error);

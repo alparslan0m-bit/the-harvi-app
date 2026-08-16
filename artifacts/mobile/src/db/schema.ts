@@ -187,10 +187,11 @@ export const appMeta = sqliteTable("app_meta", {
 });
 
 /**
- * Migration quarantine — new.
- * Corrupt (Zod-rejected) AsyncStorage payloads land here during the legacy
- * migration instead of being silently dropped — raw JSON retained for manual
- * recovery. Empty after a clean migration.
+ * Migration quarantine — reserved.
+ * Retained from the Phase A/B legacy AsyncStorage migration (§4), where
+ * corrupt (Zod-rejected) payloads were parked with the raw JSON instead of
+ * being silently dropped. The migrator has been retired (Phase D) and this
+ * table stays empty; kept for historical continuity of the schema.
  */
 export const migrationQuarantine = sqliteTable("migration_quarantine", {
   id: text("id").primaryKey(),

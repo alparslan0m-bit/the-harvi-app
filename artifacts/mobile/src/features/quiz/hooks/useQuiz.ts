@@ -39,7 +39,7 @@ export function useQuizQuestions(lectureId: string, initialData?: Question[]) {
     gcTime: 5 * 60 * 1000,
     staleTime: 0,
     networkMode: "offlineFirst",
-    // Pre-populated from AsyncStorage before query resolves → instant open
+    // Pre-populated from the on-device cache before query resolves → instant open
     initialData:
       initialData && initialData.length > 0 ? initialData : undefined,
     // Treat as stale so a fresh fetch still happens in the background

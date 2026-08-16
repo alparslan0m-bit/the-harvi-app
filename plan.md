@@ -2,7 +2,7 @@
 
 **Owner:** Mobile architecture (Harvi)
 **Scope:** `artifacts/mobile`
-**Status:** Ready for Phase A execution
+**Status:** Complete — Phases A–D executed and verified (typecheck + jest suite green; AsyncStorage removed from `package.json` and `src/`).
 **In scope:** Replace *every* AsyncStorage usage with the hybrid storage layer; data layer + hooks only.
 **Out of scope:** Bookmarks, favourite questions, wrong questions (later plan — built on this foundation). No feature UI. **Web target** (react-native-web) is explicitly out of scope — dropping AsyncStorage is accepted to break web; documented in §12.
 

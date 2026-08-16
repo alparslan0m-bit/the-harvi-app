@@ -2,64 +2,16 @@
  * @file offlineQueue.ts
  * @description Persistent, sequential queue for quiz results when offline.
  *
- * Phase B (plan.md §9, §11): the queue now lives in the `quiz_results` table
- * (`status='pending'` rows) via `QueueRepository` — atomic INSERT/UPDATE
- * replaces the old read-all/mutate/write-all lock. During the bake window
- * before the legacy migration flag flips, reads fall back to AsyncStorage so
- * pre-migration data is never empty; after the flag flips, SQLite only.
+ * The queue lives in the `quiz_results` table (`status='pending'` rows) via
+ * `QueueRepository` — atomic INSERT/UPDATE replaces the old read-all/mutate/
+ * write-all lock (plan.md §9). `getQueue()` returns `status='pending'` rows
+ * only, which keeps `syncStore`'s unchanged flush loop from re-uploading
+ * synced rows.
  */
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { PendingQuizResult, PendingQuizResultSchema } from "@/src/shared/types";
-import { z } from "zod";
+import { PendingQuizResult } from "@/src/shared/types";
 
 import { getDb } from "@/src/db/client";
 import { QueueRepository, type QueueRow } from "@/src/db/repositories/queueRepository";
-import { isLegacyMigrationDone } from "@/src/db/migrationStatus";
-
-const QUEUE_KEY = "harvi:quiz_queue";
-
-// ── Legacy AsyncStorage fallback (used only until the migration flag flips) ──
-
-/**
- * Reads and parses the legacy queue from AsyncStorage with Zod validation.
- *
- * @returns An array of validated PendingQuizResult objects
- */
-async function readLegacyQueue(): Promise<PendingQuizResult[]> {
-  const raw = await AsyncStorage.getItem(QUEUE_KEY);
-  if (!raw) return [];
-  try {
-    const result = z.array(PendingQuizResultSchema).safeParse(JSON.parse(raw));
-    return result.success ? result.data : [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Persists the legacy queue array to AsyncStorage (single retry on I/O error).
- *
- * @param queue - The queue array to save
- * @throws {Error} If the write fails after the retry attempt
- */
-async function writeLegacyQueue(queue: PendingQuizResult[]): Promise<void> {
-  const payload = JSON.stringify(queue);
-  try {
-    await AsyncStorage.setItem(QUEUE_KEY, payload);
-  } catch (firstErr) {
-    try {
-      await AsyncStorage.setItem(QUEUE_KEY, payload);
-    } catch (retryErr) {
-      console.error(
-        "[offlineQueue] CRITICAL: Failed to persist legacy quiz result after retry",
-        retryErr,
-      );
-      throw retryErr;
-    }
-  }
-}
-
-// ── SQLite path (canonical once migrated) ────────────────────────────────────
 
 async function getQueueRepo(): Promise<QueueRepository> {
   return new QueueRepository(await getDb());
@@ -120,32 +72,19 @@ export async function enqueueQuizResult(
     correctAnswers: item.correctAnswers,
     createdAt: item.createdAt,
   });
-
-  // Mirror into the legacy queue during the bake window so a flush that still
-  // reads AsyncStorage picks it up; harmless once the flag flips (Phase D
-  // deletes the legacy keys entirely).
-  if (!(await isLegacyMigrationDone())) {
-    const legacy = await readLegacyQueue();
-    legacy.push({ ...item, localId });
-    await writeLegacyQueue(legacy);
-  }
 }
 
 /**
  * Retrieves the current offline queue without mutating it.
  *
- * After migration: returns `status='pending'` rows only (keeps `syncStore`'s
- * unchanged flush loop from re-uploading synced rows). Before migration:
- * returns the legacy AsyncStorage queue.
+ * Returns `status='pending'` rows only (keeps `syncStore`'s unchanged flush
+ * loop from re-uploading synced rows).
  *
  * @returns An array of all pending quiz results
  */
 export async function getQueue(): Promise<PendingQuizResult[]> {
-  if (await isLegacyMigrationDone()) {
-    const rows = await (await getQueueRepo()).getPending();
-    return rows.map(toPendingResult);
-  }
-  return readLegacyQueue();
+  const rows = await (await getQueueRepo()).getPending();
+  return rows.map(toPendingResult);
 }
 
 /**
@@ -157,11 +96,6 @@ export async function getQueue(): Promise<PendingQuizResult[]> {
 export async function removeSynced(localIds: string[]): Promise<void> {
   if (localIds.length === 0) return;
   await (await getQueueRepo()).markSynced(localIds);
-
-  if (!(await isLegacyMigrationDone())) {
-    const legacy = await readLegacyQueue();
-    await writeLegacyQueue(legacy.filter((i) => !localIds.includes(i.localId)));
-  }
 }
 
 /**
@@ -171,11 +105,6 @@ export async function removeSynced(localIds: string[]): Promise<void> {
  */
 export async function clearQueueForUser(userId: string): Promise<void> {
   await (await getQueueRepo()).clearForUser(userId);
-
-  if (!(await isLegacyMigrationDone())) {
-    const legacy = await readLegacyQueue();
-    await writeLegacyQueue(legacy.filter((i) => i.userId !== userId));
-  }
 }
 
 /**
@@ -185,12 +114,5 @@ export async function clearQueueForUser(userId: string): Promise<void> {
  * @returns The number of pending items
  */
 export async function pendingCount(userId?: string): Promise<number> {
-  if (await isLegacyMigrationDone()) {
-    return (await getQueueRepo()).pendingCount(userId);
-  }
-  const queue = await readLegacyQueue();
-  if (userId) {
-    return queue.filter((i) => i.userId === userId).length;
-  }
-  return queue.length;
+  return (await getQueueRepo()).pendingCount(userId);
 }

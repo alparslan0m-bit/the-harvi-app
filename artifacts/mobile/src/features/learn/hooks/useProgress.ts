@@ -4,8 +4,8 @@
  * Offline-first (instant, same pattern as useStats):
  *  - Module-level memCache gives synchronous initialData on every mount
  *  - NetInfo check skips Supabase entirely when offline (no timeout wait)
- *  - On success   → writes to AsyncStorage + memCache, merges queued IDs
- *  - On net error → serves last AsyncStorage snapshot + queued offline IDs
+ *  - On success   → writes to SQLite + memCache, merges queued IDs
+ *  - On net error → serves last SQLite snapshot + queued offline IDs
  *  - gcTime 24 h  → stays in React-Query memory for the full app session
  *  - networkMode "offlineFirst" → re-runs queryFn even without connectivity
  */

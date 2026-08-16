@@ -1,10 +1,9 @@
 /**
  * @file provider.tsx
  * @description React context that opens the on-device database, applies Drizzle
- * migrations, and exposes the initialized instance + migration state to the
- * tree. Per plan.md §6: renders `children` as soon as migrations complete, and
- * kicks off the one-time legacy AsyncStorage migrator in the background (does
- * not block first render). MMKV values are synchronous regardless.
+ * migrations, and exposes the initialized instance to the tree. Per plan.md
+ * §6: renders `children` as soon as migrations complete. MMKV values are
+ * synchronous regardless.
  */
 import React, {
   createContext,
@@ -17,7 +16,6 @@ import React, {
 
 import { getDb, type Database } from "./client";
 import { useDatabaseMigrations, type MigrationState } from "./migrate";
-import { runLegacyMigration } from "./legacyMigrator";
 import { runColdStartMaintenance } from "./maintenance";
 
 interface DatabaseContextValue {
@@ -36,20 +34,13 @@ function DatabaseProviderInner({
 }) {
   const migrationState = useDatabaseMigrations(db);
 
-  // Background, non-blocking legacy migration — runs once (idempotent, guarded
-  // by app_meta['async_migration_v1_done']). Fire-and-forget: never gates
-  // children rendering. Cold-start maintenance (retention purge + PRAGMA
-  // optimize) runs in the same pass.
+  // Cold-start maintenance (retention purge + PRAGMA optimize) runs in the
+  // background after migrations — fire-and-forget, never gates rendering.
   useEffect(() => {
     if (!migrationState.success) return;
     runColdStartMaintenance(db.$client).catch((err) => {
       if (__DEV__) {
         console.warn("[DatabaseProvider] Cold-start maintenance failed:", err);
-      }
-    });
-    runLegacyMigration(db).catch((err) => {
-      if (__DEV__) {
-        console.warn("[DatabaseProvider] Legacy migration failed:", err);
       }
     });
   }, [migrationState.success, db]);
@@ -68,8 +59,8 @@ function DatabaseProviderInner({
 
 /**
  * Global provider for the Harvi SQLite database. Opens the DB and applies
- * migrations before mounting children (the legacy copy is background and does
- * not gate rendering).
+ * migrations before mounting children (maintenance runs in the background and
+ * does not gate rendering).
  */
 export function DatabaseProvider({ children }: { children: ReactNode }) {
   const [db, setDb] = useState<Database | null>(null);
