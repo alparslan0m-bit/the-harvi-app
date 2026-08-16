@@ -20,6 +20,8 @@ import { AuthProvider, useAuth } from "@/src/shared/store/authStore";
 import { PurchaseProvider } from "@/src/shared/store/purchaseStore";
 import { SyncProvider, useSyncStore } from "@/src/shared/store/syncStore";
 import { ThemeProvider } from "@/src/shared/store/themeStore";
+import { DatabaseProvider, useDatabase } from "@/src/db/provider";
+import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -42,6 +44,10 @@ function RootLayoutNav({
   fontError: Error | null;
 }) {
   const loading = useAuth((s) => s.loading);
+  const db = useDatabase();
+
+  // Drizzle Studio dev tool — no-op in production builds.
+  useDrizzleStudio(db.$client);
 
   useEffect(() => {
     if ((fontsLoaded || fontError) && !loading) {
@@ -104,18 +110,20 @@ export default function RootLayout() {
           <QueryClientProvider client={queryClient}>
             <GestureHandlerRootView style={{ flex: 1 }}>
               <KeyboardProvider>
-                <ThemeProvider>
-                  <AuthProvider>
-                    <PurchaseProvider>
-                      <SyncProvider>
-                        <RootLayoutNav
-                          fontsLoaded={fontsLoaded}
-                          fontError={fontError}
-                        />
-                      </SyncProvider>
-                    </PurchaseProvider>
-                  </AuthProvider>
-                </ThemeProvider>
+                <DatabaseProvider>
+                  <ThemeProvider>
+                    <AuthProvider>
+                      <PurchaseProvider>
+                        <SyncProvider>
+                          <RootLayoutNav
+                            fontsLoaded={fontsLoaded}
+                            fontError={fontError}
+                          />
+                        </SyncProvider>
+                      </PurchaseProvider>
+                    </AuthProvider>
+                  </ThemeProvider>
+                </DatabaseProvider>
               </KeyboardProvider>
             </GestureHandlerRootView>
           </QueryClientProvider>

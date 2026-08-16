@@ -65,6 +65,7 @@ onlyBuiltDependencies:
   - esbuild
   - msw
   - unrs-resolver
+  - better-sqlite3
 
 overrides:
   # drizzle-kit uses esbuild internally on an older version that's vulnerable, this overrides it

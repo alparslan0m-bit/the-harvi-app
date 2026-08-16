@@ -14,6 +14,11 @@ module.exports = function (api) {
       ["babel-plugin-react-compiler", {}],
 
       /**
+       * Bundle Drizzle SQL migration files as strings (drizzle/migrations.js).
+       */
+      ["inline-import", { extensions: [".sql"] }],
+
+      /**
        * Strip all console.* calls in production builds.
        * Keeps console.error so crash reports still surface in tools like Sentry.
        */

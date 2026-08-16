@@ -57,10 +57,17 @@ End state: the AsyncStorage dependency is removed from both `dependencies` and
    guarded by an `app_meta` flag, executed **in the background** after Drizzle
    migrations on first boot. Boot-critical reads fall through to the new layer
    immediately; legacy data is copied behind the scenes (§6).
-6. **Drizzle async driver is the default.** Use `drizzle-orm/expo-sqlite/async` —
-   the official async driver over expo-sqlite's `*Async` APIs (merged upstream
-   drizzle-team/drizzle-orm#5533). The historical sync-thread footgun is avoided
-   architecturally, not worked around (§7).
+6. **Drizzle driver: stable sync driver, async migration path noted.** The
+   catalog-pinned stable `drizzle-orm@0.45.2` ships only the sync driver
+   (`drizzle-orm/expo-sqlite`, executing `prepareSync`/`getAllSync` on the JS
+   thread). The async driver (`drizzle-orm/expo-sqlite/async`, routed through
+   expo-sqlite's `*Async` background-thread APIs) exists **only** in the
+   `1.0.0-rc` line. Decision: **stay on stable sync now** — the app's query
+   profile (single-lecture reads, `COUNT`, ~500-row chunked writes) costs a few
+   ms worst-case on the JS thread, which is within budget. The schema module is
+   driver-agnostic and repositories are the seam, so when drizzle 1.0 stable
+   ships, swapping the `drizzle()` import in `client.ts` is the entire migration.
+   §8's WAL / chunked-transaction / narrow-read mitigations apply unchanged.
 7. **Repositories only where query logic lives.** Services for the three
    query-shaped domains — queue, question cache, hierarchy — go through thin
    repositories (`QueueRepository`, `QuestionRepository`, `HierarchyRepository`)
@@ -83,13 +90,16 @@ End state: the AsyncStorage dependency is removed from both `dependencies` and
 | `expo-drizzle-studio-plugin` (dev) | Inspect/edit the on-device DB from the Expo dev menu |
 | `jest-expo` + `jest` + `@types/jest` (dev) | Test runner + config for the §10 suite (Phase A) |
 | `app.json` | Add plugins: `expo-sqlite`, `react-native-mmkv`; keep `expo-secure-store` |
-| `drizzle.config.ts` (new) | `dialect: 'sqlite'`, `driver: 'expo'`, `schema: './src/db/schema.ts'` |
+| `drizzle.config.ts` (new) | `dialect: 'sqlite'`, `driver: 'expo'`, `schema: './src/db/schema.ts'`, `out: './drizzle'` |
 | `package.json` | Add runtime + dev deps above; **remove `@react-native-async-storage/async-storage` from both dep blocks** |
 | `jest` config | `preset: 'jest-expo'`; mock `react-native-mmkv` + `expo-sqlite` (see §10) |
+| `babel.config.js` | Add `["inline-import", { extensions: [".sql"] }]` — required to bundle the generated `drizzle/migrations.js`, which imports `.sql` files as strings |
+| `metro.config.js` | Add `config.resolver.sourceExts.push("sql")` — required for Metro to resolve those `.sql` imports |
 
-**No changes to `babel.config.js` or `metro.config.js`.** Drizzle migrations are
-bundled as a generated `migrations.js` module, so neither `babel-plugin-inline-import`
-nor a `sql` `sourceExts` entry is needed.
+**Babel/metro:** the generated `drizzle/migrations.js` imports the `.sql` migration files
+as strings (Drizzle's documented Expo bundling path), so `babel-plugin-inline-import`
+and the `sql` `sourceExts` entry are **required** — the plan's earlier "no config
+changes" assumption was wrong and corrected here.
 
 ---
 
@@ -293,7 +303,7 @@ physically deleted in Phase D, not here — keeping the rollback window open (§
 | File | Purpose |
 |---|---|
 | `src/db/schema.ts` | Drizzle schema (§4) |
-| `src/db/client.ts` | `openDatabaseAsync("harvi.db")` → PRAGMA tuning → `drizzle()` imported from `drizzle-orm/expo-sqlite/async` (a separate module, not a driver option); export singleton |
+| `src/db/client.ts` | `openDatabaseAsync("harvi.db")` → PRAGMA tuning → `drizzle()` from `drizzle-orm/expo-sqlite` (stable sync driver; swap to `/async` when drizzle 1.0 stable ships — decision #6) → export singleton |
 | `src/db/provider.tsx` | `<DatabaseProvider>` — React context that exposes the initialized `db` instance + migration state to the tree |
 | `src/db/migrate.ts` | `useMigrations(db, migrations)` from the bundled `migrations.js` |
 | `src/db/legacyMigrator.ts` | One-time, idempotent AsyncStorage → SQLite/MMKV copy, guarded by `app_meta['async_migration_v1_done']` |
@@ -358,19 +368,17 @@ its AES key is added here as `harvi.mmkv.encryptionKey`.
 
 ---
 
-## 8. Performance mitigations (Drizzle async driver)
+## 8. Performance mitigations
 
-The historical caveat — `drizzle-orm/expo-sqlite` executing synchronously through
-expo-sqlite's sync API even when awaited (drizzle-team/drizzle-orm#5240) — is
-**avoided architecturally** by importing the async driver
-(`drizzle-orm/expo-sqlite/async`, merged in drizzle-team/drizzle-orm#5533), which
-routes through `getAllAsync`/`runAsync`/`executeAsync` on expo-sqlite's background
-thread. No chunked `delay(0)` choreography needed.
-
-Remaining discipline:
+Decision #6: the **stable sync driver** (`drizzle-orm/expo-sqlite`) executes
+`prepareSync`/`getAllSync` on the JS thread — this is accepted for this app's
+query profile (single-lecture reads, `COUNT(*)`, ~500-row chunked writes, all
+µs–ms). The async driver is the documented upgrade path when drizzle 1.0 stable
+ships. Mitigations applied regardless:
 
 - **Bulk imports** (question cache download, hierarchy assembly): one
-  `withTransactionAsync` per chunk (~500 rows), using the async driver.
+  `withTransactionAsync` per chunk (~500 rows) — expo-sqlite transactions move
+  the write to the async path even though the ORM query builder is sync.
 - **Normal reads**: keep narrow (single lecture, single user) — µs–ms class.
 - **`COUNT(*) WHERE status='pending'`** stays cheap for `syncStore` / `OfflineBanner`.
 - **WAL mode** (§4 PRAGMAs) allows concurrent reads during writes — no reader
@@ -418,7 +426,7 @@ Remaining discipline:
 |---|---|---|
 | Data loss during one-time migration | **High** | Migrator copies first, verifies row counts against source. Legacy keys are **verified in Phase B, physically deleted in Phase D** (keeps the Phase C rollback window open). Corrupt payloads (Zod rejection) are written to the `migration_quarantine` table with the raw JSON for manual recovery — never silently dropped. |
 | Cold-start stall from migration | Medium | Background migration (§6): `DatabaseProvider` renders children immediately after Drizzle migrations; heavy legacy copy runs async. No splash gate. |
-| Drizzle sync-thread jank | Medium | Async driver (`drizzle-orm/expo-sqlite/async`) is the default; bulk paths chunked via `withTransactionAsync`; WAL mode for concurrent reads. |
+| Drizzle sync-thread jank | Medium | Stable sync driver accepted for this app's tiny query profile (decision #6); bulk writes go through expo-sqlite `withTransactionAsync`; WAL mode for concurrent reads; async driver is the documented 1.0 upgrade path. |
 | Schema drift vs Supabase (dynamic FK detection) | Low | Normalized tables keyed by stable server IDs; reuse existing `detectFK` candidate lists during fetch. MMKV caches the resolved FK column. |
 | MMKV data exposure | Low | `defaultStorage` is plaintext by design and holds only non-sensitive prefs (theme/avatar/displayName/fkcol) in the app sandbox — same threat model as the AsyncStorage keys it replaces. Secrets stay in SecureStore. The deferred per-user instance will follow the key-in-SecureStore + AES-256 pattern (§5, §12). |
 | MMKV v4 missing native peer | Low | `react-native-nitro-modules` installed as a required dependency (§3). |

@@ -2,6 +2,9 @@ const { getDefaultConfig } = require("expo/metro-config");
 
 const config = getDefaultConfig(__dirname);
 
+// Drizzle migrations are bundled as .sql files (drizzle/migrations.js imports them)
+config.resolver.sourceExts.push("sql");
+
 const isProd =
   process.env.NODE_ENV === "production" ||
   process.env.EXPO_PUBLIC_ENV === "production";
