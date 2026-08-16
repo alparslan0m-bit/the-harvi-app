@@ -42,20 +42,17 @@ jest.mock("react-native-mmkv", () => ({
 }));
 
 // ── expo-sqlite (native) ─────────────────────────────────────────────────────
-jest.mock("expo-sqlite", () => {
-  const { SQLiteProvider } = require("expo-sqlite");
-  return {
-    __esModule: true,
-    SQLiteProvider,
-    openDatabaseAsync: jest.fn(async () => {
-      throw new Error(
-        "expo-sqlite openDatabaseAsync is mocked — use better-sqlite3 in repository tests",
-      );
-    }),
-    openDatabaseSync: jest.fn(() => {
-      throw new Error(
-        "expo-sqlite openDatabaseSync is mocked — use better-sqlite3 in repository tests",
-      );
-    }),
-  };
-});
+jest.mock("expo-sqlite", () => ({
+  __esModule: true,
+  SQLiteProvider: ({ children }) => children,
+  openDatabaseAsync: jest.fn(async () => {
+    throw new Error(
+      "expo-sqlite openDatabaseAsync is mocked — use better-sqlite3 in repository tests",
+    );
+  }),
+  openDatabaseSync: jest.fn(() => {
+    throw new Error(
+      "expo-sqlite openDatabaseSync is mocked — use better-sqlite3 in repository tests",
+    );
+  }),
+}));

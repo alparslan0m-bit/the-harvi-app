@@ -4,8 +4,11 @@
  * Offline-first (same pattern as progressService):
  *  - Module-level memCache gives synchronous initialData on every mount
  *  - NetInfo check skips Supabase entirely when offline (no timeout wait)
- *  - On success   → writes to AsyncStorage + memCache, merges queued scores
- *  - On net error → serves last AsyncStorage snapshot + queued offline scores
+ *  - On success   → writes to SQLite + memCache, merges queued scores
+ *  - On net error → serves last SQLite snapshot + queued offline scores
+ *
+ * Phase B (plan.md §9): disk cache is the `best_scores` table, with an
+ * AsyncStorage fallback until the legacy-migration flag flips.
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
@@ -14,6 +17,8 @@ import { z } from "zod";
 import { getQueue } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
+import { getDb } from "@/src/db/client";
+import { isLegacyMigrationDone } from "@/src/db/migrationStatus";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -27,11 +32,25 @@ export type BestScoreMap = Map<string, number>;
 export const memCache = new Map<string, BestScoreMap>();
 export const warmed = new Set<string>();
 
-// ── AsyncStorage helpers ─────────────────────────────────────────────────────
+// ── Disk helpers (SQLite canonical, AsyncStorage until migration flips) ─────
 
 const CacheSchema = z.array(z.tuple([z.string(), z.number()]));
 
 async function readCache(userId: string): Promise<BestScoreMap | null> {
+  if (await isLegacyMigrationDone()) {
+    try {
+      const db = await getDb();
+      const rows = await db.$client.getAllAsync<{
+        lecture_id: string;
+        score: number;
+      }>("SELECT lecture_id, score FROM best_scores WHERE user_id = ?", userId);
+      if (rows.length === 0) return null;
+      return new Map(rows.map((r) => [r.lecture_id, r.score]));
+    } catch (e) {
+      if (__DEV__) console.warn("[bestScoreService] readCache error:", e);
+      return null;
+    }
+  }
   try {
     const raw = await AsyncStorage.getItem(CACHE_KEY(userId));
     if (!raw) return null;
@@ -49,13 +68,31 @@ export async function writeCache(
   data: BestScoreMap,
 ): Promise<void> {
   try {
-    await AsyncStorage.setItem(
-      CACHE_KEY(userId),
-      JSON.stringify([...data.entries()]),
-    );
+    const db = await getDb();
+    await db.$client.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync("DELETE FROM best_scores WHERE user_id = ?", userId);
+      for (const [lectureId, score] of data.entries()) {
+        await txn.runAsync(
+          "INSERT INTO best_scores (user_id, lecture_id, score) VALUES (?, ?, ?)",
+          userId,
+          lectureId,
+          score,
+        );
+      }
+    });
     memCache.set(userId, data);
   } catch (e) {
     if (__DEV__) console.warn("[bestScoreService] writeCache error:", e);
+  }
+  if (!(await isLegacyMigrationDone())) {
+    try {
+      await AsyncStorage.setItem(
+        CACHE_KEY(userId),
+        JSON.stringify([...data.entries()]),
+      );
+    } catch (e) {
+      if (__DEV__) console.warn("[bestScoreService] writeCache error:", e);
+    }
   }
 }
 
@@ -181,6 +218,10 @@ export async function fetchBestScores(userId: string): Promise<BestScoreMap> {
 
 export async function clearBestScoreCache(userId: string): Promise<void> {
   try {
+    await (await getDb()).$client.runAsync(
+      "DELETE FROM best_scores WHERE user_id = ?",
+      userId,
+    );
     await AsyncStorage.removeItem(CACHE_KEY(userId));
     memCache.delete(userId);
     warmed.delete(userId);

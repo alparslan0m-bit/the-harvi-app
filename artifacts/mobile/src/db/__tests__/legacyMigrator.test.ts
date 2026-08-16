@@ -41,6 +41,17 @@ describe("runLegacyMigration", () => {
     expect(flag?.value).toBeTruthy();
   });
 
+  it("seeds the question_cache_version gate", async () => {
+    const db = createTestDb();
+    await runLegacyMigration(db);
+
+    const gate = await db.$client.getFirstAsync<{ value: string }>(
+      "SELECT value FROM app_meta WHERE key = ?",
+      "question_cache_version",
+    );
+    expect(gate?.value).toBe("v3");
+  });
+
   it("migrates the queue into pending quiz_results rows", async () => {
     seed({
       "harvi:quiz_queue": JSON.stringify([

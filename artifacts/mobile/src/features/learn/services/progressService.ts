@@ -1,8 +1,11 @@
 /**
  * @file progressService.ts
  * @description Manages fetching, caching, and merging of user progress (completed lectures).
- * Seamlessly merges data from three sources: the Supabase backend, the local AsyncStorage cache, 
+ * Seamlessly merges data from three sources: the Supabase backend, the local SQLite cache,
  * and the offline sync queue to provide immediate, optimistic UI updates without waiting for network.
+ *
+ * Phase B (plan.md §9): disk cache is the `progress` table via the async db client,
+ * with an AsyncStorage fallback until the legacy-migration flag flips.
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
@@ -11,6 +14,8 @@ import { getQueue } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import { z } from "zod";
+import { getDb } from "@/src/db/client";
+import { isLegacyMigrationDone } from "@/src/db/migrationStatus";
 
 const PROGRESS_CACHE_KEY = (uid: string) => `harvi:progress:${uid}`;
 
@@ -18,14 +23,27 @@ const PROGRESS_CACHE_KEY = (uid: string) => `harvi:progress:${uid}`;
 
 /**
  * Fast, synchronous memory cache of completed lecture IDs per user.
- * Avoids the async overhead of reading from AsyncStorage on every UI render.
+ * Avoids the async overhead of reading from disk on every UI render.
  */
 export const memCache = new Map<string, Set<string>>();
 export const warmed = new Set<string>();
 
-// ── AsyncStorage helpers ─────────────────────────────────────────────────────
+// ── Disk helpers (SQLite canonical, AsyncStorage until migration flips) ─────
 
 async function readCache(userId: string): Promise<Set<string> | null> {
+  if (await isLegacyMigrationDone()) {
+    try {
+      const db = await getDb();
+      const rows = await db.$client.getAllAsync<{ lecture_id: string }>(
+        "SELECT lecture_id FROM progress WHERE user_id = ?",
+        userId,
+      );
+      return new Set(rows.map((r) => r.lecture_id));
+    } catch (e) {
+      if (__DEV__) console.warn("[progressService] readCache error:", e);
+      return null;
+    }
+  }
   const raw = await AsyncStorage.getItem(PROGRESS_CACHE_KEY(userId));
   if (!raw) return null;
   try {
@@ -41,10 +59,10 @@ async function readCache(userId: string): Promise<Set<string> | null> {
   }
 }
 
-/** 
- * Writes the completed-IDs set to AsyncStorage for offline persistence, 
- * and immediately updates the in-memory cache for synchronous reads.
- * 
+/**
+ * Writes the completed-IDs set to SQLite (replace-in-transaction), mirrors the
+ * legacy AsyncStorage key during the bake window, and updates memCache.
+ *
  * @param userId - The ID of the authenticated user
  * @param ids - A Set of completed lecture string IDs
  */
@@ -53,13 +71,32 @@ export async function writeProgressCache(
   ids: Set<string>,
 ): Promise<void> {
   try {
-    await AsyncStorage.setItem(
-      PROGRESS_CACHE_KEY(userId),
-      JSON.stringify([...ids]),
-    );
+    const db = await getDb();
+    const completedAt = new Date().toISOString();
+    await db.$client.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync("DELETE FROM progress WHERE user_id = ?", userId);
+      for (const lectureId of ids) {
+        await txn.runAsync(
+          "INSERT INTO progress (user_id, lecture_id, completed_at) VALUES (?, ?, ?)",
+          userId,
+          lectureId,
+          completedAt,
+        );
+      }
+    });
     memCache.set(userId, ids);
   } catch (e) {
     if (__DEV__) console.warn("[progressService] writeProgressCache error:", e);
+  }
+  if (!(await isLegacyMigrationDone())) {
+    try {
+      await AsyncStorage.setItem(
+        PROGRESS_CACHE_KEY(userId),
+        JSON.stringify([...ids]),
+      );
+    } catch (e) {
+      if (__DEV__) console.warn("[progressService] writeProgressCache error:", e);
+    }
   }
 }
 
@@ -208,14 +245,19 @@ export async function fetchCompletedLectures(
 
 // ── Cache management ─────────────────────────────────────────────────────────
 
-/** 
- * Purges all progress caches for a specific user from both memory and AsyncStorage.
+/**
+ * Purges all progress caches for a specific user from SQLite, memory, and
+ * (during the bake window) AsyncStorage.
  * Invoked during destructive actions like user logout or manual cache clearing.
- * 
+ *
  * @param userId - The ID of the authenticated user
  */
 export async function clearProgressCache(userId: string) {
   try {
+    await (await getDb()).$client.runAsync(
+      "DELETE FROM progress WHERE user_id = ?",
+      userId,
+    );
     await AsyncStorage.removeItem(PROGRESS_CACHE_KEY(userId));
     memCache.delete(userId);
     warmed.delete(userId);

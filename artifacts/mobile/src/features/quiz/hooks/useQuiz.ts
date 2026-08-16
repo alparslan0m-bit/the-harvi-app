@@ -6,15 +6,14 @@ import {
 } from "@/src/features/quiz/services/questionCache";
 import { fetchQuestions } from "@/src/features/quiz/services/questionService";
 import { Question } from "@/src/shared/types";
-
-const QUIZ_CACHE_VERSION = "v3"; // Increment this to force cache clear
+import { QUESTION_CACHE_VERSION } from "@/src/shared/constants/cacheVersion";
 
 // Re-export for backward compatibility (used by useSubjectCache)
 export { fetchQuestions } from "@/src/features/quiz/services/questionService";
 
 export function useQuizQuestions(lectureId: string, initialData?: Question[]) {
   return useQuery({
-    queryKey: ["quiz", lectureId, QUIZ_CACHE_VERSION],
+    queryKey: ["quiz", lectureId, QUESTION_CACHE_VERSION],
     queryFn: async () => {
       try {
         const questions = await fetchQuestions(lectureId);

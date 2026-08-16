@@ -17,6 +17,9 @@ import {
   YearWithModulesSchema,
 } from "@/src/shared/types/schemas";
 import { z } from "zod";
+import { getDb } from "@/src/db/client";
+import { HierarchyRepository } from "@/src/db/repositories/hierarchyRepository";
+import { isLegacyMigrationDone } from "@/src/db/migrationStatus";
 
 const HIERARCHY_CACHE_KEY = "harvi:hierarchy";
 
@@ -78,12 +81,20 @@ function detectFK(
 }
 
 /**
- * Reads and validates the locally cached hierarchy from AsyncStorage.
- * Uses Zod to ensure the cached payload exactly matches the expected frontend schema.
- * 
+ * Reads the locally cached hierarchy. After migration, assembles it from the
+ * four normalized tables via `HierarchyRepository`; before the flag flips,
+ * reads the legacy AsyncStorage blob (Zod-validated).
+ *
  * @returns A Promise resolving to the cached hierarchy, or null if empty/invalid
  */
 async function readCachedHierarchy(): Promise<Year[] | null> {
+  if (await isLegacyMigrationDone()) {
+    try {
+      return await new HierarchyRepository(await getDb()).getAll();
+    } catch {
+      return null;
+    }
+  }
   try {
     const raw = await AsyncStorage.getItem(HIERARCHY_CACHE_KEY);
     if (!raw) return null;
@@ -100,15 +111,24 @@ async function readCachedHierarchy(): Promise<Year[] | null> {
 }
 
 /**
- * Persists the fully assembled hierarchy to local storage for offline access.
- * 
+ * Persists the fully assembled hierarchy for offline access. After migration
+ * writes the four normalized tables in one transaction; before the flag flips
+ * also mirrors the legacy AsyncStorage blob.
+ *
  * @param data - The complete Year array to cache
  */
 async function writeCachedHierarchy(data: Year[]): Promise<void> {
   try {
-    await AsyncStorage.setItem(HIERARCHY_CACHE_KEY, JSON.stringify(data));
+    await new HierarchyRepository(await getDb()).replaceAll(data);
   } catch {
     // best-effort
+  }
+  if (!(await isLegacyMigrationDone())) {
+    try {
+      await AsyncStorage.setItem(HIERARCHY_CACHE_KEY, JSON.stringify(data));
+    } catch {
+      // best-effort
+    }
   }
 }
 

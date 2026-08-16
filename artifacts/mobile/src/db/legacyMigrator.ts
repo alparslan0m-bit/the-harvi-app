@@ -13,6 +13,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { z } from "zod";
 
 import type { RawClient } from "./rawClient";
+import { markLegacyMigrationDone, LEGACY_MIGRATION_FLAG } from "./migrationStatus";
+import { QUESTION_CACHE_VERSION } from "@/src/shared/constants/cacheVersion";
 import { mmkv } from "@/src/shared/storage/mmkv";
 import {
   PendingQuizResultSchema,
@@ -24,7 +26,7 @@ import {
 } from "@/src/shared/types/schemas";
 import { generateUUID } from "@/src/shared/services/offlineQueue";
 
-const MIGRATION_FLAG = "async_migration_v1_done";
+const MIGRATION_FLAG = LEGACY_MIGRATION_FLAG;
 const HIERARCHY_KEY = "harvi:hierarchy";
 
 const GLOBAL_KEYS: Array<{ key: string; target: "mmkv" }> = [
@@ -376,4 +378,13 @@ export async function runLegacyMigration(db: {
     MIGRATION_FLAG,
     new Date().toISOString(),
   );
+  // Seed the question-cache version gate so `loadQuestionsFromCache` accepts
+  // the copied rows (any surviving legacy payload is already current-version —
+  // stale ones were discarded by the version check at save time).
+  await raw.runAsync(
+    "INSERT OR REPLACE INTO app_meta (key, value) VALUES (?, ?)",
+    "question_cache_version",
+    QUESTION_CACHE_VERSION,
+  );
+  markLegacyMigrationDone();
 }

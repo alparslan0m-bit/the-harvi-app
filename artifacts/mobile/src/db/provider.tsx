@@ -18,6 +18,7 @@ import React, {
 import { getDb, type Database } from "./client";
 import { useDatabaseMigrations, type MigrationState } from "./migrate";
 import { runLegacyMigration } from "./legacyMigrator";
+import { runColdStartMaintenance } from "./maintenance";
 
 interface DatabaseContextValue {
   db: Database | null;
@@ -37,9 +38,15 @@ function DatabaseProviderInner({
 
   // Background, non-blocking legacy migration — runs once (idempotent, guarded
   // by app_meta['async_migration_v1_done']). Fire-and-forget: never gates
-  // children rendering.
+  // children rendering. Cold-start maintenance (retention purge + PRAGMA
+  // optimize) runs in the same pass.
   useEffect(() => {
     if (!migrationState.success) return;
+    runColdStartMaintenance(db.$client).catch((err) => {
+      if (__DEV__) {
+        console.warn("[DatabaseProvider] Cold-start maintenance failed:", err);
+      }
+    });
     runLegacyMigration(db).catch((err) => {
       if (__DEV__) {
         console.warn("[DatabaseProvider] Legacy migration failed:", err);

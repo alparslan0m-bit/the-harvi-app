@@ -1,4 +1,7 @@
 // Extracted from hooks/useModuleAccess.ts — data fetching and caching.
+//
+// Phase B (plan.md §9): the access cache is the `access_map` table, with an
+// AsyncStorage fallback until the legacy-migration flag flips.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
@@ -10,12 +13,44 @@ import {
   ContentAccessEntrySchema,
 } from "@/src/shared/types/schemas";
 import { z } from "zod";
+import { getDb } from "@/src/db/client";
+import { isLegacyMigrationDone } from "@/src/db/migrationStatus";
 
 const ACCESS_CACHE_KEY = (uid: string) => `harvi:access:${uid}`;
 
 async function readCachedAccess(
   userId: string,
 ): Promise<Map<string, ContentAccessEntry> | null> {
+  if (await isLegacyMigrationDone()) {
+    try {
+      const db = await getDb();
+      const rows = await db.$client.getAllAsync<{
+        item_id: string;
+        item_type: string;
+        has_access: number;
+        is_free: number;
+        price_cents: number;
+      }>(
+        "SELECT item_id, item_type, has_access, is_free, price_cents FROM access_map WHERE user_id = ?",
+        userId,
+      );
+      if (rows.length === 0) return null;
+      const map = new Map<string, ContentAccessEntry>();
+      for (const r of rows) {
+        const entry: ContentAccessEntry = {
+          item_id: r.item_id,
+          item_type: r.item_type as "module" | "subject",
+          has_access: r.has_access === 1,
+          is_free: r.is_free === 1,
+          price_cents: r.price_cents,
+        };
+        map.set(entry.item_id, entry);
+      }
+      return map;
+    } catch {
+      return null;
+    }
+  }
   try {
     const raw = await AsyncStorage.getItem(ACCESS_CACHE_KEY(userId));
     if (!raw) return null;
@@ -38,10 +73,31 @@ async function writeCachedAccess(
   map: Map<string, ContentAccessEntry>,
 ): Promise<void> {
   try {
-    const obj = Object.fromEntries(map.entries());
-    await AsyncStorage.setItem(ACCESS_CACHE_KEY(userId), JSON.stringify(obj));
+    const db = await getDb();
+    await db.$client.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync("DELETE FROM access_map WHERE user_id = ?", userId);
+      for (const [itemId, entry] of map.entries()) {
+        await txn.runAsync(
+          "INSERT INTO access_map (user_id, item_id, item_type, has_access, is_free, price_cents) VALUES (?, ?, ?, ?, ?, ?)",
+          userId,
+          itemId,
+          entry.item_type,
+          entry.has_access ? 1 : 0,
+          entry.is_free ? 1 : 0,
+          entry.price_cents,
+        );
+      }
+    });
   } catch {
     // best-effort
+  }
+  if (!(await isLegacyMigrationDone())) {
+    try {
+      const obj = Object.fromEntries(map.entries());
+      await AsyncStorage.setItem(ACCESS_CACHE_KEY(userId), JSON.stringify(obj));
+    } catch {
+      // best-effort
+    }
   }
 }
 
