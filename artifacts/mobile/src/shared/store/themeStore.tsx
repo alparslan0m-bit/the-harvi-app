@@ -1,13 +1,14 @@
 /**
  * @file themeStore.tsx
  * @description Theme state management store.
- * Manages theme switching (e.g. standard "harvi" vs "pink" pastel theme) 
- * and persists user theme preferences across app reboots via AsyncStorage.
+ * Manages theme switching (e.g. standard "harvi" vs "pink" pastel theme)
+ * and persists user theme preferences across app reboots via MMKV (plan.md §5).
+ * MMKV reads are synchronous, so there is no async hydration ceremony.
  */
-import React, { useEffect } from "react";
+import React from "react";
 import { create } from "zustand";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Appearance } from "react-native";
+import { mmkv } from "@/src/shared/storage/mmkv";
 
 /** Supported theme identifier names */
 export type ThemeMode = "harvi" | "pink";
@@ -16,51 +17,32 @@ export type ThemeMode = "harvi" | "pink";
 interface ThemeState {
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
-  initTheme: () => Promise<void>;
 }
 
 /**
  * Zustand store for driving global application theme selection.
+ * Initial state is read synchronously from MMKV — no flash on cold start.
  */
 export const useThemeStore = create<ThemeState>((set) => ({
-  theme: "harvi",
+  theme: mmkv.getTheme() ?? "harvi",
 
   /**
-   * Sets and persists the selected theme name to AsyncStorage.
-   * 
+   * Sets and persists the selected theme name to MMKV.
+   *
    * @param newTheme - The target theme mode ("harvi" | "pink")
    */
   setTheme: (newTheme) => {
     set({ theme: newTheme });
-    AsyncStorage.setItem("harvi:theme", newTheme).catch(() => {});
+    mmkv.setTheme(newTheme);
     Appearance.setColorScheme("light");
-  },
-
-  /**
-   * Hydrates the persisted theme preference from disk during app launch.
-   */
-  initTheme: async () => {
-    try {
-      const saved = await AsyncStorage.getItem("harvi:theme");
-      if (saved === "harvi" || saved === "pink") {
-        set({ theme: saved as ThemeMode });
-        Appearance.setColorScheme("light");
-      }
-    } catch (e) {
-      if (__DEV__) console.warn("[themeStore] Error loading theme:", e);
-    }
   },
 }));
 
 /**
- * Provider component that automatically initializes theme state upon mounting.
- * Should wrap the root navigator.
+ * Provider component kept as a passthrough for the root layout — theme state
+ * initializes synchronously from MMKV, so no hydration effect is required.
  */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const initTheme = useThemeStore((s) => s.initTheme);
-  useEffect(() => {
-    initTheme();
-  }, [initTheme]);
   return <>{children}</>;
 }
 

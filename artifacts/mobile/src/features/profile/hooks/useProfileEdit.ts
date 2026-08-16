@@ -1,37 +1,28 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AvatarId } from "../components/DoctorAvatars";
-
-const AVATAR_KEY = "harvi:avatar";
-const NAME_KEY = "harvi:displayName";
+import { mmkv } from "@/src/shared/storage/mmkv";
 
 export function useProfileEdit() {
-  const [avatarId, setAvatarId] = useState<AvatarId | null>(null);
-  const [nameInput, setNameInput] = useState("");
+  // Synchronous MMKV reads — no hydration effect needed.
+  const [avatarId, setAvatarId] = useState<AvatarId | null>(() => {
+    const av = mmkv.getAvatar();
+    return av ? (av as AvatarId) : null;
+  });
+  const [nameInput, setNameInput] = useState(() => mmkv.getDisplayName());
   const [pickerVisible, setPickerVisible] = useState(false);
-
-  // Load initial data
-  useEffect(() => {
-    AsyncStorage.multiGet([AVATAR_KEY, NAME_KEY]).then((pairs) => {
-      const av = pairs[0]?.[1];
-      const nm = pairs[1]?.[1];
-      if (av) setAvatarId(av as AvatarId);
-      if (nm) setNameInput(nm);
-    });
-  }, []);
 
   const handleSelectAvatar = (id: AvatarId) => {
     setAvatarId(id);
-    AsyncStorage.setItem(AVATAR_KEY, id);
+    mmkv.setAvatar(id);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     const trimmed = nameInput.trim();
-    await AsyncStorage.setItem(NAME_KEY, trimmed);
-    if (avatarId) await AsyncStorage.setItem(AVATAR_KEY, avatarId);
+    mmkv.setDisplayName(trimmed);
+    if (avatarId) mmkv.setAvatar(avatarId);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
   };

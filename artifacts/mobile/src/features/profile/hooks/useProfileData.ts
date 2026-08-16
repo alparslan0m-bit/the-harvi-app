@@ -1,32 +1,20 @@
 import { useState, useCallback } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import { STORAGE_KEYS } from "@/src/shared/constants/storage";
+import { mmkv } from "@/src/shared/storage/mmkv";
 import { AvatarId } from "../components/DoctorAvatars";
 
 /**
- * Hook to manage user profile data from AsyncStorage.
+ * Hook to manage user profile data from MMKV.
  * Extracted from ProfileScreen logic.
  */
 export function useProfileData() {
   const [avatarId, setAvatarId] = useState<AvatarId | null>(null);
   const [displayName, setDisplayName] = useState("");
 
-  const loadProfile = useCallback(async () => {
-    try {
-      const pairs = await AsyncStorage.multiGet([
-        STORAGE_KEYS.AVATAR,
-        STORAGE_KEYS.DISPLAY_NAME,
-      ]);
-
-      const av = pairs[0]?.[1];
-      const nm = pairs[1]?.[1];
-
-      if (av) setAvatarId(av as AvatarId);
-      setDisplayName(nm ?? "");
-    } catch (error) {
-      console.error("[useProfileData] Error loading profile:", error);
-    }
+  const loadProfile = useCallback(() => {
+    const av = mmkv.getAvatar();
+    setAvatarId(av ? (av as AvatarId) : null);
+    setDisplayName(mmkv.getDisplayName());
   }, []);
 
   useFocusEffect(

@@ -4,9 +4,9 @@
  * Implements dynamic foreign key detection to support fluid schema migrations,
  * and shuffles options and question order securely before presenting them to the UI.
  */
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 import { supabase } from "@/src/shared/services/supabase";
+import { mmkv } from "@/src/shared/storage/mmkv";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import { Question } from "@/src/shared/types/schemas";
 import {
@@ -33,10 +33,7 @@ const LECTURE_FK_CANDIDATES = [
 
 // Cache the known foreign key column in memory and disk to avoid 
 // re-running the waterfall detection loop on subsequent fetches.
-let knownFkCol: string | null = null;
-AsyncStorage.getItem("harvi:quiz:fkcol").then((val) => {
-  if (val) knownFkCol = val;
-});
+let knownFkCol: string | null = mmkv.getFkCol();
 
 /**
  * Fetches, normalizes, and shuffles questions for a given lecture.
@@ -92,7 +89,7 @@ export async function fetchQuestions(lectureId: string): Promise<Question[]> {
     // If we reach here without an error, we found the correct column!
     if (!knownFkCol) {
       knownFkCol = fkCol;
-      AsyncStorage.setItem("harvi:quiz:fkcol", fkCol).catch(() => {});
+      mmkv.setFkCol(fkCol);
     }
 
     if (data && data.length > 0) {
