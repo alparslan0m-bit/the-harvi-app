@@ -3,8 +3,15 @@
 // Called from the mobile app after RevenueCat confirms a purchase.
 // RevenueCat handles all receipt validation — this function just records
 // the entitlement in our DB so get_content_access_map() picks it up.
-import { serve } from "std/http/server.ts";
-import { createClient } from "supabase";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.1";
+
+// Ambient declaration for editor TypeScript language servers
+declare const Deno: {
+  env: {
+    get(key: string): string | undefined;
+  };
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": Deno.env.get("APP_URL") ?? "*",
@@ -118,7 +125,81 @@ serve(async (req: Request) => {
       );
     }
 
-    // ── 5. Check for existing active purchase (prevent double-buy)
+    // ── 5. Server-side RevenueCat Validation ─────────────────────
+    const rcApiKey = Deno.env.get("REVENUECAT_API_KEY");
+    if (rcApiKey) {
+      try {
+        const rcRes = await fetch(
+          `https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(user.id)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${rcApiKey}`,
+              "Content-Type": "application/json",
+            },
+          },
+        );
+
+        if (!rcRes.ok) {
+          console.error(
+            `[RecordIAP] RevenueCat verification failed with status: ${rcRes.status}`,
+          );
+          return new Response(
+            JSON.stringify({ error: "Failed to verify transaction with store provider" }),
+            {
+              status: 403,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            },
+          );
+        }
+
+        const rcData = await rcRes.json();
+        const nonSubscriptions = rcData?.subscriber?.non_subscriptions || {};
+        const entitlements = rcData?.subscriber?.entitlements || {};
+
+        const hasMatchingTx = Object.values(nonSubscriptions).some(
+          (items: any) =>
+            Array.isArray(items) &&
+            items.some(
+              (item: any) =>
+                item.store_transaction_id === transaction_id ||
+                item.id === transaction_id,
+            ),
+        );
+
+        const hasMatchingEntitlement = Object.values(entitlements).some(
+          (ent: any) => ent?.product_identifier === transaction_id,
+        );
+
+        if (!hasMatchingTx && !hasMatchingEntitlement) {
+          console.warn(
+            `[RecordIAP] Fraud guard: Transaction ${transaction_id} not found for user ${user.id}`,
+          );
+          return new Response(
+            JSON.stringify({ error: "Transaction not found or unverified" }),
+            {
+              status: 403,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            },
+          );
+        }
+      } catch (rcErr: unknown) {
+        const msg = rcErr instanceof Error ? rcErr.message : "RC validation error";
+        console.error("[RecordIAP] RevenueCat validation request failed:", msg);
+        return new Response(
+          JSON.stringify({ error: "Unable to verify transaction" }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+    } else {
+      console.warn(
+        "[RecordIAP] REVENUECAT_API_KEY not configured. Running without server-side receipt validation.",
+      );
+    }
+
+    // ── 6. Check for existing active purchase (prevent double-buy)
     const { data: activePurchase } = await supabaseAdmin
       .from("purchases")
       .select("id")
@@ -137,7 +218,7 @@ serve(async (req: Request) => {
       );
     }
 
-    // ── 6. Record the purchase ──────────────────────────────────
+    // ── 7. Record the purchase ──────────────────────────────────
     const { error: insertError } = await supabaseAdmin
       .from("purchases")
       .insert({

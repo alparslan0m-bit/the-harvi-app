@@ -207,13 +207,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [setSession]);
 
   useEffect(() => {
+    const exchangedCodes = new Set<string>();
+
     const handleUrl = async (url: string) => {
+      if (useAuthStore.getState().session) return;
       if (!url.includes("access_token") && !url.includes("code=")) return;
       const params = parseOAuthUrl(url);
       const code = params.get("code");
       if (code) {
+        const decoded = decodeURIComponent(code);
+        if (exchangedCodes.has(decoded)) return;
+        exchangedCodes.add(decoded);
         const { data, error } =
-          await supabase.auth.exchangeCodeForSession(code);
+          await supabase.auth.exchangeCodeForSession(decoded);
         if (!error && data.session) setSession(data.session);
         return;
       }

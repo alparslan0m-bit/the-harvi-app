@@ -70,15 +70,29 @@ const SecureStoreAdapter = {
 
     if (value.length <= CHUNK_SIZE) {
       await SecureStore.setItemAsync(key, value);
-      // Remove any stale chunked data from a previous larger value
-      await SecureStore.deleteItemAsync(`${key}.__count`).catch(() => {});
+      // Remove any stale chunked data and individual chunk keys from a previous larger value
+      const prevCountRaw = await SecureStore.getItemAsync(`${key}.__count`).catch(() => null);
+      if (prevCountRaw !== null) {
+        const prevCount = parseInt(prevCountRaw, 10);
+        for (let i = 0; i < prevCount; i++) {
+          await SecureStore.deleteItemAsync(chunkKey(key, i)).catch(() => {});
+        }
+        await SecureStore.deleteItemAsync(`${key}.__count`).catch(() => {});
+      }
     } else {
+      const prevCountRaw = await SecureStore.getItemAsync(`${key}.__count`).catch(() => null);
+      const prevCount = prevCountRaw !== null ? parseInt(prevCountRaw, 10) : 0;
+
       const chunks: string[] = [];
       for (let i = 0; i < value.length; i += CHUNK_SIZE) {
         chunks.push(value.slice(i, i + CHUNK_SIZE));
       }
       for (let i = 0; i < chunks.length; i++) {
         await SecureStore.setItemAsync(chunkKey(key, i), chunks[i]!);
+      }
+      // Clean up any excess trailing chunk keys from previous writes
+      for (let i = chunks.length; i < prevCount; i++) {
+        await SecureStore.deleteItemAsync(chunkKey(key, i)).catch(() => {});
       }
       await SecureStore.setItemAsync(`${key}.__count`, String(chunks.length));
       // Remove the old single-entry key if it existed

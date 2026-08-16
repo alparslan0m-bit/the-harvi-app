@@ -129,16 +129,12 @@ export function useSyncActions() {
               `[useSyncSession] flush insert FAILED for item ${item.localId}:`,
               error,
             );
-          if (
-            error.code &&
-            (error.code.startsWith("23") ||
-              error.code.startsWith("42") ||
-              error.code.startsWith("22"))
-          ) {
+          if (error.code === "23505") {
+            // Row already exists on server (duplicate) — safe to remove from local queue
             syncedIds.push(item.localId);
-            anySynced = true; // The row already exists (duplicate), so force UI to fetch updated server stats
+            anySynced = true;
           } else {
-            // Network error or timeout. Bail out of loop.
+            // Auth expired, transient error, or schema mismatch — preserve queue and back off
             lastFlushTime.current = Date.now();
             break;
           }

@@ -98,7 +98,7 @@ export default function RootLayout() {
 
   return (
     <>
-      <ReducedMotionConfig mode={ReduceMotion.Never} />
+      <ReducedMotionConfig mode={ReduceMotion.System} />
       <SafeAreaProvider>
         <ErrorBoundary>
           <QueryClientProvider client={queryClient}>

@@ -14,15 +14,6 @@ import { z } from "zod";
 
 const PROGRESS_CACHE_KEY = (uid: string) => `harvi:progress:${uid}`;
 
-const FK_CANDIDATES = [
-  "lecture_id",
-  "lec_id",
-  "lesson_id",
-  "topic_id",
-  "subject_id",
-  "content_id",
-];
-
 // ── Module-level memory cache (survives re-renders, cleared on app restart) ──
 
 /**
@@ -157,55 +148,46 @@ export async function fetchCompletedLectures(
   let result: Set<string> | null = null;
 
   try {
-    for (const col of FK_CANDIDATES) {
-      const queryPromise = supabase
-        .from("quiz_results")
-        .select(col)
-        .eq("user_id", userId);
+    const queryPromise = supabase
+      .from("quiz_results")
+      .select("lecture_id")
+      .eq("user_id", userId);
 
-      const timeoutPromise = new Promise<{ data: any; error: any }>(
-        (_, reject) => setTimeout(() => reject(new Error("timeout")), 10000),
-      );
+    const timeoutPromise = new Promise<{ data: any; error: any }>(
+      (_, reject) => setTimeout(() => reject(new Error("timeout")), 10000),
+    );
 
-      let data, error;
-      try {
-        const result = await Promise.race([queryPromise, timeoutPromise]);
-        data = result.data;
-        error = result.error;
-      } catch (e) {
-        error = e;
-      }
-
-      if (error) {
-        if (error.code === "42703") continue; // column doesn't exist → try next
-        if (error instanceof Error && error.message === "timeout") throw error; // break the loop on timeout
-        throw error; // real error → fall through to catch
-      }
-
-      if (data && Array.isArray(data) && data.length > 0) {
-        const ids = data
-          .filter(
-            (r: unknown): r is Record<string, unknown> =>
-              typeof r === "object" && r !== null,
-          )
-          .map((r) => {
-            const val: unknown = r[col as keyof typeof r];
-            return val;
-          })
-          .filter(
-            (v): v is string | number =>
-              v != null && String(v) !== "null" && String(v).length > 0,
-          )
-          .map((v) => String(v));
-
-        if (ids.length > 0) {
-          result = new Set(ids);
-          break;
-        }
-      }
+    let data, error;
+    try {
+      const resp = await Promise.race([queryPromise, timeoutPromise]);
+      data = resp.data;
+      error = resp.error;
+    } catch (e) {
+      error = e;
     }
 
-    if (!result) result = new Set<string>();
+    if (error) {
+      if (error instanceof Error && error.message === "timeout") throw error;
+      throw error;
+    }
+
+    if (data && Array.isArray(data) && data.length > 0) {
+      const ids = data
+        .filter(
+          (r: unknown): r is Record<string, unknown> =>
+            typeof r === "object" && r !== null,
+        )
+        .map((r) => r["lecture_id"])
+        .filter(
+          (v): v is string | number =>
+            v != null && String(v) !== "null" && String(v).length > 0,
+        )
+        .map((v) => String(v));
+
+      result = new Set(ids);
+    } else {
+      result = new Set<string>();
+    }
   } catch (e) {
     if (__DEV__)
       console.warn("[progressService] fetchCompletedLectures error:", e);

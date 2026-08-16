@@ -16,6 +16,7 @@ import Animated, {
 import { useColors } from "@/src/shared/hooks/useColors";
 import { THEME } from "@/src/shared/constants/theme";
 import { useSyncStore } from "@/src/shared/store/syncStore";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * Interface defining the properties for the network status banner display.
@@ -37,6 +38,8 @@ interface Props {
  */
 export function OfflineBanner({ isOnline, pendingCount, isSyncing }: Props) {
   const colors = useColors();
+  const insets = useSafeAreaInsets();
+  const topInset = Math.max(insets.top, 16) + 8;
   const translateY = useSharedValue(-60);
   const opacity = useSharedValue(0);
 
@@ -83,6 +86,7 @@ export function OfflineBanner({ isOnline, pendingCount, isSyncing }: Props) {
       style={[
         styles.banner,
         {
+          top: topInset,
           backgroundColor: colors.card,
           borderColor: bg + "33",
         },
@@ -99,7 +103,6 @@ export function OfflineBanner({ isOnline, pendingCount, isSyncing }: Props) {
 const styles = StyleSheet.create({
   banner: {
     position: "absolute",
-    top: 60,
     alignSelf: "center",
     zIndex: 999,
     flexDirection: "row",
