@@ -42,7 +42,7 @@ export type ThemeColors = {
  * ```
  */
 export function useColors(): ThemeColors {
-  const theme = useTheme((s) => s.theme);
+  const { theme } = useTheme();
 
   const activeTheme = (theme === "harvi" ? "light" : theme) as "light" | "pink";
 

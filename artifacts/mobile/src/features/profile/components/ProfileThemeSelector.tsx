@@ -8,8 +8,7 @@ import { useColors } from "@/src/shared/hooks/useColors";
 import { AnimatedPressable } from "@/src/shared/components";
 
 export function ProfileThemeSelector() {
-  const theme = useTheme((s) => s.theme);
-  const setTheme = useTheme((s) => s.setTheme);
+  const { theme, setTheme } = useTheme();
   const colors = useColors();
 
   return (

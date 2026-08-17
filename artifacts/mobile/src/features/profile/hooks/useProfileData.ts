@@ -1,27 +1,16 @@
-import { useState, useCallback } from "react";
-import { useFocusEffect } from "@react-navigation/native";
-import { mmkv } from "@/src/shared/storage/mmkv";
+import { useMMKVString } from "react-native-mmkv";
+import { storage } from "@/src/shared/storage/mmkv";
 import { AvatarId } from "../components/DoctorAvatars";
 
 /**
- * Hook to manage user profile data from MMKV.
- * Extracted from ProfileScreen logic.
+ * Hook to manage user profile data reactively from MMKV.
  */
 export function useProfileData() {
-  const [avatarId, setAvatarId] = useState<AvatarId | null>(null);
-  const [displayName, setDisplayName] = useState("");
+  const [avatarIdValue] = useMMKVString("avatar", storage);
+  const [displayNameValue] = useMMKVString("displayName", storage);
 
-  const loadProfile = useCallback(() => {
-    const av = mmkv.getAvatar();
-    setAvatarId(av ? (av as AvatarId) : null);
-    setDisplayName(mmkv.getDisplayName());
-  }, []);
+  const avatarId = avatarIdValue ? (avatarIdValue as AvatarId) : null;
+  const displayName = displayNameValue || "";
 
-  useFocusEffect(
-    useCallback(() => {
-      loadProfile();
-    }, [loadProfile]),
-  );
-
-  return { avatarId, displayName, refresh: loadProfile };
+  return { avatarId, displayName, refresh: () => {} };
 }

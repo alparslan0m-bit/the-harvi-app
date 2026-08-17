@@ -1,28 +1,31 @@
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useState } from "react";
+import { useMMKVString } from "react-native-mmkv";
 import { AvatarId } from "../components/DoctorAvatars";
-import { mmkv } from "@/src/shared/storage/mmkv";
+import { storage } from "@/src/shared/storage/mmkv";
 
 export function useProfileEdit() {
   // Synchronous MMKV reads — no hydration effect needed.
+  const [avatarIdValue, setAvatarIdValue] = useMMKVString("avatar", storage);
+  const [displayNameValue, setDisplayNameValue] = useMMKVString("displayName", storage);
+
   const [avatarId, setAvatarId] = useState<AvatarId | null>(() => {
-    const av = mmkv.getAvatar();
-    return av ? (av as AvatarId) : null;
+    return avatarIdValue ? (avatarIdValue as AvatarId) : null;
   });
-  const [nameInput, setNameInput] = useState(() => mmkv.getDisplayName());
+  const [nameInput, setNameInput] = useState(() => displayNameValue || "");
   const [pickerVisible, setPickerVisible] = useState(false);
 
   const handleSelectAvatar = (id: AvatarId) => {
     setAvatarId(id);
-    mmkv.setAvatar(id);
+    setAvatarIdValue(id);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const handleSave = () => {
     const trimmed = nameInput.trim();
-    mmkv.setDisplayName(trimmed);
-    if (avatarId) mmkv.setAvatar(avatarId);
+    setDisplayNameValue(trimmed);
+    if (avatarId) setAvatarIdValue(avatarId);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
   };

@@ -11,7 +11,7 @@
 import { createMMKV } from "react-native-mmkv";
 import type { ThemeMode } from "@/src/shared/store/themeStore";
 
-const storage = createMMKV({ id: "harvi-default" });
+export const storage = createMMKV({ id: "harvi-default" });
 
 export const mmkv = {
   // Theme

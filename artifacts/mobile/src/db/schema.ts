@@ -107,6 +107,19 @@ export const bestScores = sqliteTable(
   (t) => [primaryKey({ columns: [t.userId, t.lectureId] })],
 );
 
+export const bookmarks = sqliteTable(
+  "bookmarks",
+  {
+    userId: text("user_id").notNull(),
+    questionId: text("question_id").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.questionId] }),
+    index("bookmarks_user_id_idx").on(t.userId),
+  ],
+);
+
 /**
  * Quiz results + offline queue — replaces `harvi:quiz_queue`.
  * `status` drives the offline sync engine: `'pending'` rows await upload,
