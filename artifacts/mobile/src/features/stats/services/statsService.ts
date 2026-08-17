@@ -9,7 +9,7 @@
  */
 import NetInfo from "@react-native-community/netinfo";
 
-import { getQueue } from "@/src/shared/services/offlineQueue";
+import { getQueueForUser } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import { UserStats, UserStatsSchema } from "@/src/shared/types/schemas";
@@ -371,8 +371,7 @@ function applyPendingStats(
 // ── Offline path (shared) ────────────────────────────────────────────────────
 
 async function serveFromCache(userId: string): Promise<UserStats> {
-  const [cached, queue] = await Promise.all([readCache(userId), getQueue()]);
-  const pending = queue.filter((q) => q.userId === userId);
+  const [cached, pending] = await Promise.all([readCache(userId), getQueueForUser(userId)]);
 
   if (!cached && pending.length === 0) return ZERO_STATS;
 
@@ -459,8 +458,7 @@ export async function fetchStats(userId: string): Promise<UserStats> {
 
   const baseResult = mapRpcToUserStats(rpcData, dbStats);
 
-  const queue = await getQueue();
-  let pending = queue.filter((q) => q.userId === userId);
+  let pending = await getQueueForUser(userId);
 
   // Prevent double-counting: if the server already processed this quiz (but the client timed out and queued it),
   // it will be in the server's recent_results. We filter it out so we don't add its stats twice.

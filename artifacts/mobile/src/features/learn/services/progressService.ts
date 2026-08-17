@@ -8,7 +8,7 @@
  */
 import NetInfo from "@react-native-community/netinfo";
 
-import { getQueue } from "@/src/shared/services/offlineQueue";
+import { getQueueForUser } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import { getDb } from "@/src/db/client";
@@ -108,8 +108,8 @@ export async function warmMemCache(userId: string): Promise<void> {
 // ── Queue helpers ────────────────────────────────────────────────────────────
 
 async function queuedIds(userId: string): Promise<string[]> {
-  const queue = await getQueue();
-  return queue.filter((q) => q.userId === userId).map((q) => q.lectureId);
+  const queue = await getQueueForUser(userId);
+  return queue.map((q) => q.lectureId);
 }
 
 // ── Offline path ─────────────────────────────────────────────────────────────

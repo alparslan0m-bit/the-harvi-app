@@ -18,8 +18,8 @@ describe("MetaRepository", () => {
   });
 
   it("sets and reads a value", async () => {
-    await repo.set("async_migration_v1_done", "2026-01-01T00:00:00.000Z");
-    expect(await repo.get("async_migration_v1_done")).toBe(
+    await repo.set("test_timestamp_key", "2026-01-01T00:00:00.000Z");
+    expect(await repo.get("test_timestamp_key")).toBe(
       "2026-01-01T00:00:00.000Z",
     );
   });

@@ -175,7 +175,6 @@ export const purchases = sqliteTable(
 
 /**
  * Bookkeeping — new.
- * `async_migration_v1_done` → legacy migrator idempotency.
  * `question_cache_version` → preserves the existing CACHE_VERSION gate.
  * No `db_schema_version` key — Drizzle tracks applied migrations in its own
  * journal (`__drizzle_migrations`); a second hand-maintained version would
@@ -184,19 +183,4 @@ export const purchases = sqliteTable(
 export const appMeta = sqliteTable("app_meta", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
-});
-
-/**
- * Migration quarantine — reserved.
- * Retained from the Phase A/B legacy AsyncStorage migration (§4), where
- * corrupt (Zod-rejected) payloads were parked with the raw JSON instead of
- * being silently dropped. The migrator has been retired (Phase D) and this
- * table stays empty; kept for historical continuity of the schema.
- */
-export const migrationQuarantine = sqliteTable("migration_quarantine", {
-  id: text("id").primaryKey(),
-  sourceKey: text("source_key").notNull(),
-  raw: text("raw").notNull(),
-  error: text("error").notNull(),
-  quarantinedAt: text("quarantined_at").notNull(),
 });

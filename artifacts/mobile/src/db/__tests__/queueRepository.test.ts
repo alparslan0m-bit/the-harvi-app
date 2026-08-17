@@ -48,6 +48,20 @@ describe("QueueRepository", () => {
     expect(pending[1]?.id).toBe("q-3");
   });
 
+  it("returns pending rows scoped to a user", async () => {
+    await repo.enqueue({ ...item, id: "q-1", userId: "u-1", createdAt: "2026-01-01T00:00:00.000Z" });
+    await repo.enqueue({ ...item, id: "q-2", userId: "u-2", createdAt: "2026-01-02T00:00:00.000Z" });
+    await repo.enqueue({ ...item, id: "q-3", userId: "u-1", createdAt: "2026-01-03T00:00:00.000Z" });
+
+    const pendingU1 = await repo.getPendingForUser("u-1");
+    expect(pendingU1).toHaveLength(2);
+    expect(pendingU1.map((r) => r.id)).toEqual(["q-1", "q-3"]);
+
+    const pendingU2 = await repo.getPendingForUser("u-2");
+    expect(pendingU2).toHaveLength(1);
+    expect(pendingU2[0]?.id).toBe("q-2");
+  });
+
   it("marks synced rows with a timestamp", async () => {
     await repo.enqueue(item);
     await repo.markSynced(["q-1"]);

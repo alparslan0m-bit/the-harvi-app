@@ -88,6 +88,17 @@ export async function getQueue(): Promise<PendingQuizResult[]> {
 }
 
 /**
+ * Retrieves the current offline queue for a specific user without mutating it.
+ *
+ * @param userId - The ID of the user whose queue to retrieve
+ * @returns An array of all pending quiz results for the user
+ */
+export async function getQueueForUser(userId: string): Promise<PendingQuizResult[]> {
+  const rows = await (await getQueueRepo()).getPendingForUser(userId);
+  return rows.map(toPendingResult);
+}
+
+/**
  * Marks items as synced so the background sync engine stops retrying them.
  *
  * @param localIds - An array of local UUIDs that successfully synced

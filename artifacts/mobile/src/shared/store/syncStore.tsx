@@ -10,7 +10,7 @@ import { useQueryClient, onlineManager } from "@tanstack/react-query";
 import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
 import { useAuth } from "./authStore";
 import {
-  getQueue,
+  getQueueForUser,
   pendingCount as getPendingCount,
   removeSynced,
 } from "@/src/shared/services/offlineQueue";
@@ -79,8 +79,7 @@ export function useSyncActions() {
     const now = Date.now();
     if (now - lastFlushTime.current < 30000) return;
 
-    const fullQueue = await getQueue();
-    const queue = fullQueue.filter((item) => item.userId === user.id);
+    const queue = await getQueueForUser(user.id);
     if (queue.length === 0) {
       await refreshCount();
       return;

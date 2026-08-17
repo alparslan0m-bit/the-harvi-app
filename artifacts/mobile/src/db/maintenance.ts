@@ -7,27 +7,12 @@
  *    cold start, it rewrites the whole DB.
  */
 import type { SQLiteDatabase } from "expo-sqlite";
+import { getDb } from "./client";
+import { QueueRepository } from "./repositories/queueRepository";
 
 export const SYNCED_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const VACUUM_KEY = "maintenance_last_vacuum";
 const OPTIMIZE_DEBOUNCE_MS = 60 * 60 * 1000;
-
-/**
- * Purges synced quiz_results whose `synced_at` is older than the retention
- * window. Cheap indexed DELETE; runs during a maintenance flush.
- *
- * @param db - The raw expo-sqlite connection
- */
-export async function purgeExpiredSyncedResults(
-  db: SQLiteDatabase,
-): Promise<number> {
-  const cutoff = new Date(Date.now() - SYNCED_RETENTION_MS).toISOString();
-  const result = await db.runAsync(
-    "DELETE FROM quiz_results WHERE status = 'synced' AND synced_at IS NOT NULL AND synced_at < ?",
-    cutoff,
-  );
-  return result.changes;
-}
 
 /**
  * Runs `PRAGMA optimize`, debounced to once per hour. Reads and rewrites
@@ -60,7 +45,7 @@ const OPTIMIZE_DEBOUNCE_KEY = "maintenance_last_optimize";
  * never run per cold start (it rewrites the entire database).
  *
  * @param db - The raw expo-sqlite connection
- * @param force - Bypass the throttle (used once after the legacy migration)
+ * @param force - Set to `true` to bypass the monthly throttle
  */
 export async function vacuumDatabase(
   db: SQLiteDatabase,
@@ -86,8 +71,7 @@ export async function vacuumDatabase(
 
 /**
  * One-shot cold-start maintenance pass: purge expired synced rows, then
- * `PRAGMA optimize` (debounced). VACUUM is NOT part of this path — it is
- * invoked once post-migration and then monthly by `vacuumDatabase`.
+ * `PRAGMA optimize` (debounced), and finally throttled monthly `VACUUM`.
  *
  * @param db - The raw expo-sqlite connection
  */
@@ -95,7 +79,9 @@ export async function runColdStartMaintenance(
   db: SQLiteDatabase,
 ): Promise<void> {
   try {
-    await purgeExpiredSyncedResults(db);
+    const drizzleDb = await getDb();
+    const repo = new QueueRepository(drizzleDb);
+    await repo.purgeExpired();
   } catch (err) {
     if (__DEV__) {
       console.warn("[maintenance] Retention purge failed:", err);
@@ -106,6 +92,13 @@ export async function runColdStartMaintenance(
   } catch (err) {
     if (__DEV__) {
       console.warn("[maintenance] PRAGMA optimize failed:", err);
+    }
+  }
+  try {
+    await vacuumDatabase(db);
+  } catch (err) {
+    if (__DEV__) {
+      console.warn("[maintenance] VACUUM failed:", err);
     }
   }
 }

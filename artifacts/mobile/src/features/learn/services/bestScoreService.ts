@@ -11,7 +11,7 @@
  */
 import NetInfo from "@react-native-community/netinfo";
 
-import { getQueue } from "@/src/shared/services/offlineQueue";
+import { getQueueForUser } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import { getDb } from "@/src/db/client";
@@ -104,8 +104,7 @@ async function mergeQueuedScores(
   userId: string,
   base: BestScoreMap,
 ): Promise<BestScoreMap> {
-  const queue = await getQueue();
-  const pending = queue.filter((q) => q.userId === userId);
+  const pending = await getQueueForUser(userId);
   if (pending.length === 0) return base;
 
   const merged = new Map(base);

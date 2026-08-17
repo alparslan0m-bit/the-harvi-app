@@ -68,6 +68,18 @@ export class QueueRepository {
   }
 
   /**
+   * Returns pending rows for a specific user, oldest first.
+   */
+  async getPendingForUser(userId: string): Promise<QueueRow[]> {
+    const rows = await this.db
+      .select()
+      .from(quizResults)
+      .where(and(eq(quizResults.status, "pending"), eq(quizResults.userId, userId)))
+      .orderBy(asc(quizResults.createdAt));
+    return rows.map(toQueueRow);
+  }
+
+  /**
    * Marks the given local IDs as synced inside one transaction.
    */
   async markSynced(localIds: string[]): Promise<void> {
