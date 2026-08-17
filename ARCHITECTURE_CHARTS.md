@@ -175,5 +175,6 @@ flowchart LR
   stats_service --> supabase_db
   sync_store --> supabase_db
   profile_feature --> shared_utils
+  auth_store --> react_query
 ```
 

@@ -4,7 +4,7 @@
  * It tracks network connectivity, manages the background syncing state,
  * and handles the batch uploading of queued quiz results to Supabase.
  */
-import React, { useEffect, useCallback, useRef } from "react";
+import React, { useEffect, useCallback } from "react";
 import { create } from "zustand";
 import { useQueryClient, onlineManager } from "@tanstack/react-query";
 import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
@@ -16,6 +16,15 @@ import {
 } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
+
+/**
+ * Module-level flush guard + backoff clock — shared by every `useSyncActions()`
+ * instance so only ONE flush loop can run at a time app-wide (audit P2-9).
+ * Previously these were per-instance `useRef`s, letting SyncProvider and each
+ * quiz session run concurrent flush loops.
+ */
+let flushing = false;
+let lastFlushTime = 0;
 
 /**
  * Interface representing the global synchronization state.
@@ -53,10 +62,6 @@ export function useSyncActions() {
   const user = useAuth((s) => s.user);
   const setPendingCount = useSyncStore((s) => s.setPendingCount);
   const setIsSyncing = useSyncStore((s) => s.setIsSyncing);
-  
-  // Use refs to prevent concurrent flushes and implement simple rate limiting
-  const flushing = useRef(false);
-  const lastFlushTime = useRef<number>(0);
 
   /**
    * Updates the global pending count based on the current user's offline queue.
@@ -73,11 +78,11 @@ export function useSyncActions() {
    * - Handles Postgres duplicate/conflict errors gracefully (e.g., 23505).
    */
   const flush = useCallback(async () => {
-    if (flushing.current || !user) return;
+    if (flushing || !user) return;
 
     // Basic backoff: skip if we failed a flush in the last 30 seconds
     const now = Date.now();
-    if (now - lastFlushTime.current < 30000) return;
+    if (now - lastFlushTime < 30000) return;
 
     const queue = await getQueueForUser(user.id);
     if (queue.length === 0) {
@@ -85,7 +90,7 @@ export function useSyncActions() {
       return;
     }
 
-    flushing.current = true;
+    flushing = true;
     setIsSyncing(true);
 
     let anySynced = false;
@@ -134,7 +139,7 @@ export function useSyncActions() {
             anySynced = true;
           } else {
             // Auth expired, transient error, or schema mismatch — preserve queue and back off
-            lastFlushTime.current = Date.now();
+            lastFlushTime = Date.now();
             break;
           }
         }
@@ -143,15 +148,15 @@ export function useSyncActions() {
       if (syncedIds.length > 0) await removeSynced(syncedIds);
       if (anySynced) {
         queryClient.invalidateQueries({ queryKey: ["stats"] });
-        queryClient.invalidateQueries({ queryKey: ["progress"] });
+        queryClient.invalidateQueries({ queryKey: ["progress_sync"] });
       }
     } catch (err) {
       // Catch timeouts from Promise.race
-      lastFlushTime.current = Date.now();
+      lastFlushTime = Date.now();
     } finally {
       await refreshCount();
       setIsSyncing(false);
-      flushing.current = false;
+      flushing = false;
     }
   }, [user, queryClient, refreshCount, setIsSyncing]);
 

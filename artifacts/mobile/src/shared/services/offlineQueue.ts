@@ -75,19 +75,6 @@ export async function enqueueQuizResult(
 }
 
 /**
- * Retrieves the current offline queue without mutating it.
- *
- * Returns `status='pending'` rows only (keeps `syncStore`'s unchanged flush
- * loop from re-uploading synced rows).
- *
- * @returns An array of all pending quiz results
- */
-export async function getQueue(): Promise<PendingQuizResult[]> {
-  const rows = await (await getQueueRepo()).getPending();
-  return rows.map(toPendingResult);
-}
-
-/**
  * Retrieves the current offline queue for a specific user without mutating it.
  *
  * @param userId - The ID of the user whose queue to retrieve

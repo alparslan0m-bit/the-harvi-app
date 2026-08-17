@@ -172,6 +172,7 @@ export function useQuizSession(lectureId: string) {
               console.error("[QuizSession] Background flush failed:", e),
             );
           } else if (user?.id && lectureId) {
+            await optimisticallyMarkComplete(user.id, lectureId);
             await optimisticallyUpdateBestScore(user.id, lectureId, score);
           }
         }
@@ -182,9 +183,9 @@ export function useQuizSession(lectureId: string) {
         setFinished(false);
         isSubmittingRef.current = false;
       } finally {
-        queryClient.invalidateQueries({ queryKey: ["progress"] });
+        queryClient.invalidateQueries({ queryKey: ["progress_sync"] });
         queryClient.invalidateQueries({ queryKey: ["stats"] });
-        queryClient.invalidateQueries({ queryKey: ["lectureBestScores"] });
+        queryClient.invalidateQueries({ queryKey: ["lectureBestScores_sync"] });
         setSubmitting(false);
       }
     } else {

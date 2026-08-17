@@ -71,15 +71,15 @@ export function AccountActions({ userId, onSignOut }: AccountActionsProps) {
 
             // 3. Zero out UI immediately, then re-fetch clean state
             queryClient.setQueriesData({ queryKey: ["stats"] }, ZERO_STATS);
-            queryClient.setQueriesData({ queryKey: ["progress"] }, new Set());
+            queryClient.setQueriesData({ queryKey: ["progress_sync"] }, new Set());
             queryClient.setQueriesData(
-              { queryKey: ["lectureBestScores"] },
+              { queryKey: ["lectureBestScores_sync"] },
               new Map(),
             );
             // Invalidate to ensure any active observers refetch cleanly in the background
             queryClient.invalidateQueries({ queryKey: ["stats"] });
-            queryClient.invalidateQueries({ queryKey: ["progress"] });
-            queryClient.invalidateQueries({ queryKey: ["lectureBestScores"] });
+            queryClient.invalidateQueries({ queryKey: ["progress_sync"] });
+            queryClient.invalidateQueries({ queryKey: ["lectureBestScores_sync"] });
 
             Alert.alert("History Cleared", "Your quiz history has been reset.");
           },

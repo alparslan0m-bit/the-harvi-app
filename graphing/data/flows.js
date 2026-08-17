@@ -320,11 +320,12 @@ module.exports = [
       {
         order: 5,
         node: "offline_queue",
-        action: "enqueueQuizResult writes to harvi:quiz_queue in AsyncStorage",
+        action:
+          "enqueueQuizResult writes pending row to the SQLite quiz_results queue",
       },
       {
         order: 6,
-        node: "async_storage",
+        node: "offline_queue",
         action: "Persists queue to disk",
       },
       {
@@ -785,9 +786,9 @@ module.exports = [
       },
       {
         order: 10,
-        node: "async_storage",
+        node: "stats_service",
         action:
-          "Persists UserStats to harvi:stats:{userId} for offline fallback",
+          "writeCache persists UserStats snapshot to SQLite user_stats for offline fallback",
       },
       {
         order: 11,
@@ -811,9 +812,9 @@ module.exports = [
       },
       {
         order: 2,
-        node: "async_storage",
+        node: "profile_feature",
         action:
-          "useProfileEdit loads current avatar (harvi:avatar) and displayName (harvi:displayName)",
+          "useProfileEdit loads current avatar and displayName from per-user MMKV keys",
       },
       {
         order: 3,
@@ -823,9 +824,9 @@ module.exports = [
       },
       {
         order: 4,
-        node: "async_storage",
+        node: "profile_feature",
         action:
-          "handleSelectAvatar immediately saves selected avatar ID to harvi:avatar",
+          "handleSelectAvatar immediately saves selected avatar ID to the user's MMKV key",
       },
       {
         order: 5,
@@ -836,12 +837,12 @@ module.exports = [
         order: 6,
         node: "profile_feature",
         action:
-          "User taps Save — handleSave trims name, writes to AsyncStorage",
+          "User taps Save — handleSave trims name, writes to MMKV",
       },
       {
         order: 7,
-        node: "async_storage",
-        action: "Writes harvi:displayName and harvi:avatar",
+        node: "profile_feature",
+        action: "Writes displayName and avatar to per-user MMKV keys",
       },
       {
         order: 8,
@@ -869,8 +870,8 @@ module.exports = [
       },
       {
         order: 3,
-        node: "async_storage",
-        action: "Persists theme choice to harvi:theme",
+        node: "theme_store",
+        action: "Persists theme choice to MMKV",
       },
       {
         order: 4,
@@ -1011,7 +1012,7 @@ module.exports = [
         order: 2,
         node: "question_cache",
         action:
-          "clearAllLectureCache scans AsyncStorage for all harvi:qcache:* keys and removes them",
+          "clearAllLectureCache clears the SQLite questions table for every lecture",
       },
       {
         order: 3,
@@ -1020,8 +1021,8 @@ module.exports = [
       },
       {
         order: 4,
-        node: "async_storage",
-        action: "Batch removes all cached question data from device storage",
+        node: "question_cache",
+        action: "Removes all cached question rows from the SQLite questions table",
       },
       {
         order: 5,

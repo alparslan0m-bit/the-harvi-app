@@ -9,6 +9,7 @@ import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import { Purchase } from "@/src/shared/types/schemas";
 import { getDb } from "@/src/db/client";
 import { purchases } from "@/src/db/schema";
+import { replacePurchasesCache } from "@/src/db/cacheTransactions";
 import { eq } from "drizzle-orm";
 
 async function readCachedPurchases(userId: string): Promise<Purchase[] | null> {
@@ -39,21 +40,7 @@ async function writeCachedPurchases(
 ): Promise<void> {
   try {
     const db = await getDb();
-    await db.transaction(async (tx) => {
-      await tx.delete(purchases).where(eq(purchases.userId, userId));
-      const inserts = data.map((p) => ({
-        id: p.id,
-        userId,
-        moduleId: p.module_id,
-        amountCents: p.amount_cents,
-        currency: p.currency,
-        status: p.status,
-        createdAt: p.created_at,
-      }));
-      if (inserts.length > 0) {
-        await tx.insert(purchases).values(inserts);
-      }
-    });
+    await replacePurchasesCache(db, userId, data);
   } catch (e) {
     if (__DEV__) console.warn("[useMyPurchases] Error writing cache:", e);
   }
@@ -73,6 +60,7 @@ async function fetchMyPurchases(userId: string): Promise<Purchase[]> {
     const queryPromise = supabase
       .from("purchases")
       .select("id, module_id, amount_cents, currency, status, created_at")
+      .eq("user_id", userId)
       .eq("status", "active")
       .order("created_at", { ascending: false });
 

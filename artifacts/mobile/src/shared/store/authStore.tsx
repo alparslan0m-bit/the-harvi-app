@@ -9,9 +9,11 @@ import { create } from "zustand";
 import { Session, User } from "@supabase/supabase-js";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/src/shared/services/supabase";
 import { useCacheStore } from "@/src/shared/store/cacheStore";
 import { clearAllUserCaches } from "@/src/shared/utils/cacheUtils";
+import { mmkv } from "@/src/shared/storage/mmkv";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -157,6 +159,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const uid = useAuthStore.getState().user?.id;
     if (uid) {
       await clearAllUserCaches(uid);
+      mmkv.clearUserProfile(uid);
     }
     await supabase.auth.signOut();
     useCacheStore.getState().clearAll();
@@ -172,6 +175,7 @@ export const useAuthStore = create<AuthState>((set) => ({
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setSession = useAuthStore((s) => s.setSession);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -184,11 +188,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       if (!session) {
         useCacheStore.getState().clearAll();
+        // Drop device-shared content caches from memory so a subsequent user
+        // never sees a previous user's offline quiz/hierarchy data (P1-7).
+        queryClient.removeQueries({ queryKey: ["quiz"] });
+        queryClient.removeQueries({ queryKey: ["hierarchy"] });
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [setSession]);
+  }, [setSession, queryClient]);
 
   useEffect(() => {
     const exchangedCodes = new Set<string>();

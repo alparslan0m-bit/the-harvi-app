@@ -58,6 +58,53 @@ export async function saveQuestionsToCache(
   }
 }
 
+/**
+ * Returns true when the user has a local entitlement to a lecture's questions,
+ * so the offline cache is only served to users who actually own the content
+ * (audit P1-7 — prevents a later user on a shared device taking offline
+ * quizzes for content they don't own).
+ *
+ * A lecture is accessible when it is free, or the user has a local
+ * `access_map` entry (`has_access = 1`) for its subject or parent module.
+ */
+export function hasLocalAccessToLecture(
+  db: Database,
+  userId: string,
+  lectureId: string,
+): boolean {
+  try {
+    const lecture = db.$client.getFirstSync<{
+      subject_id: string | null;
+      is_free: number | null;
+    }>("SELECT subject_id, is_free FROM hierarchy_lectures WHERE id = ?", lectureId);
+    if (!lecture) return false;
+    if (lecture.is_free === 1) return true;
+
+    const subject = lecture.subject_id
+      ? db.$client.getFirstSync<{ module_id: string | null }>(
+          "SELECT module_id FROM hierarchy_subjects WHERE id = ?",
+          lecture.subject_id,
+        )
+      : null;
+
+    const itemIds: string[] = [];
+    if (lecture.subject_id) itemIds.push(lecture.subject_id);
+    if (subject?.module_id) itemIds.push(subject.module_id);
+    if (itemIds.length === 0) return false;
+
+    const placeholders = itemIds.map(() => "?").join(", ");
+    const row = db.$client.getFirstSync<{ has_access: number }>(
+      `SELECT has_access FROM access_map WHERE user_id = ? AND item_id IN (${placeholders}) LIMIT 1`,
+      userId,
+      ...itemIds,
+    );
+    return row?.has_access === 1;
+  } catch (e) {
+    if (__DEV__) console.warn("[questionCache] hasLocalAccessToLecture error:", e);
+    return false;
+  }
+}
+
 export async function loadQuestionsFromCache(
   lectureId: string,
 ): Promise<CachedLecture | null> {

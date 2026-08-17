@@ -1,6 +1,8 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import {
+  hasLocalAccessToLecture,
   loadQuestionsFromCache,
   loadQuestionsFromCacheSync,
   saveQuestionsToCache,
@@ -9,13 +11,26 @@ import { fetchQuestions } from "@/src/features/quiz/services/questionService";
 import { Question } from "@/src/shared/types";
 import { QUESTION_CACHE_VERSION } from "@/src/shared/constants/cacheVersion";
 import { useDatabase } from "@/src/db/provider";
+import { useAuth } from "@/src/shared/store/authStore";
 
 // Re-export for backward compatibility (used by useSubjectCache)
 export { fetchQuestions } from "@/src/features/quiz/services/questionService";
 
 export function useQuizQuestions(lectureId: string) {
   const db = useDatabase();
-  const cached = lectureId ? loadQuestionsFromCacheSync(db, lectureId) : null;
+  const userId = useAuth((s) => s.user?.id);
+
+  const canUseCached =
+    !!lectureId &&
+    !!userId &&
+    hasLocalAccessToLecture(db, userId, lectureId);
+  // Synchronous cache probe — only served to users with a local entitlement
+  // to the lecture's content (audit P1-7). Memoized by `db` + `lectureId` so
+  // the expensive sync read + JSON.parse only runs when inputs change (P2-10).
+  const cached = useMemo(
+    () => (canUseCached ? loadQuestionsFromCacheSync(db, lectureId) : null),
+    [db, lectureId, canUseCached],
+  );
   const initialData = cached?.questions;
 
   return useQuery({
@@ -28,10 +43,13 @@ export function useQuizQuestions(lectureId: string) {
         saveQuestionsToCache(lectureId, questions); // fire-and-forget
         return questions;
       } catch {
-        // Network unavailable — serve from the pre-downloaded cache
-        const cached = await loadQuestionsFromCache(lectureId);
-        if (cached) {
-          return cached.questions;
+        // Network unavailable — serve from the pre-downloaded cache, but only
+        // to users with a local entitlement to the content (audit P1-7).
+        if (canUseCached) {
+          const cached = await loadQuestionsFromCache(lectureId);
+          if (cached) {
+            return cached.questions;
+          }
         }
         throw new Error(
           "You're offline and this lecture hasn't been downloaded yet.\n\nDownload the subject while online to take quizzes offline.",

@@ -130,8 +130,8 @@ User takes a quiz while offline — stores result locally for later sync
 2. **quiz_feature**: QuizScreen mounts, loads from question cache
 3. **question_cache**: Returns cached questions from AsyncStorage
 4. **quiz_feature**: User completes quiz offline
-5. **offline_queue**: enqueueQuizResult writes to harvi:quiz_queue in AsyncStorage
-6. **async_storage**: Persists queue to disk
+5. **offline_queue**: enqueueQuizResult writes pending row to the SQLite quiz_results queue
+6. **offline_queue**: Persists queue to disk
 7. **progress_service**: optimisticallyMarkComplete adds lectureId to memCache + AsyncStorage
 8. **best_score_service**: optimisticallyUpdateBestScore updates score if higher
 
@@ -234,19 +234,19 @@ Loads the stats dashboard with multi-tier caching: synchronous cache → AsyncSt
 7. **offline_queue**: Reads pending queue to merge un-synced quiz results into displayed stats
 8. **stats_service**: Computes UserStats: streak, weekly_activity, subject_mastery, recent_results
 9. **cache_store**: writeCache sets stats in cacheStore.setStatsCache for instant access
-10. **async_storage**: Persists UserStats to harvi:stats:{userId} for offline fallback
+10. **stats_service**: writeCache persists UserStats snapshot to SQLite user_stats for offline fallback
 11. **stats_feature**: Renders StreakCard, StatsMetricsGrid, WeeklyChart, MasterySection, RecentResultsSection
 
 ### Profile Editing
 User edits their avatar and display name on the EditProfileScreen, persisted to AsyncStorage
 
 1. **profile_feature**: User taps edit on ProfileScreen, navigates to EditProfileScreen
-2. **async_storage**: useProfileEdit loads current avatar (harvi:avatar) and displayName (harvi:displayName)
+2. **profile_feature**: useProfileEdit loads current avatar and displayName from per-user MMKV keys
 3. **profile_feature**: User taps avatar to open AvatarPicker — selects from DoctorAvatars grid
-4. **async_storage**: handleSelectAvatar immediately saves selected avatar ID to harvi:avatar
+4. **profile_feature**: handleSelectAvatar immediately saves selected avatar ID to the user's MMKV key
 5. **profile_feature**: User edits display name text field
-6. **profile_feature**: User taps Save — handleSave trims name, writes to AsyncStorage
-7. **async_storage**: Writes harvi:displayName and harvi:avatar
+6. **profile_feature**: User taps Save — handleSave trims name, writes to MMKV
+7. **profile_feature**: Writes displayName and avatar to per-user MMKV keys
 8. **profile_feature**: Success haptic notification fires, router.back() returns to ProfileScreen
 
 ### Theme Switching
@@ -254,7 +254,7 @@ User switches between 'harvi' (warm beige) and 'pink' themes via ProfileThemeSel
 
 1. **profile_feature**: User taps theme option in ProfileThemeSelector
 2. **theme_store**: setTheme updates Zustand state with new theme name
-3. **async_storage**: Persists theme choice to harvi:theme
+3. **theme_store**: Persists theme choice to MMKV
 4. **theme_store**: ThemeProvider re-renders — all useColors consumers get new palette
 5. **app**: Entire app re-renders with new color palette (Appearance.setColorScheme('light') for both)
 
@@ -286,9 +286,9 @@ Destructive action that deletes all quiz results from server and all local cache
 Removes all offline-cached questions from AsyncStorage, freeing device storage
 
 1. **profile_feature**: User taps 'Clear Downloaded Lectures' in AccountActions, confirmation Alert shown
-2. **question_cache**: clearAllLectureCache scans AsyncStorage for all harvi:qcache:* keys and removes them
+2. **question_cache**: clearAllLectureCache clears the SQLite questions table for every lecture
 3. **cache_store**: Sets questionCacheBypassed=true to prevent stale cache reads
-4. **async_storage**: Batch removes all cached question data from device storage
+4. **question_cache**: Removes all cached question rows from the SQLite questions table
 5. **react_query**: setQueriesData clears quiz query data, removeQueries purges quiz cache
 6. **profile_feature**: Warning haptic fires, shows 'Downloads Cleared' confirmation Alert
 

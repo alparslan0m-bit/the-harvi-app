@@ -8,15 +8,7 @@
  */
 import { clearQueueForUser } from "@/src/shared/services/offlineQueue";
 import { getDb } from "@/src/db/client";
-import {
-  progress,
-  bestScores,
-  userStats,
-  accessMap,
-  purchases,
-  quizResults,
-} from "@/src/db/schema";
-import { eq } from "drizzle-orm";
+import { clearAllUserCacheRows } from "@/src/db/cacheTransactions";
 
 /**
  * Clears all user-scoped persistent caches and purges pending queue entries.
@@ -33,14 +25,7 @@ export async function clearAllUserCaches(userId: string): Promise<void> {
   // boot) this is skipped but the queue cleanup below still runs.
   try {
     const db = await getDb();
-    await db.transaction(async (tx) => {
-      await tx.delete(progress).where(eq(progress.userId, userId));
-      await tx.delete(bestScores).where(eq(bestScores.userId, userId));
-      await tx.delete(userStats).where(eq(userStats.userId, userId));
-      await tx.delete(accessMap).where(eq(accessMap.userId, userId));
-      await tx.delete(purchases).where(eq(purchases.userId, userId));
-      await tx.delete(quizResults).where(eq(quizResults.userId, userId));
-    });
+    await clearAllUserCacheRows(db, userId);
   } catch (error) {
     if (__DEV__) {
       console.warn("[clearAllUserCaches] Error clearing SQLite caches:", error);

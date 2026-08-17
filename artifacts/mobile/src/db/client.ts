@@ -44,7 +44,9 @@ export async function getDb(): Promise<Database> {
   if (dbPromise) return dbPromise;
 
   dbPromise = (async () => {
-    const raw = await SQLite.openDatabaseAsync(DATABASE_NAME);
+    const raw = await SQLite.openDatabaseAsync(DATABASE_NAME, {
+      enableChangeListener: true,
+    });
     await applyPragmas(raw);
     dbInstance = drizzle(raw, { schema });
     return dbInstance;

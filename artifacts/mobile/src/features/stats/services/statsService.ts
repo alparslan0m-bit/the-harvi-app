@@ -83,7 +83,9 @@ async function readCache(userId: string): Promise<UserStats | null> {
       .where(eq(userStats.userId, userId))
       .limit(1);
     if (rows.length === 0) return null;
-    const result = UserStatsSchema.safeParse(JSON.parse(rows[0].payload as string));
+    const first = rows[0];
+    if (!first) return null;
+    const result = UserStatsSchema.safeParse(JSON.parse(first.payload));
     return result.success ? result.data : null;
   } catch (e) {
     if (__DEV__) console.warn("[statsService] Error reading cache:", e);

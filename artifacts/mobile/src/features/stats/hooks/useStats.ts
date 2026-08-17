@@ -8,6 +8,7 @@
  *  - On net error → serves last SQLite snapshot + merges queue
  */
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 import {
   fetchStats,
@@ -18,7 +19,12 @@ import { useDatabase } from "@/src/db/provider";
 
 export function useStats(userId: string | undefined) {
   const db = useDatabase();
-  const memData = userId ? readCacheSync(db, userId) : undefined;
+  // Full payload read + JSON.parse + Zod validation is expensive — compute it
+  // once per (db, userId) instead of on every render (audit P2-10).
+  const memData = useMemo(
+    () => (userId ? readCacheSync(db, userId) : undefined),
+    [db, userId],
+  );
 
   return useQuery({
     queryKey: ["stats", userId],

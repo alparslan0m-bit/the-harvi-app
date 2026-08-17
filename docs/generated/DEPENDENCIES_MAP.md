@@ -1,7 +1,7 @@
 # Dependency Map
 
 > **Auto-generated** by `docs/extractors/dependencies.js`.
-> Generated at 2026-08-17T09:36:01.573Z
+> Generated at 2026-08-17T10:59:14.582Z
 > Maps third-party library usage across the codebase.
 
 ## 📦 Library Usage
@@ -10,8 +10,8 @@
 |------------|------|------------------|-------------|
 | `@expo/vector-icons` | dev | auth, learn, profile, purchase, quiz, stats, core/shared | 49 |
 | `react-native-reanimated` | dev | routing (app/), learn, purchase, quiz, stats, core/shared | 27 |
-| `drizzle-orm` | prod | core/shared, learn, purchase, stats | 15 |
-| `@tanstack/react-query` | dev | routing (app/), learn, profile, purchase, quiz, stats, core/shared | 12 |
+| `drizzle-orm` | prod | core/shared, learn, purchase, stats | 14 |
+| `@tanstack/react-query` | dev | routing (app/), learn, profile, purchase, quiz, stats, core/shared | 13 |
 | `@react-native-community/netinfo` | prod | learn, purchase, quiz, stats, core/shared | 11 |
 | `expo-haptics` | dev | auth, profile, quiz, core/shared | 8 |
 | `@react-navigation/native` | dev | learn, profile, stats, core/shared | 5 |

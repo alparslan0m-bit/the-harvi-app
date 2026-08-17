@@ -183,10 +183,13 @@ export function usePurchaseActions() {
         const isPurchased =
           info.allPurchasedProductIdentifiers.includes(productId);
         if (isPurchased) {
+          // Use the real store transaction id so the edge function's RevenueCat
+          // validation (store_transaction_id OR product_identifier) passes.
+          // `restored_${productId}` could never match either (audit P2-12).
           const txId =
             info.nonSubscriptionTransactions.find(
               (t) => t.productIdentifier === productId,
-            )?.transactionIdentifier ?? `restored_${productId}`;
+            )?.transactionIdentifier ?? productId;
           const store = Platform.OS === "ios" ? "apple_iap" : "google_play";
           await recordIAP({ moduleId, transactionId: txId, store });
           await invalidateAccess();

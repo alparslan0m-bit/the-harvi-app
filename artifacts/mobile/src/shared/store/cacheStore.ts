@@ -1,8 +1,7 @@
 /**
  * @file cacheStore.ts
- * @description Centralized Zustand memory-cache store for transient user statistics 
- * and question cache bypass flags. Provides synchronous access to cached metrics 
- * across UI re-renders without waiting for asynchronous disk reads.
+ * @description Centralized Zustand memory-cache store for the question-cache
+ * bypass flag. Provides synchronous access to cached flags across UI re-renders.
  */
 import { create } from "zustand";
 import { UserStats } from "@/src/shared/types/schemas";

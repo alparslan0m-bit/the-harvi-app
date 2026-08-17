@@ -13,6 +13,7 @@ import {
 import { z } from "zod";
 import { getDb } from "@/src/db/client";
 import { accessMap } from "@/src/db/schema";
+import { replaceAccessCache } from "@/src/db/cacheTransactions";
 import { eq } from "drizzle-orm";
 
 async function readCachedAccess(
@@ -54,20 +55,7 @@ async function writeCachedAccess(
 ): Promise<void> {
   try {
     const db = await getDb();
-    await db.transaction(async (tx) => {
-      await tx.delete(accessMap).where(eq(accessMap.userId, userId));
-      const inserts = Array.from(map.values()).map((entry) => ({
-        userId,
-        itemId: entry.item_id,
-        itemType: entry.item_type,
-        hasAccess: entry.has_access,
-        isFree: entry.is_free,
-        priceCents: entry.price_cents,
-      }));
-      if (inserts.length > 0) {
-        await tx.insert(accessMap).values(inserts);
-      }
-    });
+    await replaceAccessCache(db, userId, map);
   } catch {
     // best-effort
   }

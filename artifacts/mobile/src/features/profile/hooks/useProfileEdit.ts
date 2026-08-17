@@ -3,12 +3,25 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { useMMKVString } from "react-native-mmkv";
 import { AvatarId } from "../components/DoctorAvatars";
-import { storage } from "@/src/shared/storage/mmkv";
+import {
+  storage,
+  profileAvatarKey,
+  profileDisplayNameKey,
+} from "@/src/shared/storage/mmkv";
+import { useAuth } from "@/src/shared/store/authStore";
 
 export function useProfileEdit() {
-  // Synchronous MMKV reads — no hydration effect needed.
-  const [avatarIdValue, setAvatarIdValue] = useMMKVString("avatar", storage);
-  const [displayNameValue, setDisplayNameValue] = useMMKVString("displayName", storage);
+  const userId = useAuth((s) => s.user?.id);
+  const avatarKey = userId ? profileAvatarKey(userId) : "__no_user__";
+  const displayNameKey = userId ? profileDisplayNameKey(userId) : "__no_user__";
+
+  // Synchronous MMKV reads — no hydration effect needed. Keys are per-user
+  // (audit P1-5) so profile edits never bleed across accounts.
+  const [avatarIdValue, setAvatarIdValue] = useMMKVString(avatarKey, storage);
+  const [displayNameValue, setDisplayNameValue] = useMMKVString(
+    displayNameKey,
+    storage,
+  );
 
   const [avatarId, setAvatarId] = useState<AvatarId | null>(() => {
     return avatarIdValue ? (avatarIdValue as AvatarId) : null;

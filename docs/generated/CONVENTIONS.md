@@ -1,7 +1,7 @@
 # Conventions
 
 > **Auto-generated** by `docs/extractors/conventions.js`.
-> Generated at 2026-08-17T09:35:57.835Z
+> Generated at 2026-08-17T10:59:13.948Z
 > Structural patterns extracted from the codebase. Follow these when adding new code.
 
 ## 📁 Feature Folder Structure
@@ -40,7 +40,7 @@ Every store follows: **Zustand create** + **Provider component** + **useXxx hook
 
 | Store | Zustand | Provider | Hook | AsyncStorage | Supabase | QueryClient |
 |-------|---------|----------|------|-------------|----------|-------------|
-| `authStore` | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| `authStore` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
 | `cacheStore` | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
 | `purchaseStore` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
 | `syncStore` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
@@ -63,8 +63,8 @@ Services use a three-tier cache strategy: **memCache → AsyncStorage → Supaba
 
 ## 📦 Import Conventions
 
-- **Alias imports (`@/`):** 290 usages across 151 files
-- **Relative imports (`./`):** 192 usages
+- **Alias imports (`@/`):** 300 usages across 153 files
+- **Relative imports (`./`):** 194 usages
 - **Convention:** Use `@/` for cross-feature imports, `./` for intra-directory
 
 ### ⚠️ Cross-Feature Import Violations

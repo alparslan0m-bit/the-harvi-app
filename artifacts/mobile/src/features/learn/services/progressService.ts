@@ -13,6 +13,7 @@ import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import { Database, getDb } from "@/src/db/client";
 import { progress } from "@/src/db/schema";
+import { replaceProgressCache } from "@/src/db/cacheTransactions";
 import { eq } from "drizzle-orm";
 
 // ── Disk helpers (SQLite canonical) ──────────────────────────────────────────
@@ -62,19 +63,7 @@ export async function writeProgressCache(
   try {
     const db = await getDb();
     const completedAt = new Date().toISOString();
-    await db.transaction(async (tx) => {
-      await tx.delete(progress).where(eq(progress.userId, userId));
-      
-      const insertData = Array.from(ids).map((lectureId) => ({
-        userId,
-        lectureId,
-        completedAt,
-      }));
-      
-      if (insertData.length > 0) {
-        await tx.insert(progress).values(insertData);
-      }
-    });
+    await replaceProgressCache(db, userId, ids, completedAt);
   } catch (e) {
     if (__DEV__) console.warn("[progressService] writeProgressCache error:", e);
   }

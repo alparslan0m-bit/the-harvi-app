@@ -13,6 +13,7 @@ import { QueueRepository } from "./repositories/queueRepository";
 export const SYNCED_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 const VACUUM_KEY = "maintenance_last_vacuum";
 const OPTIMIZE_DEBOUNCE_MS = 60 * 60 * 1000;
+const OPTIMIZE_DEBOUNCE_KEY = "maintenance_last_optimize";
 
 /**
  * Runs `PRAGMA optimize`, debounced to once per hour. Reads and rewrites
@@ -37,8 +38,6 @@ export async function optimizeDatabase(db: SQLiteDatabase): Promise<boolean> {
   );
   return true;
 }
-
-const OPTIMIZE_DEBOUNCE_KEY = "maintenance_last_optimize";
 
 /**
  * Runs `VACUUM` to reclaim wasted pages. Throttled to monthly via app_meta —

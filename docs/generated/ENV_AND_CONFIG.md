@@ -1,7 +1,7 @@
 # Environment & Configuration
 
 > **Auto-generated** by `docs/extractors/env-and-config.js`.
-> Generated at 2026-08-17T09:36:02.509Z
+> Generated at 2026-08-17T10:59:14.749Z
 > Maps required environment variables, Expo plugins, and build profiles.
 
 ## 🔐 Environment Variables

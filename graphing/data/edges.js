@@ -856,6 +856,14 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/profile/components/AccountActions.tsx"
   },
   {
+    "id": "e108",
+    "source": "auth_store",
+    "target": "react_query",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
+  },
+  {
     "source": "react_query",
     "target": "theme_store",
     "label": "Flow triggers"

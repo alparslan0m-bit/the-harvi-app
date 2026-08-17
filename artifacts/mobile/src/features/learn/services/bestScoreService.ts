@@ -16,7 +16,8 @@ import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import { Database, getDb } from "@/src/db/client";
 import { bestScores } from "@/src/db/schema";
-import { eq } from "drizzle-orm";
+import { replaceBestScoresCache } from "@/src/db/cacheTransactions";
+import { eq, sql } from "drizzle-orm";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -60,17 +61,7 @@ export async function writeCache(
 ): Promise<void> {
   try {
     const db = await getDb();
-    await db.transaction(async (tx) => {
-      await tx.delete(bestScores).where(eq(bestScores.userId, userId));
-      const inserts = Array.from(data.entries()).map(([lectureId, score]) => ({
-        userId,
-        lectureId,
-        score,
-      }));
-      if (inserts.length > 0) {
-        await tx.insert(bestScores).values(inserts);
-      }
-    });
+    await replaceBestScoresCache(db, userId, data);
   } catch (e) {
     if (__DEV__) console.warn("[bestScoreService] writeCache error:", e);
   }
@@ -80,17 +71,26 @@ export async function writeCache(
  * Merge a newly-completed quiz score into the on-device bestScore cache
  * so the lecture card stars update instantly after a quiz finishes —
  * even before the result is synced to Supabase.
+ *
+ * Single atomic upsert (INSERT … ON CONFLICT DO UPDATE): no read-modify-write
+ * race window vs a concurrent `fetchBestScores.writeCache` (audit P2-11).
  */
 export async function optimisticallyUpdateBestScore(
   userId: string,
   lectureId: string,
   score: number,
 ): Promise<void> {
-  const current = (await readCache(userId)) ?? new Map<string, number>();
-  const prevScore = current.get(lectureId) ?? 0;
-  if (score > prevScore) {
-    current.set(lectureId, score);
-    await writeCache(userId, current);
+  try {
+    const db = await getDb();
+    await db
+      .insert(bestScores)
+      .values({ userId, lectureId, score })
+      .onConflictDoUpdate({
+        target: [bestScores.userId, bestScores.lectureId],
+        set: { score: sql`max(${bestScores.score}, excluded.score)` },
+      });
+  } catch (e) {
+    if (__DEV__) console.warn("[bestScoreService] optimistic update error:", e);
   }
 }
 
