@@ -33,6 +33,7 @@ export function readCacheSync(db: Database, userId: string): Set<string> | undef
   }
 }
 
+
 async function readCache(userId: string): Promise<Set<string> | null> {
   try {
     const db = await getDb();

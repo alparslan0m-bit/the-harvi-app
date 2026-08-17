@@ -3,8 +3,8 @@
  * @description Periodic on-device database cleanup (plan.md §6):
  *  - Purge `synced` quiz_results older than 30 days (retention).
  *  - `PRAGMA optimize` on cold start, debounced — cheap, reclaims query plans.
- *  - `VACUUM` only once post-migration and then throttled (monthly) — never per
- *    cold start, it rewrites the whole DB.
+ *  - `VACUUM` throttled to once per 30 days — never per cold start, it
+ *    rewrites the whole DB.
  */
 import type { SQLiteDatabase } from "expo-sqlite";
 import { getDb } from "./client";
@@ -45,7 +45,7 @@ const OPTIMIZE_DEBOUNCE_KEY = "maintenance_last_optimize";
  * never run per cold start (it rewrites the entire database).
  *
  * @param db - The raw expo-sqlite connection
- * @param force - Set to `true` to bypass the monthly throttle
+ * @param force - Set to `true` to bypass the monthly throttle (e.g. post-migration run)
  */
 export async function vacuumDatabase(
   db: SQLiteDatabase,
