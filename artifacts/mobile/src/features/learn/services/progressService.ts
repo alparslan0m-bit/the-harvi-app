@@ -11,27 +11,36 @@ import NetInfo from "@react-native-community/netinfo";
 import { getQueueForUser } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
-import { getDb } from "@/src/db/client";
-
-// ── Module-level memory cache (survives re-renders, cleared on app restart) ──
-
-/**
- * Fast, synchronous memory cache of completed lecture IDs per user.
- * Avoids the async overhead of reading from disk on every UI render.
- */
-export const memCache = new Map<string, Set<string>>();
-export const warmed = new Set<string>();
+import { Database, getDb } from "@/src/db/client";
+import { progress } from "@/src/db/schema";
+import { eq } from "drizzle-orm";
 
 // ── Disk helpers (SQLite canonical) ──────────────────────────────────────────
 
-async function readCache(userId: string): Promise<Set<string> | null> {
+/**
+ * Synchronous read for React Query initialData to avoid loading flashes.
+ */
+export function readCacheSync(db: Database, userId: string): Set<string> | undefined {
   try {
-    const db = await getDb();
-    const rows = await db.$client.getAllAsync<{ lecture_id: string }>(
+    const rows = db.$client.getAllSync<{ lecture_id: string }>(
       "SELECT lecture_id FROM progress WHERE user_id = ?",
       userId,
     );
     return new Set(rows.map((r) => r.lecture_id));
+  } catch (e) {
+    if (__DEV__) console.warn("[progressService] readCacheSync error:", e);
+    return undefined;
+  }
+}
+
+async function readCache(userId: string): Promise<Set<string> | null> {
+  try {
+    const db = await getDb();
+    const rows = await db
+      .select({ lectureId: progress.lectureId })
+      .from(progress)
+      .where(eq(progress.userId, userId));
+    return new Set(rows.map((r) => r.lectureId));
   } catch (e) {
     if (__DEV__) console.warn("[progressService] readCache error:", e);
     return null;
@@ -52,18 +61,19 @@ export async function writeProgressCache(
   try {
     const db = await getDb();
     const completedAt = new Date().toISOString();
-    await db.$client.withExclusiveTransactionAsync(async (txn) => {
-      await txn.runAsync("DELETE FROM progress WHERE user_id = ?", userId);
-      for (const lectureId of ids) {
-        await txn.runAsync(
-          "INSERT INTO progress (user_id, lecture_id, completed_at) VALUES (?, ?, ?)",
-          userId,
-          lectureId,
-          completedAt,
-        );
+    await db.transaction(async (tx) => {
+      await tx.delete(progress).where(eq(progress.userId, userId));
+      
+      const insertData = Array.from(ids).map((lectureId) => ({
+        userId,
+        lectureId,
+        completedAt,
+      }));
+      
+      if (insertData.length > 0) {
+        await tx.insert(progress).values(insertData);
       }
     });
-    memCache.set(userId, ids);
   } catch (e) {
     if (__DEV__) console.warn("[progressService] writeProgressCache error:", e);
   }
@@ -82,26 +92,15 @@ export async function optimisticallyMarkComplete(
   userId: string,
   lectureId: string,
 ): Promise<void> {
-  const current =
-    memCache.get(userId) ?? (await readCache(userId)) ?? new Set<string>();
-  current.add(lectureId);
-  await writeProgressCache(userId, current);
-}
-
-// ── Warm memory cache from SQLite (called once per session) ──────────────────
-
-/**
- * Warms the synchronous memory cache by pulling the persisted dataset from SQLite.
- * Typically called once per session during application bootstrap or user login.
- * 
- * @param userId - The ID of the authenticated user
- */
-export async function warmMemCache(userId: string): Promise<void> {
-  if (warmed.has(userId)) return;
-  warmed.add(userId);
-  const cached = await readCache(userId);
-  if (cached && !memCache.has(userId)) {
-    memCache.set(userId, cached);
+  try {
+    const db = await getDb();
+    await db.insert(progress).values({
+      userId,
+      lectureId,
+      completedAt: new Date().toISOString(),
+    }).onConflictDoNothing();
+  } catch (e) {
+    if (__DEV__) console.warn("[progressService] optimisticallyMarkComplete error:", e);
   }
 }
 
@@ -115,12 +114,9 @@ async function queuedIds(userId: string): Promise<string[]> {
 // ── Offline path ─────────────────────────────────────────────────────────────
 
 async function serveFromCache(userId: string): Promise<Set<string>> {
-  const cached =
-    memCache.get(userId) ?? (await readCache(userId)) ?? new Set<string>();
+  const cached = (await readCache(userId)) ?? new Set<string>();
   const pending = await queuedIds(userId);
   pending.forEach((id) => cached.add(id));
-  // Keep memCache in sync
-  memCache.set(userId, cached);
   return cached;
 }
 
@@ -212,27 +208,3 @@ export async function fetchCompletedLectures(
   return result;
 }
 
-// ── Cache management ─────────────────────────────────────────────────────────
-
-/**
- * Purges all progress caches for a specific user from SQLite and memory.
- * Invoked during destructive actions like user logout or manual cache clearing.
- *
- * @param userId - The ID of the authenticated user
- */
-export async function clearProgressCache(userId: string) {
-  try {
-    await (await getDb()).$client.runAsync(
-      "DELETE FROM progress WHERE user_id = ?",
-      userId,
-    );
-    memCache.delete(userId);
-    warmed.delete(userId);
-  } catch (error) {
-    if (__DEV__)
-      console.error(
-        "[clearProgressCache] Error clearing progress cache:",
-        error,
-      );
-  }
-}

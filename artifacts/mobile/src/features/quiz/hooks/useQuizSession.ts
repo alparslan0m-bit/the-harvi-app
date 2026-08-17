@@ -13,7 +13,6 @@ import { useSyncStore, useSyncActions } from "@/src/shared/store/syncStore";
 import { useQuizQuestions } from "@/src/features/quiz/hooks/useQuiz";
 import { optimisticallyMarkComplete } from "@/src/features/learn/hooks/useProgress";
 import { optimisticallyUpdateBestScore } from "@/src/features/learn/hooks/useLectureBestScores";
-import { loadQuestionsFromCache } from "@/src/features/quiz/services/questionCache";
 import {
   enqueueQuizResult,
   generateUUID,
@@ -27,32 +26,11 @@ export function useQuizSession(lectureId: string) {
   const isOnline = useSyncStore((s) => s.isOnline);
   const { refreshCount, flush } = useSyncActions();
 
-  // ── Fast path: pre-load from the on-device cache before RQ resolves ──────
-  const [cachedQuestions, setCachedQuestions] = useState<
-    Question[] | undefined
-  >();
-  const [cacheChecked, setCacheChecked] = useState(false);
-  const mountedRef = useRef(true);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    loadQuestionsFromCache(lectureId).then((hit) => {
-      if (!mountedRef.current) return;
-      if (hit?.questions) setCachedQuestions(hit.questions);
-      setCacheChecked(true);
-    });
-    return () => {
-      mountedRef.current = false;
-    };
-  }, [lectureId]);
-
   const {
     data: queryQuestions,
     isLoading,
     error,
-  } = useQuizQuestions(lectureId, cachedQuestions);
-
-  const remoteQuestions = queryQuestions || cachedQuestions;
+  } = useQuizQuestions(lectureId);
 
   // ── Quiz session state ────────────────────────────────────────────────────
   const [questions, setQuestions] = useState<Question[] | null>(null);
@@ -60,9 +38,9 @@ export function useQuizSession(lectureId: string) {
   // Lock in the questions once they arrive (either from cache or remote)
   // This prevents the "switcheroo" bug where background refreshes shuffle
   // the questions while the user is mid-quiz.
-  if (!questions && remoteQuestions) {
+  if (!questions && queryQuestions) {
     // Render phase state update: runs synchronously before committing to screen
-    setQuestions([...remoteQuestions].sort(() => Math.random() - 0.5));
+    setQuestions([...queryQuestions].sort(() => Math.random() - 0.5));
   }
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -266,7 +244,6 @@ export function useQuizSession(lectureId: string) {
     history,
     isLoading,
     error,
-    cacheChecked,
     progressStyle,
     handleSelect,
     handleNext,

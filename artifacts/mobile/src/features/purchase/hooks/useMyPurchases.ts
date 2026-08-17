@@ -8,30 +8,25 @@ import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 
 import { Purchase } from "@/src/shared/types/schemas";
 import { getDb } from "@/src/db/client";
+import { purchases } from "@/src/db/schema";
+import { eq } from "drizzle-orm";
 
 async function readCachedPurchases(userId: string): Promise<Purchase[] | null> {
   try {
     const db = await getDb();
-    const rows = await db.$client.getAllAsync<{
-      id: string;
-      module_id: string | null;
-      amount_cents: number;
-      currency: string;
-      status: string;
-      created_at: string;
-    }>(
-      "SELECT id, module_id, amount_cents, currency, status, created_at FROM purchases WHERE user_id = ?",
-      userId,
-    );
+    const rows = await db
+      .select({
+        id: purchases.id,
+        module_id: purchases.moduleId,
+        amount_cents: purchases.amountCents,
+        currency: purchases.currency,
+        status: purchases.status,
+        created_at: purchases.createdAt,
+      })
+      .from(purchases)
+      .where(eq(purchases.userId, userId));
     if (rows.length === 0) return null;
-    return rows.map((r) => ({
-      id: r.id,
-      module_id: r.module_id,
-      amount_cents: r.amount_cents,
-      currency: r.currency,
-      status: r.status,
-      created_at: r.created_at,
-    }));
+    return rows;
   } catch (e) {
     if (__DEV__) console.warn("[useMyPurchases] Error reading cache:", e);
     return null;
@@ -44,19 +39,19 @@ async function writeCachedPurchases(
 ): Promise<void> {
   try {
     const db = await getDb();
-    await db.$client.withExclusiveTransactionAsync(async (txn) => {
-      await txn.runAsync("DELETE FROM purchases WHERE user_id = ?", userId);
-      for (const p of data) {
-        await txn.runAsync(
-          "INSERT INTO purchases (id, user_id, module_id, amount_cents, currency, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-          p.id,
-          userId,
-          p.module_id ?? null,
-          p.amount_cents,
-          p.currency,
-          p.status,
-          p.created_at,
-        );
+    await db.transaction(async (tx) => {
+      await tx.delete(purchases).where(eq(purchases.userId, userId));
+      const inserts = data.map((p) => ({
+        id: p.id,
+        userId,
+        moduleId: p.module_id,
+        amountCents: p.amount_cents,
+        currency: p.currency,
+        status: p.status,
+        createdAt: p.created_at,
+      }));
+      if (inserts.length > 0) {
+        await tx.insert(purchases).values(inserts);
       }
     });
   } catch (e) {

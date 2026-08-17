@@ -9,14 +9,12 @@ export * from "./services/accessService";
 export {
   fetchBestScores,
   optimisticallyUpdateBestScore,
-  clearBestScoreCache,
   type BestScoreMap,
 } from "./services/bestScoreService";
 export * from "./services/hierarchyService";
 export {
   fetchCompletedLectures,
   optimisticallyMarkComplete,
-  clearProgressCache,
   writeProgressCache,
 } from "./services/progressService";
 export * from "./components";

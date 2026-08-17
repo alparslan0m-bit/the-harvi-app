@@ -11,22 +11,14 @@ import { useQuery } from "@tanstack/react-query";
 
 import {
   fetchStats,
-  warmMemCache,
+  readCacheSync,
 } from "@/src/features/stats/services/statsService";
-import { useCacheStore } from "@/src/shared/store/cacheStore";
+import { useDatabase } from "@/src/db/provider";
 
-// Re-export for backward compatibility
-export { clearStatsCache } from "@/src/features/stats/services/statsService";
 
 export function useStats(userId: string | undefined) {
-  const { warmedStats, statsCache } = useCacheStore();
-  // Kick off async warm of memCache on first call for this user.
-  // By the time they navigate to the stats tab, memCache will be populated.
-  if (userId && !warmedStats.has(userId)) {
-    warmMemCache(userId);
-  }
-
-  const memData = userId ? statsCache.get(userId) : undefined;
+  const db = useDatabase();
+  const memData = userId ? readCacheSync(db, userId) : undefined;
 
   return useQuery({
     queryKey: ["stats", userId],

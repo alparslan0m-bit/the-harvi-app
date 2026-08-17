@@ -8,6 +8,15 @@
  */
 import { clearQueueForUser } from "@/src/shared/services/offlineQueue";
 import { getDb } from "@/src/db/client";
+import {
+  progress,
+  bestScores,
+  userStats,
+  accessMap,
+  purchases,
+  quizResults,
+} from "@/src/db/schema";
+import { eq } from "drizzle-orm";
 
 /**
  * Clears all user-scoped persistent caches and purges pending queue entries.
@@ -24,13 +33,13 @@ export async function clearAllUserCaches(userId: string): Promise<void> {
   // boot) this is skipped but the queue cleanup below still runs.
   try {
     const db = await getDb();
-    await db.$client.withExclusiveTransactionAsync(async (txn) => {
-      await txn.runAsync("DELETE FROM progress WHERE user_id = ?", userId);
-      await txn.runAsync("DELETE FROM best_scores WHERE user_id = ?", userId);
-      await txn.runAsync("DELETE FROM user_stats WHERE user_id = ?", userId);
-      await txn.runAsync("DELETE FROM access_map WHERE user_id = ?", userId);
-      await txn.runAsync("DELETE FROM purchases WHERE user_id = ?", userId);
-      await txn.runAsync("DELETE FROM quiz_results WHERE user_id = ?", userId);
+    await db.transaction(async (tx) => {
+      await tx.delete(progress).where(eq(progress.userId, userId));
+      await tx.delete(bestScores).where(eq(bestScores.userId, userId));
+      await tx.delete(userStats).where(eq(userStats.userId, userId));
+      await tx.delete(accessMap).where(eq(accessMap.userId, userId));
+      await tx.delete(purchases).where(eq(purchases.userId, userId));
+      await tx.delete(quizResults).where(eq(quizResults.userId, userId));
     });
   } catch (error) {
     if (__DEV__) {

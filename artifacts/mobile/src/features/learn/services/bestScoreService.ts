@@ -14,29 +14,40 @@ import NetInfo from "@react-native-community/netinfo";
 import { getQueueForUser } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
-import { getDb } from "@/src/db/client";
+import { Database, getDb } from "@/src/db/client";
+import { bestScores } from "@/src/db/schema";
+import { eq } from "drizzle-orm";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
 /** Map<lectureId, bestScorePercent> */
 export type BestScoreMap = Map<string, number>;
 
-// ── Module-level memory cache ────────────────────────────────────────────────
-
-export const memCache = new Map<string, BestScoreMap>();
-export const warmed = new Set<string>();
-
 // ── Disk helpers (SQLite canonical) ──────────────────────────────────────────
+
+export function readCacheSync(db: Database, userId: string): BestScoreMap | undefined {
+  try {
+    const rows = db.$client.getAllSync<{
+      lecture_id: string;
+      score: number;
+    }>("SELECT lecture_id, score FROM best_scores WHERE user_id = ?", userId);
+    if (rows.length === 0) return undefined;
+    return new Map(rows.map((r) => [r.lecture_id, r.score]));
+  } catch (e) {
+    if (__DEV__) console.warn("[bestScoreService] readCacheSync error:", e);
+    return undefined;
+  }
+}
 
 async function readCache(userId: string): Promise<BestScoreMap | null> {
   try {
     const db = await getDb();
-    const rows = await db.$client.getAllAsync<{
-      lecture_id: string;
-      score: number;
-    }>("SELECT lecture_id, score FROM best_scores WHERE user_id = ?", userId);
+    const rows = await db
+      .select({ lectureId: bestScores.lectureId, score: bestScores.score })
+      .from(bestScores)
+      .where(eq(bestScores.userId, userId));
     if (rows.length === 0) return null;
-    return new Map(rows.map((r) => [r.lecture_id, r.score]));
+    return new Map(rows.map((r) => [r.lectureId, r.score]));
   } catch (e) {
     if (__DEV__) console.warn("[bestScoreService] readCache error:", e);
     return null;
@@ -49,31 +60,19 @@ export async function writeCache(
 ): Promise<void> {
   try {
     const db = await getDb();
-    await db.$client.withExclusiveTransactionAsync(async (txn) => {
-      await txn.runAsync("DELETE FROM best_scores WHERE user_id = ?", userId);
-      for (const [lectureId, score] of data.entries()) {
-        await txn.runAsync(
-          "INSERT INTO best_scores (user_id, lecture_id, score) VALUES (?, ?, ?)",
-          userId,
-          lectureId,
-          score,
-        );
+    await db.transaction(async (tx) => {
+      await tx.delete(bestScores).where(eq(bestScores.userId, userId));
+      const inserts = Array.from(data.entries()).map(([lectureId, score]) => ({
+        userId,
+        lectureId,
+        score,
+      }));
+      if (inserts.length > 0) {
+        await tx.insert(bestScores).values(inserts);
       }
     });
-    memCache.set(userId, data);
   } catch (e) {
     if (__DEV__) console.warn("[bestScoreService] writeCache error:", e);
-  }
-}
-
-// ── Warm memory cache from SQLite (called once per session) ──────────────────
-
-export async function warmMemCache(userId: string): Promise<void> {
-  if (warmed.has(userId)) return;
-  warmed.add(userId);
-  const cached = await readCache(userId);
-  if (cached && !memCache.has(userId)) {
-    memCache.set(userId, cached);
   }
 }
 
@@ -87,10 +86,7 @@ export async function optimisticallyUpdateBestScore(
   lectureId: string,
   score: number,
 ): Promise<void> {
-  const current =
-    memCache.get(userId) ??
-    (await readCache(userId)) ??
-    new Map<string, number>();
+  const current = (await readCache(userId)) ?? new Map<string, number>();
   const prevScore = current.get(lectureId) ?? 0;
   if (score > prevScore) {
     current.set(lectureId, score);
@@ -120,13 +116,8 @@ async function mergeQueuedScores(
 // ── Offline path ─────────────────────────────────────────────────────────────
 
 async function serveFromCache(userId: string): Promise<BestScoreMap> {
-  const cached =
-    memCache.get(userId) ??
-    (await readCache(userId)) ??
-    new Map<string, number>();
-  const merged = await mergeQueuedScores(userId, cached);
-  memCache.set(userId, merged);
-  return merged;
+  const cached = (await readCache(userId)) ?? new Map<string, number>();
+  return mergeQueuedScores(userId, cached);
 }
 
 // ── Online fetch ─────────────────────────────────────────────────────────────
@@ -183,18 +174,3 @@ export async function fetchBestScores(userId: string): Promise<BestScoreMap> {
   }
 }
 
-// ── Cache management ─────────────────────────────────────────────────────────
-
-export async function clearBestScoreCache(userId: string): Promise<void> {
-  try {
-    await (await getDb()).$client.runAsync(
-      "DELETE FROM best_scores WHERE user_id = ?",
-      userId,
-    );
-    memCache.delete(userId);
-    warmed.delete(userId);
-  } catch (e) {
-    if (__DEV__)
-      console.error("[bestScoreService] clearBestScoreCache error:", e);
-  }
-}

@@ -13,9 +13,10 @@ import { getQueueForUser } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
 import { UserStats, UserStatsSchema } from "@/src/shared/types/schemas";
-import { useCacheStore } from "@/src/shared/store/cacheStore";
 import { fetchHierarchy } from "@/src/features/learn/services/hierarchyService";
-import { getDb } from "@/src/db/client";
+import { Database, getDb } from "@/src/db/client";
+import { userStats } from "@/src/db/schema";
+import { eq } from "drizzle-orm";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
@@ -58,15 +59,31 @@ export interface DbStats {
 
 // ── Disk helpers (SQLite canonical) ──────────────────────────────────────────
 
-async function readCache(userId: string): Promise<UserStats | null> {
+export function readCacheSync(db: Database, userId: string): UserStats | undefined {
   try {
-    const db = await getDb();
-    const row = await db.$client.getFirstAsync<{ payload: string }>(
+    const row = db.$client.getFirstSync<{ payload: string }>(
       "SELECT payload FROM user_stats WHERE user_id = ?",
       userId,
     );
-    if (!row) return null;
+    if (!row) return undefined;
     const result = UserStatsSchema.safeParse(JSON.parse(row.payload));
+    return result.success ? result.data : undefined;
+  } catch (e) {
+    if (__DEV__) console.warn("[statsService] readCacheSync error:", e);
+    return undefined;
+  }
+}
+
+async function readCache(userId: string): Promise<UserStats | null> {
+  try {
+    const db = await getDb();
+    const rows = await db
+      .select({ payload: userStats.payload })
+      .from(userStats)
+      .where(eq(userStats.userId, userId))
+      .limit(1);
+    if (rows.length === 0) return null;
+    const result = UserStatsSchema.safeParse(JSON.parse(rows[0].payload as string));
     return result.success ? result.data : null;
   } catch (e) {
     if (__DEV__) console.warn("[statsService] Error reading cache:", e);
@@ -76,35 +93,22 @@ async function readCache(userId: string): Promise<UserStats | null> {
 
 async function writeCache(userId: string, data: UserStats): Promise<void> {
   try {
-    await (await getDb()).$client.runAsync(
-      "INSERT OR REPLACE INTO user_stats (user_id, payload, updated_at) VALUES (?, ?, ?)",
+    const db = await getDb();
+    const payloadStr = JSON.stringify(data);
+    const updatedAt = new Date().toISOString();
+    await db.insert(userStats).values({
       userId,
-      JSON.stringify(data),
-      new Date().toISOString(),
-    );
-    useCacheStore.getState().setStatsCache(userId, data);
+      payload: payloadStr,
+      updatedAt,
+    }).onConflictDoUpdate({
+      target: userStats.userId,
+      set: { payload: payloadStr, updatedAt },
+    });
   } catch (e) {
     if (__DEV__) console.warn("[statsService] Error writing cache:", e);
   }
 }
 
-// ── Warm memory cache from SQLite (called once per session) ──────────────────
-
-/**
- * Hydrates the memory cache for user stats from SQLite.
- * 
- * @param userId - The ID of the authenticated user
- */
-export async function warmMemCache(userId: string): Promise<void> {
-  const { warmedStats, statsCache, setWarmed, setStatsCache } =
-    useCacheStore.getState();
-  if (warmedStats.has(userId)) return;
-  setWarmed(userId);
-  const cached = await readCache(userId);
-  if (cached && !statsCache.has(userId)) {
-    setStatsCache(userId, cached);
-  }
-}
 
 // ── Lecture name map ─────────────────────────────────────────────────────────
 
@@ -377,8 +381,6 @@ async function serveFromCache(userId: string): Promise<UserStats> {
 
   const base = cached ?? ZERO_STATS;
 
-  if (cached) useCacheStore.getState().setStatsCache(userId, cached);
-
   if (pending.length === 0) return base;
 
   const localMap = new Map<string, string>();
@@ -475,22 +477,4 @@ export async function fetchStats(userId: string): Promise<UserStats> {
   return finalResult;
 }
 
-// ── Cache management ─────────────────────────────────────────────────────────
 
-/**
- * Removes persistent stats cache for a user from disk and memory.
- * 
- * @param userId - The ID of the target user
- */
-export async function clearStatsCache(userId: string) {
-  try {
-    await (await getDb()).$client.runAsync(
-      "DELETE FROM user_stats WHERE user_id = ?",
-      userId,
-    );
-    useCacheStore.getState().clearStatsCacheForUser(userId);
-  } catch (error) {
-    if (__DEV__)
-      console.error("[clearStatsCache] Error clearing stats cache:", error);
-  }
-}

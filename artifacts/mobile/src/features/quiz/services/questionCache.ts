@@ -11,7 +11,7 @@ import {
 } from "@/src/shared/types";
 import { useCacheStore } from "@/src/shared/store/cacheStore";
 import { QUESTION_CACHE_VERSION } from "@/src/shared/constants/cacheVersion";
-import { getDb } from "@/src/db/client";
+import { Database, getDb } from "@/src/db/client";
 import { QuestionRepository } from "@/src/db/repositories/questionRepository";
 import { MetaRepository } from "@/src/db/repositories/metaRepository";
 
@@ -92,6 +92,56 @@ export async function loadQuestionsFromCache(
     };
   } catch (e) {
     if (__DEV__) console.warn("[questionCache] Error loading cache:", e);
+    return null;
+  }
+}
+
+export function loadQuestionsFromCacheSync(
+  db: Database,
+  lectureId: string,
+): CachedLecture | null {
+  if (useCacheStore.getState().questionCacheBypassed) return null;
+
+  try {
+    const gateRow = db.$client.getFirstSync<{ value: string }>(
+      "SELECT value FROM app_meta WHERE key = 'question_cache_version'"
+    );
+    if (gateRow?.value !== QUESTION_CACHE_VERSION) {
+      return null;
+    }
+
+    const rows = db.$client.getAllSync<{
+      id: string;
+      text: string;
+      options: string;
+      answer: number;
+      explanation: string;
+      image_url: string | null;
+      downloaded_at: string;
+    }>(
+      "SELECT id, text, options, answer, explanation, image_url, downloaded_at FROM questions WHERE lecture_id = ? ORDER BY downloaded_at ASC",
+      lectureId,
+    );
+
+    if (rows.length === 0) return null;
+
+    const questions: Question[] = rows.map((r) => ({
+      id: r.id,
+      text: r.text,
+      options: JSON.parse(r.options) as string[],
+      answer: r.answer,
+      explanation: r.explanation,
+      image_url: r.image_url ?? undefined,
+    }));
+
+    return {
+      questions,
+      questionCount: questions.length,
+      downloadedAt: rows[0]!.downloaded_at,
+      version: QUESTION_CACHE_VERSION,
+    };
+  } catch (e) {
+    if (__DEV__) console.warn("[questionCache] Error loading cache sync:", e);
     return null;
   }
 }

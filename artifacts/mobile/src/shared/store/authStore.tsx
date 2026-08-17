@@ -11,14 +11,6 @@ import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import { supabase } from "@/src/shared/services/supabase";
 import { useCacheStore } from "@/src/shared/store/cacheStore";
-import {
-  memCache as progressMemCache,
-  warmed as progressWarmed,
-} from "@/src/features/learn/services/progressService";
-import {
-  memCache as bestScoreMemCache,
-  warmed as bestScoreWarmed,
-} from "@/src/features/learn/services/bestScoreService";
 import { clearAllUserCaches } from "@/src/shared/utils/cacheUtils";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -168,10 +160,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     await supabase.auth.signOut();
     useCacheStore.getState().clearAll();
-    progressMemCache.clear();
-    progressWarmed.clear();
-    bestScoreMemCache.clear();
-    bestScoreWarmed.clear();
   },
 }));
 
@@ -196,10 +184,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       if (!session) {
         useCacheStore.getState().clearAll();
-        progressMemCache.clear();
-        progressWarmed.clear();
-        bestScoreMemCache.clear();
-        bestScoreWarmed.clear();
       }
     });
 

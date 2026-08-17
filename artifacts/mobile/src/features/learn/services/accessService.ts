@@ -12,30 +12,32 @@ import {
 } from "@/src/shared/types/schemas";
 import { z } from "zod";
 import { getDb } from "@/src/db/client";
+import { accessMap } from "@/src/db/schema";
+import { eq } from "drizzle-orm";
 
 async function readCachedAccess(
   userId: string,
 ): Promise<Map<string, ContentAccessEntry> | null> {
   try {
     const db = await getDb();
-    const rows = await db.$client.getAllAsync<{
-      item_id: string;
-      item_type: string;
-      has_access: number;
-      is_free: number;
-      price_cents: number;
-    }>(
-      "SELECT item_id, item_type, has_access, is_free, price_cents FROM access_map WHERE user_id = ?",
-      userId,
-    );
+    const rows = await db
+      .select({
+        item_id: accessMap.itemId,
+        item_type: accessMap.itemType,
+        has_access: accessMap.hasAccess,
+        is_free: accessMap.isFree,
+        price_cents: accessMap.priceCents,
+      })
+      .from(accessMap)
+      .where(eq(accessMap.userId, userId));
     if (rows.length === 0) return null;
     const map = new Map<string, ContentAccessEntry>();
     for (const r of rows) {
       const entry: ContentAccessEntry = {
         item_id: r.item_id,
         item_type: r.item_type as "module" | "subject",
-        has_access: r.has_access === 1,
-        is_free: r.is_free === 1,
+        has_access: r.has_access,
+        is_free: r.is_free,
         price_cents: r.price_cents,
       };
       map.set(entry.item_id, entry);
@@ -52,18 +54,18 @@ async function writeCachedAccess(
 ): Promise<void> {
   try {
     const db = await getDb();
-    await db.$client.withExclusiveTransactionAsync(async (txn) => {
-      await txn.runAsync("DELETE FROM access_map WHERE user_id = ?", userId);
-      for (const [itemId, entry] of map.entries()) {
-        await txn.runAsync(
-          "INSERT INTO access_map (user_id, item_id, item_type, has_access, is_free, price_cents) VALUES (?, ?, ?, ?, ?, ?)",
-          userId,
-          itemId,
-          entry.item_type,
-          entry.has_access ? 1 : 0,
-          entry.is_free ? 1 : 0,
-          entry.price_cents,
-        );
+    await db.transaction(async (tx) => {
+      await tx.delete(accessMap).where(eq(accessMap.userId, userId));
+      const inserts = Array.from(map.values()).map((entry) => ({
+        userId,
+        itemId: entry.item_id,
+        itemType: entry.item_type,
+        hasAccess: entry.has_access,
+        isFree: entry.is_free,
+        priceCents: entry.price_cents,
+      }));
+      if (inserts.length > 0) {
+        await tx.insert(accessMap).values(inserts);
       }
     });
   } catch {

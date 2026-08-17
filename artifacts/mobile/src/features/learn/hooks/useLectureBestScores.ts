@@ -12,14 +12,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/src/shared/store/authStore";
 import {
   fetchBestScores,
-  memCache,
-  warmed,
-  warmMemCache,
+  readCacheSync,
   BestScoreMap,
 } from "@/src/features/learn/services/bestScoreService";
+import { useDatabase } from "@/src/db/provider";
 
 export {
-  clearBestScoreCache,
   optimisticallyUpdateBestScore,
   writeCache as writeBestScoreCache,
 } from "@/src/features/learn/services/bestScoreService";
@@ -27,12 +25,8 @@ export {
 export function useLectureBestScores(): BestScoreMap {
   const user = useAuth((s) => s.user);
 
-  // Warm memCache on first call
-  if (user?.id && !warmed.has(user.id)) {
-    warmMemCache(user.id);
-  }
-
-  const memData = user?.id ? memCache.get(user.id) : undefined;
+  const db = useDatabase();
+  const memData = user?.id ? readCacheSync(db, user.id) : undefined;
 
   const query = useQuery({
     queryKey: ["lectureBestScores", user?.id],

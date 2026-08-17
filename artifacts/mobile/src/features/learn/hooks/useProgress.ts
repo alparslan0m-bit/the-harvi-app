@@ -14,14 +14,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/src/shared/store/authStore";
 import {
   fetchCompletedLectures,
-  memCache,
-  warmed,
-  warmMemCache,
+  readCacheSync,
 } from "@/src/features/learn/services/progressService";
+import { useDatabase } from "@/src/db/provider";
 
 // Re-export for backward compatibility
 export {
-  clearProgressCache,
   optimisticallyMarkComplete,
   writeProgressCache,
 } from "@/src/features/learn/services/progressService";
@@ -29,13 +27,8 @@ export {
 export function useProgress() {
   const user = useAuth((s) => s.user);
 
-  // Kick off async warm of memCache on first call for this user.
-  // By the time they navigate to a subject, memCache will be populated.
-  if (user?.id && !warmed.has(user.id)) {
-    warmMemCache(user.id);
-  }
-
-  const memData = user?.id ? memCache.get(user.id) : undefined;
+  const db = useDatabase();
+  const memData = user?.id ? readCacheSync(db, user.id) : undefined;
 
   const query = useQuery({
     queryKey: ["progress", user?.id],
