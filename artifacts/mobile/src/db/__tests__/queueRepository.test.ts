@@ -116,4 +116,58 @@ describe("QueueRepository", () => {
     const deleted = await repo.purgeExpired();
     expect(deleted).toBe(0);
   });
+
+  // ── P1-2 regression: a permanently-failing item must never block the queue ──
+
+  it("getFlushableForUser excludes items at the retry cap but returns younger ones", async () => {
+    // Bad item: has already failed 3 times (dead-lettered).
+    await repo.enqueue({ ...item, id: "q-bad" });
+    await repo.incrementFailure(["q-bad"]);
+    await repo.incrementFailure(["q-bad"]);
+    await repo.incrementFailure(["q-bad"]);
+
+    // Good item: fresh, still below the cap.
+    await repo.enqueue({ ...item, id: "q-good", createdAt: "2026-01-02T00:00:00.000Z" });
+
+    const flushable = await repo.getFlushableForUser("u-1", 3);
+    expect(flushable.map((r) => r.id)).toEqual(["q-good"]);
+
+    // The bad item is still pending (not lost) — it just no longer blocks flush.
+    const pending = await repo.getPending();
+    expect(pending.map((r) => r.id).sort()).toEqual(["q-bad", "q-good"]);
+  });
+
+  it("incrementFailure caps an item after maxAttempts", async () => {
+    await repo.enqueue(item);
+
+    for (let i = 0; i < 3; i++) {
+      await repo.incrementFailure(["q-1"]);
+    }
+
+    const rows = await db.$client.getAllAsync<{ failure_count: number }>(
+      "SELECT failure_count FROM quiz_results WHERE id = ?",
+      "q-1",
+    );
+    expect(rows[0]?.failure_count).toBe(3);
+
+    // At the cap → excluded from flushable, still counted as pending.
+    expect(await repo.getFlushableForUser("u-1", 3)).toHaveLength(0);
+    expect(await repo.pendingCount("u-1")).toBe(1);
+  });
+
+  it("incrementFailure only touches pending rows for the given ids", async () => {
+    await repo.enqueue({ ...item, id: "q-1", userId: "u-1" });
+    await repo.enqueue({ ...item, id: "q-2", userId: "u-2" });
+
+    await repo.incrementFailure(["q-1", "q-nonexistent"]);
+
+    const rows = await db.$client.getAllAsync<{
+      id: string;
+      failure_count: number;
+    }>("SELECT id, failure_count FROM quiz_results ORDER BY id");
+    expect(rows).toEqual([
+      { id: "q-1", failure_count: 1 },
+      { id: "q-2", failure_count: 0 },
+    ]);
+  });
 });

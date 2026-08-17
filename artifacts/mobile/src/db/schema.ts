@@ -60,6 +60,7 @@ export const hierarchyLectures = sqliteTable(
       .references(() => hierarchySubjects.id),
     questionCount: integer("question_count"),
     isFree: integer("is_free", { mode: "boolean" }),
+    order: integer("order").notNull().default(0),
   },
   (t) => [index("hierarchy_lectures_subject_id_idx").on(t.subjectId)],
 );
@@ -124,6 +125,8 @@ export const bookmarks = sqliteTable(
  * Quiz results + offline queue — replaces `harvi:quiz_queue`.
  * `status` drives the offline sync engine: `'pending'` rows await upload,
  * `'synced'` rows are retained for local history then purged after 30 days.
+ * `failure_count` implements the per-item retry cap (audit P1-2): flush skips
+ * rows at the cap so one permanently-failing item can never block the queue.
  */
 export const quizResults = sqliteTable(
   "quiz_results",
@@ -138,6 +141,7 @@ export const quizResults = sqliteTable(
     createdAt: text("created_at").notNull(),
     status: text("status").notNull().default("pending"),
     syncedAt: text("synced_at"),
+    failureCount: integer("failure_count").notNull().default(0),
   },
   (t) => [
     index("quiz_results_status_created_at_idx").on(t.status, t.createdAt),

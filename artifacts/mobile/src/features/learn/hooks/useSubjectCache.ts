@@ -131,8 +131,9 @@ export function useSubjectCache(
       try {
         const questions = await fetchQuestions(lec.id);
         await saveQuestionsToCache(lec.id, questions);
-      } catch (err: any) {
-        const msg = err?.message?.toLowerCase() || "";
+      } catch (err: unknown) {
+        const msg = (err instanceof Error ? err.message : String(err))
+          .toLowerCase();
         if (
           msg.includes("timeout") ||
           msg.includes("offline") ||

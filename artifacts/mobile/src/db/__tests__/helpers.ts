@@ -21,11 +21,16 @@ export function createTestDb(): RepositoryDatabase {
 
   // Apply the same DDL drizzle-kit generates on device so the in-memory
   // schema matches production exactly.
-  const migrationSql = fs.readFileSync(
-    path.join(__dirname, "../../../drizzle/0000_init.sql"),
-    "utf-8",
-  );
-  sqlite.exec(migrationSql);
+  const migrationDir = path.join(__dirname, "../../../drizzle");
+  for (const file of [
+    "0000_init.sql",
+    "0001_icy_ultron.sql",
+    "0002_bookmarks.sql",
+    "0003_queue_failure_count.sql",
+  ]) {
+    const migrationSql = fs.readFileSync(path.join(migrationDir, file), "utf-8");
+    sqlite.exec(migrationSql);
+  }
 
   const orm = drizzle(sqlite, { schema });
 

@@ -4,7 +4,7 @@
  * (plan.md §4, §6.1). `status='pending'` rows are the queue; `synced` rows are
  * retained for local history and purged by retention (§6 maintenance).
  */
-import { and, asc, count, eq, inArray, isNotNull, lt } from "drizzle-orm";
+import { and, asc, count, eq, inArray, isNotNull, lt, sql } from "drizzle-orm";
 
 import type { RepositoryDatabase } from "./types";
 import { quizResults } from "../schema";
@@ -21,6 +21,7 @@ export interface QueueRow {
   createdAt: string;
   status: "pending" | "synced";
   syncedAt: string | null;
+  failureCount: number;
 }
 
 export interface NewQueueItem {
@@ -77,6 +78,50 @@ export class QueueRepository {
       .where(and(eq(quizResults.status, "pending"), eq(quizResults.userId, userId)))
       .orderBy(asc(quizResults.createdAt));
     return rows.map(toQueueRow);
+  }
+
+  /**
+   * Returns the subset of a user's pending rows that are still below the
+   * per-item retry cap (`failureCount < maxAttempts`). Rows that have hit the
+   * cap are dead-lettered — excluded from every future flush so a single
+   * permanently-failing item can never block the rest of the queue (audit P1-2).
+   */
+  async getFlushableForUser(
+    userId: string,
+    maxAttempts: number,
+  ): Promise<QueueRow[]> {
+    const rows = await this.db
+      .select()
+      .from(quizResults)
+      .where(
+        and(
+          eq(quizResults.status, "pending"),
+          eq(quizResults.userId, userId),
+          lt(quizResults.failureCount, maxAttempts),
+        ),
+      )
+      .orderBy(asc(quizResults.createdAt));
+    return rows.map(toQueueRow);
+  }
+
+  /**
+   * Increments the failure counter for the given pending rows. Used by the
+   * sync engine when an item is rejected by the server (non-23505 error) so
+   * the item is retried a bounded number of times, then dead-lettered.
+   */
+  async incrementFailure(localIds: string[]): Promise<void> {
+    if (localIds.length === 0) return;
+    await this.db
+      .update(quizResults)
+      .set({
+        failureCount: sql`${quizResults.failureCount} + 1`,
+      })
+      .where(
+        and(
+          inArray(quizResults.id, localIds),
+          eq(quizResults.status, "pending"),
+        ),
+      );
   }
 
   /**
@@ -152,5 +197,6 @@ function toQueueRow(row: typeof quizResults.$inferSelect): QueueRow {
     createdAt: row.createdAt,
     status: row.status as "pending" | "synced",
     syncedAt: row.syncedAt,
+    failureCount: row.failureCount,
   };
 }

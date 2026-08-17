@@ -16,6 +16,7 @@ export const LectureSchema = z.object({
   subject_id: z.string(),
   question_count: z.number().optional(),
   is_free: z.boolean().optional(),
+  order: z.number().optional(),
 });
 export type Lecture = z.infer<typeof LectureSchema>;
 
@@ -128,13 +129,13 @@ export const PurchaseSchema = z.object({
 export type Purchase = z.infer<typeof PurchaseSchema>;
 
 export const PendingQuizResultSchema = z.object({
-  localId: z.string(),
-  userId: z.string(),
-  lectureId: z.string(),
+  localId: z.string().min(1),
+  userId: z.string().min(1),
+  lectureId: z.string().min(1),
   score: z.number(),
   totalQuestions: z.number(),
   correctAnswers: z.number(),
-  createdAt: z.string(),
+  createdAt: z.string().min(1),
 });
 export type PendingQuizResult = z.infer<typeof PendingQuizResultSchema>;
 

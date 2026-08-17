@@ -75,8 +75,8 @@ export async function fetchContentAccess(
 
   try {
     const rpcPromise = supabase.rpc("get_content_access_map");
-    const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-      setTimeout(() => reject(new Error("timeout")), 10000),
+    const timeoutPromise = new Promise<{ data: unknown; error: unknown }>(
+      (_, reject) => setTimeout(() => reject(new Error("timeout")), 10000),
     );
 
     const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);

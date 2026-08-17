@@ -184,14 +184,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } =     supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (!session) {
         useCacheStore.getState().clearAll();
-        // Drop device-shared content caches from memory so a subsequent user
-        // never sees a previous user's offline quiz/hierarchy data (P1-7).
-        queryClient.removeQueries({ queryKey: ["quiz"] });
-        queryClient.removeQueries({ queryKey: ["hierarchy"] });
+        // Purge EVERY cached query on sign-out — including user-scoped keys
+        // (`stats`, `content_access`, `my_purchases`, `progress_sync`,
+        // `lectureBestScores_sync`). Previously only device-shared content
+        // (`quiz`, `hierarchy`) was removed, leaving stale same-user data in
+        // memory that would be served on re-login before a background refetch
+        // (audit P2-3). `clear()` is safe: RQ is a disposable transport cache.
+        queryClient.clear();
       }
     });
 

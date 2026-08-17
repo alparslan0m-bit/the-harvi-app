@@ -20,10 +20,16 @@ export function useQuizQuestions(lectureId: string) {
   const db = useDatabase();
   const userId = useAuth((s) => s.user?.id);
 
-  const canUseCached =
-    !!lectureId &&
-    !!userId &&
-    hasLocalAccessToLecture(db, userId, lectureId);
+  // Synchronous entitlement probe — memoized by inputs so the three sync
+  // SQLite reads only run when `db`/`userId`/`lectureId` change (audit P3-8;
+  // previously recomputed on every render).
+  const canUseCached = useMemo(
+    () =>
+      !!lectureId &&
+      !!userId &&
+      hasLocalAccessToLecture(db, userId, lectureId),
+    [db, userId, lectureId],
+  );
   // Synchronous cache probe — only served to users with a local entitlement
   // to the lecture's content (audit P1-7). Memoized by `db` + `lectureId` so
   // the expensive sync read + JSON.parse only runs when inputs change (P2-10).

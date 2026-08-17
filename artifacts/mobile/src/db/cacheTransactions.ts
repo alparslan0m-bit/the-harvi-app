@@ -44,16 +44,18 @@ export async function replaceAccessCache(
 
 /**
  * Replaces the user's `progress` rows in one transaction (delete + insert).
+ * `completedByLecture` maps lectureId → actual completion timestamp, so each
+ * row keeps the real completed_at instead of one shared cache-write time
+ * (audit P3-10).
  */
 export async function replaceProgressCache(
   db: RepositoryDatabase,
   userId: string,
-  ids: ReadonlySet<string>,
-  completedAt: string,
+  completedByLecture: ReadonlyMap<string, string>,
 ): Promise<void> {
   await db.$client.withExclusiveTransactionAsync(async (txn) => {
     await txn.runAsync("DELETE FROM progress WHERE user_id = ?", userId);
-    for (const lectureId of ids) {
+    for (const [lectureId, completedAt] of completedByLecture) {
       await txn.runAsync(
         "INSERT INTO progress (user_id, lecture_id, completed_at) VALUES (?, ?, ?)",
         userId,

@@ -119,12 +119,22 @@ describe("cacheTransactions", () => {
   });
 
   it("replaceProgressCache swaps rows atomically", async () => {
-    await replaceProgressCache(db, "u1", new Set(["lec-1", "lec-2"]), "2026-01-01T00:00:00.000Z");
-    const rows = await db.$client.getAllAsync<{ lecture_id: string }>(
-      "SELECT lecture_id FROM progress WHERE user_id = ?",
+    await replaceProgressCache(
+      db,
       "u1",
+      new Map([
+        ["lec-1", "2026-01-01T00:00:00.000Z"],
+        ["lec-2", "2026-01-02T00:00:00.000Z"],
+      ]),
     );
-    expect(rows.map((r) => r.lecture_id).sort()).toEqual(["lec-1", "lec-2"]);
+    const rows = await db.$client.getAllAsync<{
+      lecture_id: string;
+      completed_at: string;
+    }>("SELECT lecture_id, completed_at FROM progress WHERE user_id = ? ORDER BY lecture_id", "u1");
+    expect(rows).toEqual([
+      { lecture_id: "lec-1", completed_at: "2026-01-01T00:00:00.000Z" },
+      { lecture_id: "lec-2", completed_at: "2026-01-02T00:00:00.000Z" },
+    ]);
   });
 
   it("replacePurchasesCache swaps rows atomically", async () => {

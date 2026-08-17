@@ -63,11 +63,13 @@ export async function fetchQuestions(lectureId: string): Promise<Question[]> {
       .select("*")
       .eq(fkCol, lectureId);
 
-    const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-      setTimeout(() => reject(new Error("timeout")), 6000),
-    );
+    const timeoutPromise = new Promise<{
+      data: unknown;
+      error: { code?: string; message?: string } | null;
+    }>((_, reject) => setTimeout(() => reject(new Error("timeout")), 6000));
 
-    let data, error;
+    let data: unknown;
+    let error: { code?: string; message?: string } | unknown;
     try {
       const result = await Promise.race([queryPromise, timeoutPromise]);
       data = result.data;
@@ -77,12 +79,13 @@ export async function fetchQuestions(lectureId: string): Promise<Question[]> {
     }
 
     if (error) {
+      const err = error as { code?: string; message?: string };
       // 42703: Undefined column. 22P02: Invalid text representation (UUID mismatch).
       // Both imply we guessed the wrong FK column or type, so try the next one.
-      if (error.code === "42703" || error.code === "22P02") continue;
-      
+      if (err.code === "42703" || err.code === "22P02") continue;
+
       throw new Error(
-        `questions table: ${error.message} (code: ${error.code})`,
+        `questions table: ${err.message} (code: ${err.code})`,
       );
     }
 
@@ -92,7 +95,7 @@ export async function fetchQuestions(lectureId: string): Promise<Question[]> {
       mmkv.setFkCol(fkCol);
     }
 
-    if (data && data.length > 0) {
+    if (Array.isArray(data) && data.length > 0) {
       // Normalize raw rows into strongly-typed Question objects
       const raw: Question[] = data.map(
         (row: Record<string, unknown>, i: number) => {

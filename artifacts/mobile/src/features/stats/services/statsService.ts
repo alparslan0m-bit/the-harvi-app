@@ -6,6 +6,12 @@
  *
  * Phase B (plan.md §9): the persistent snapshot is the `user_stats` row (single
  * `payload` JSON column — the documented normalization exception, §4).
+ *
+ * Source-of-truth rule (audit P1-1): the persisted `user_stats` snapshot holds
+ * ONLY server-derived data. Pending queue items are merged at read time (and
+ * only once) via `mergeStatsWithPending`, which dedupes against the snapshot's
+ * `recent_results`. This prevents the offline path from double-counting items
+ * that were already folded into an earlier snapshot.
  */
 import NetInfo from "@react-native-community/netinfo";
 
@@ -17,36 +23,19 @@ import { fetchHierarchy } from "@/src/features/learn/services/hierarchyService";
 import { Database, getDb } from "@/src/db/client";
 import { userStats } from "@/src/db/schema";
 import { eq } from "drizzle-orm";
+import {
+  mergeStatsWithPending,
+  ZERO_STATS,
+} from "@/src/features/stats/services/statsMerge";
+
+// Re-export for backward compatibility (AccountActions renders an empty-state).
+export { ZERO_STATS } from "@/src/features/stats/services/statsMerge";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const DAYS = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
 
-/**
- * Fallback empty user stats structure used when no user history is present.
- */
-export const ZERO_STATS: UserStats = {
-  total_quizzes: 0,
-  total_questions: 0,
-  average_score: 0,
-  best_score: 0,
-  streak: 0,
-  weekly_activity: DAYS.map((day) => ({ day, count: 0 })),
-  subject_mastery: [],
-  recent_results: [],
-};
-
 // ── Types ────────────────────────────────────────────────────────────────────
-
-type RawRow = {
-  id: string;
-  user_id: string;
-  lecture_id: string;
-  score: number;
-  total_questions: number;
-  correct_answers: number;
-  created_at: string;
-};
 
 export interface DbStats {
   total_quizzes?: number | null;
@@ -55,6 +44,34 @@ export interface DbStats {
   best_score?: number | null;
   current_streak?: number | null;
   last_quiz_date?: string | null;
+}
+
+interface RpcRecentResult {
+  id: string;
+  user_id: string;
+  lecture_id: string;
+  lecture_name?: string | null;
+  score: number;
+  total_questions: number;
+  correct_answers: number;
+  created_at: string;
+}
+
+interface RpcWeeklyActivity {
+  dow: number;
+  count: number;
+}
+
+interface RpcSubjectMastery {
+  subject: string;
+  mastery: number;
+  attempts: number;
+}
+
+interface RpcStatsOverview {
+  weekly_activity?: RpcWeeklyActivity[] | null;
+  subject_mastery?: RpcSubjectMastery[] | null;
+  recent_results?: RpcRecentResult[] | null;
 }
 
 // ── Disk helpers (SQLite canonical) ──────────────────────────────────────────
@@ -111,16 +128,35 @@ async function writeCache(userId: string, data: UserStats): Promise<void> {
   }
 }
 
-
 // ── Lecture name map ─────────────────────────────────────────────────────────
 
+/**
+ * Builds a lectureId → name map from the on-device hierarchy cache (written by
+ * every successful `fetchHierarchy`) — no extra network round-trip (audit P3-9).
+ * Falls back to a single `lectures` fetch only when the local cache is empty.
+ */
 async function buildLectureNameMap(): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  try {
+    const db = await getDb();
+    const rows = await db.$client.getAllAsync<{ id: string; name: string }>(
+      "SELECT id, name FROM hierarchy_lectures",
+    );
+    for (const row of rows) {
+      if (row.id && row.name) map.set(row.id, row.name);
+    }
+    if (map.size > 0) return map;
+  } catch (e) {
+    if (__DEV__) console.warn("[statsService] Error reading lecture name cache:", e);
+  }
+
   const queryPromise = supabase.from("lectures").select("id, name");
-  const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-    setTimeout(() => reject(new Error("timeout")), 10000),
+  const timeoutPromise = new Promise<{ data: unknown; error: unknown }>(
+    (_, reject) => setTimeout(() => reject(new Error("timeout")), 10000),
   );
 
-  let data, error;
+  let data: unknown;
+  let error: unknown;
   try {
     const result = await Promise.race([queryPromise, timeoutPromise]);
     data = result.data;
@@ -129,9 +165,9 @@ async function buildLectureNameMap(): Promise<Map<string, string>> {
     error = e;
   }
 
-  const map = new Map<string, string>();
   if (error || !data) return map;
-  for (const row of data) {
+  const rows = Array.isArray(data) ? data : [];
+  for (const row of rows) {
     const r =
       typeof row === "object" && row !== null
         ? (row as Record<string, unknown>)
@@ -145,7 +181,10 @@ async function buildLectureNameMap(): Promise<Map<string, string>> {
 
 // ── Shared Stats Helpers ─────────────────────────────────────────────────────
 
-function mapRpcToUserStats(rpcData: any, dbStats: DbStats | null): UserStats {
+function mapRpcToUserStats(
+  rpcData: RpcStatsOverview | null,
+  dbStats: DbStats | null,
+): UserStats {
   const total_quizzes = dbStats?.total_quizzes ?? 0;
   const total_questions = dbStats?.total_questions_answered ?? 0;
   const average_score = dbStats?.average_score ?? 0;
@@ -165,7 +204,7 @@ function mapRpcToUserStats(rpcData: any, dbStats: DbStats | null): UserStats {
   const todayDow = new Date().getDay();
   const todayIndex = (todayDow + 1) % 7; // Map 0-6 (Sun-Sat) to index where Sat is 0
   const weeklyMap = new Map<number, number>(
-    (rpcData?.weekly_activity ?? []).map((w: any) => {
+    (rpcData?.weekly_activity ?? []).map((w) => {
       const index = (w.dow + 1) % 7;
       return [index, w.count];
     }),
@@ -177,13 +216,13 @@ function mapRpcToUserStats(rpcData: any, dbStats: DbStats | null): UserStats {
     isToday: i === todayIndex,
   }));
 
-  const subject_mastery = (rpcData?.subject_mastery ?? []).map((m: any) => ({
+  const subject_mastery = (rpcData?.subject_mastery ?? []).map((m) => ({
     subject: m.subject ?? "Unknown",
     mastery: m.mastery ?? 0,
     attempts: m.attempts ?? 0,
   }));
 
-  const recent_results = (rpcData?.recent_results ?? []).map((r: any) => ({
+  const recent_results = (rpcData?.recent_results ?? []).map((r) => ({
     id: String(r.id),
     user_id: String(r.user_id),
     lecture_id: String(r.lecture_id),
@@ -199,175 +238,11 @@ function mapRpcToUserStats(rpcData: any, dbStats: DbStats | null): UserStats {
   return {
     total_quizzes,
     total_questions,
-    average_score: Math.round(Number(average_score) || 0),
+    // Keep the base average un-rounded (server NUMERIC(5,2)) so downstream
+    // merges in applyPendingStats don't accumulate rounding drift (audit P3-10).
+    average_score: Number(average_score) || 0,
     best_score: Math.round(Number(best_score) || 0),
     streak,
-    weekly_activity,
-    subject_mastery,
-    recent_results,
-  };
-}
-
-function applyPendingStats(
-  base: UserStats,
-  pending: any[],
-  localMap: Map<string, string>,
-): UserStats {
-  const syntheticRows: RawRow[] = pending.map((q) => ({
-    id: q.localId,
-    user_id: q.userId,
-    lecture_id: q.lectureId,
-    score: q.score,
-    total_questions: q.totalQuestions,
-    correct_answers: q.correctAnswers,
-    created_at: q.createdAt,
-  }));
-
-  const cachedRows: RawRow[] = (base.recent_results ?? []).map((r) => ({
-    id: r.id,
-    user_id: r.user_id,
-    lecture_id: r.lecture_id,
-    score: r.score,
-    total_questions: r.total_questions,
-    correct_answers: r.correct_answers,
-    created_at: r.created_at,
-  }));
-
-  const mergedRows = [...syntheticRows, ...cachedRows]
-    .sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    )
-    .slice(0, 10);
-
-  const newTotalQuizzes = base.total_quizzes + pending.length;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const weekStart = new Date(today);
-  const dow = weekStart.getDay();
-  const daysSinceSaturday = (dow + 1) % 7;
-  weekStart.setDate(weekStart.getDate() - daysSinceSaturday);
-  const weekStartMs = weekStart.getTime();
-
-  const weekly_activity = base.weekly_activity.map((a) => ({ ...a }));
-  pending.forEach((q) => {
-    const d = new Date(q.createdAt);
-    d.setHours(0, 0, 0, 0);
-    if (d.getTime() >= weekStartMs) {
-      const qDow = d.getDay();
-      const index = (qDow + 1) % 7;
-      const entry = weekly_activity[index];
-      if (entry) entry.count++;
-    }
-  });
-
-  const masteryMap = new Map<
-    string,
-    { subject: string; totalScore: number; attempts: number }
-  >();
-  base.subject_mastery.forEach((m) => {
-    masteryMap.set(m.subject, { ...m, totalScore: m.mastery * m.attempts });
-  });
-
-  pending.forEach((q) => {
-    const subjName =
-      localMap.get(q.lectureId) ?? `Lecture ${q.lectureId.slice(0, 6)}…`;
-    const existing = masteryMap.get(subjName) ?? {
-      subject: subjName,
-      totalScore: 0,
-      attempts: 0,
-    };
-    existing.totalScore += q.score;
-    existing.attempts += 1;
-    masteryMap.set(subjName, existing);
-  });
-
-  const subject_mastery = Array.from(masteryMap.values())
-    .map((m) => ({
-      subject: m.subject,
-      mastery: Math.round(m.totalScore / m.attempts),
-      attempts: m.attempts,
-    }))
-    .sort((a, b) => b.mastery - a.mastery);
-
-  const recent_results = mergedRows.map((r) => ({
-    id: r.id,
-    user_id: r.user_id,
-    lecture_id: r.lecture_id,
-    lecture_name:
-      localMap.get(r.lecture_id) ?? `Lecture ${r.lecture_id.slice(0, 6)}…`,
-    score: r.score ?? 0,
-    total_questions: r.total_questions ?? 0,
-    correct_answers: r.correct_answers ?? 0,
-    created_at: r.created_at,
-  }));
-
-  let newStreak = base.streak;
-
-  // Calculate optimistic streak
-  let lastEvaluatedDate: Date | null = null;
-  if (base.recent_results && base.recent_results.length > 0) {
-    const firstResult = base.recent_results[0];
-    if (firstResult?.created_at) {
-      lastEvaluatedDate = new Date(firstResult.created_at);
-      lastEvaluatedDate.setHours(0, 0, 0, 0);
-    }
-  }
-
-  const sortedPending = [...pending].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-  );
-
-  for (const p of sortedPending) {
-    const pDate = new Date(p.createdAt);
-    pDate.setHours(0, 0, 0, 0);
-
-    if (!lastEvaluatedDate) {
-      newStreak = 1;
-      lastEvaluatedDate = pDate;
-    } else {
-      const diffDays = Math.round(
-        (pDate.getTime() - lastEvaluatedDate.getTime()) / (1000 * 60 * 60 * 24),
-      );
-      if (diffDays === 1) {
-        newStreak += 1;
-        lastEvaluatedDate = pDate;
-      } else if (diffDays > 1) {
-        newStreak = 1;
-        lastEvaluatedDate = pDate;
-      }
-    }
-  }
-
-  // Also check if the streak has died as of *today*
-  const todayForStreak = new Date();
-  todayForStreak.setHours(0, 0, 0, 0);
-  if (lastEvaluatedDate) {
-    const diffToToday = Math.round(
-      (todayForStreak.getTime() - lastEvaluatedDate.getTime()) /
-        (1000 * 60 * 60 * 24),
-    );
-    if (diffToToday > 1) {
-      newStreak = 0;
-    }
-  }
-
-  return {
-    total_quizzes: newTotalQuizzes,
-    total_questions:
-      base.total_questions +
-      pending.reduce((s, p) => s + (p.totalQuestions ?? 0), 0),
-    average_score:
-      newTotalQuizzes === 0
-        ? 0
-        : Math.round(
-            (base.average_score * base.total_quizzes +
-              pending.reduce((s, p) => s + (p.score ?? 0), 0)) /
-              newTotalQuizzes,
-          ),
-    best_score: Math.max(base.best_score, ...pending.map((p) => p.score ?? 0)),
-    streak: newStreak,
     weekly_activity,
     subject_mastery,
     recent_results,
@@ -377,7 +252,10 @@ function applyPendingStats(
 // ── Offline path (shared) ────────────────────────────────────────────────────
 
 async function serveFromCache(userId: string): Promise<UserStats> {
-  const [cached, pending] = await Promise.all([readCache(userId), getQueueForUser(userId)]);
+  const [cached, pending] = await Promise.all([
+    readCache(userId),
+    getQueueForUser(userId),
+  ]);
 
   if (!cached && pending.length === 0) return ZERO_STATS;
 
@@ -403,20 +281,22 @@ async function serveFromCache(userId: string): Promise<UserStats> {
     // Ignore if hierarchy cache is missing
   }
 
-  return applyPendingStats(base, pending, localMap);
+  // Dedupe pending against what the snapshot already contains (audit P1-1):
+  // the snapshot may already fold in some queued items from an earlier merge.
+  return mergeStatsWithPending(base, pending, localMap);
 }
 
 // ── Fetch ────────────────────────────────────────────────────────────────────
 
 /**
- * Fetches the user's complete statistical profile (streaks, weekly activity, 
+ * Fetches the user's complete statistical profile (streaks, weekly activity,
  * average scores, and subject mastery).
- * 
+ *
  * Integrates offline capabilities:
  * 1. Serves immediately from local cache if offline.
  * 2. Fetches via Supabase RPC `get_user_stats_overview` if online.
  * 3. Applies synthetic updates from any un-synced local offline queue results.
- * 
+ *
  * @param userId - The ID of the authenticated user
  * @returns A Promise resolving to the comprehensive UserStats object
  */
@@ -429,7 +309,7 @@ export async function fetchStats(userId: string): Promise<UserStats> {
   }
 
   let dbStats: DbStats | null = null;
-  let rpcData: any = null;
+  let rpcData: RpcStatsOverview | null = null;
 
   try {
     const statsQuery = supabase
@@ -442,7 +322,7 @@ export async function fetchStats(userId: string): Promise<UserStats> {
       p_user_id: userId,
     });
 
-    const timeoutPromise = new Promise<any>((_, reject) =>
+    const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error("timeout")), 10000),
     );
 
@@ -460,23 +340,20 @@ export async function fetchStats(userId: string): Promise<UserStats> {
     return serveFromCache(userId);
   }
 
+  // Server-only snapshot — the canonical persisted source of truth (P1-1).
+  // Pending results are merged at read time, so the cache never double-counts.
   const baseResult = mapRpcToUserStats(rpcData, dbStats);
 
   let pending = await getQueueForUser(userId);
 
   // Prevent double-counting: if the server already processed this quiz (but the client timed out and queued it),
   // it will be in the server's recent_results. We filter it out so we don't add its stats twice.
-  const serverIds = new Set(baseResult.recent_results?.map((r) => r.id) ?? []);
-  pending = pending.filter((q) => !serverIds.has(q.localId));
+  const finalResult = await mergeStatsWithPending(
+    baseResult,
+    pending,
+    await buildLectureNameMap(),
+  );
 
-  let finalResult = baseResult;
-  if (pending.length > 0) {
-    const localMap = await buildLectureNameMap();
-    finalResult = applyPendingStats(baseResult, pending, localMap);
-  }
-
-  await writeCache(userId, finalResult);
+  await writeCache(userId, baseResult);
   return finalResult;
 }
-
-

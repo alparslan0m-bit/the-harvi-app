@@ -8,10 +8,14 @@
  * only, which keeps `syncStore`'s unchanged flush loop from re-uploading
  * synced rows.
  */
-import { PendingQuizResult } from "@/src/shared/types";
+import { PendingQuizResult, PendingQuizResultSchema } from "@/src/shared/types";
 
 import { getDb } from "@/src/db/client";
 import { QueueRepository, type QueueRow } from "@/src/db/repositories/queueRepository";
+
+/** Per-item sync retry cap — rows that fail this many times are dead-lettered
+ * (kept pending but excluded from future flushes) so they never block the queue. */
+export const MAX_SYNC_ATTEMPTS = 3;
 
 async function getQueueRepo(): Promise<QueueRepository> {
   return new QueueRepository(await getDb());
@@ -28,7 +32,6 @@ function toPendingResult(row: QueueRow): PendingQuizResult {
     createdAt: row.createdAt,
   };
 }
-
 /**
  * Generates a standard v4 UUID.
  * Falls back to a pseudo-random implementation if the native crypto API is unavailable.
@@ -62,15 +65,27 @@ export async function enqueueQuizResult(
   providedLocalId?: string,
 ): Promise<void> {
   const localId = providedLocalId ?? generateUUID();
+
+  // Runtime validation (audit P3-5): docs claimed items are validated with
+  // PendingQuizResultSchema but nothing validated them. Rejecting bad payloads
+  // here prevents permanently-un-syncable rows (e.g. empty userId/lectureId).
+  const parsed = PendingQuizResultSchema.safeParse({ localId, ...item });
+  if (!parsed.success) {
+    throw new Error(
+      `Refusing to enqueue invalid quiz result: ${parsed.error.message}`,
+    );
+  }
+  const v = parsed.data;
+
   const repo = await getQueueRepo();
   await repo.enqueue({
-    id: localId,
-    userId: item.userId,
-    lectureId: item.lectureId,
-    score: item.score,
-    totalQuestions: item.totalQuestions,
-    correctAnswers: item.correctAnswers,
-    createdAt: item.createdAt,
+    id: v.localId,
+    userId: v.userId,
+    lectureId: v.lectureId,
+    score: v.score,
+    totalQuestions: v.totalQuestions,
+    correctAnswers: v.correctAnswers,
+    createdAt: v.createdAt,
   });
 }
 
@@ -83,6 +98,36 @@ export async function enqueueQuizResult(
 export async function getQueueForUser(userId: string): Promise<PendingQuizResult[]> {
   const rows = await (await getQueueRepo()).getPendingForUser(userId);
   return rows.map(toPendingResult);
+}
+
+/**
+ * Retrieves the subset of the offline queue that is still eligible for sync —
+ * pending rows that have not exhausted their retry cap (audit P1-2).
+ *
+ * @param userId - The ID of the user whose queue to retrieve
+ * @param maxAttempts - Maximum allowed sync attempts per item
+ * @returns An array of pending quiz results that should still be uploaded
+ */
+export async function getFlushableForUser(
+  userId: string,
+  maxAttempts: number = MAX_SYNC_ATTEMPTS,
+): Promise<PendingQuizResult[]> {
+  const rows = await (await getQueueRepo()).getFlushableForUser(
+    userId,
+    maxAttempts,
+  );
+  return rows.map(toPendingResult);
+}
+
+/**
+ * Records a failed upload attempt for the given items, incrementing their
+ * retry counter. Once an item reaches `MAX_SYNC_ATTEMPTS` it is excluded from
+ * future flushes (dead-lettered) instead of blocking the whole queue.
+ *
+ * @param localIds - The local IDs of the items that failed to sync
+ */
+export async function recordFailure(localIds: string[]): Promise<void> {
+  await (await getQueueRepo()).incrementFailure(localIds);
 }
 
 /**

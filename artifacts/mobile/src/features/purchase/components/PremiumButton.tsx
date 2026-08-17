@@ -1,5 +1,5 @@
 // Extracted from PurchaseScreen.tsx — Gradient CTA button with spring press animation
-import React from "react";
+import React, { ComponentProps } from "react";
 import { View, Text, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
@@ -14,6 +14,8 @@ import { SPRING_CONFIG } from "./purchase.constants";
 import { sharedStyles } from "./purchase.styles";
 import { AnimatedPressable } from "@/src/shared/components";
 
+type FeatherIconName = ComponentProps<typeof Feather>["name"];
+
 export const PremiumButton = React.memo(function PremiumButton({
   onPress,
   disabled,
@@ -25,7 +27,7 @@ export const PremiumButton = React.memo(function PremiumButton({
   onPress: () => void;
   disabled: boolean;
   loading: boolean;
-  icon: string;
+  icon: FeatherIconName;
   label: string;
   colors: ThemeColors;
 }) {
@@ -55,7 +57,7 @@ export const PremiumButton = React.memo(function PremiumButton({
             { backgroundColor: colors.mutedForeground },
           ]}
         >
-          <Feather name={icon as any} size={18} color="#fff" />
+              <Feather name={icon} size={18} color="#fff" />
           <Text style={sharedStyles.ctaText}>{label}</Text>
         </View>
       ) : (
@@ -69,7 +71,7 @@ export const PremiumButton = React.memo(function PremiumButton({
             <ActivityIndicator color="#fff" />
           ) : (
             <>
-              <Feather name={icon as any} size={18} color="#fff" />
+          <Feather name={icon} size={18} color="#fff" />
               <Text style={sharedStyles.ctaText}>{label}</Text>
             </>
           )}

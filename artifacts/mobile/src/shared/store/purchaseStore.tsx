@@ -69,7 +69,7 @@ export function usePurchaseActions() {
         },
       });
 
-      const timeoutPromise = new Promise<{ data: any; error: any }>(
+      const timeoutPromise = new Promise<{ data: unknown; error: unknown }>(
         (_, reject) => setTimeout(() => reject(new Error("timeout")), 15000),
       );
 
@@ -78,7 +78,7 @@ export function usePurchaseActions() {
         timeoutPromise,
       ]);
 
-      if (error) throw new Error(error.message);
+      if (error) throw new Error((error as { message?: string }).message ?? "Purchase failed");
       return data;
     },
     [],
@@ -123,14 +123,18 @@ export function usePurchaseActions() {
     async (code: string) => {
       try {
         const rpcPromise = supabase.rpc("redeem_access_code", { p_code: code });
-        const timeoutPromise = new Promise<{ data: any; error: any }>(
+        const timeoutPromise = new Promise<{ data: unknown; error: unknown }>(
           (_, reject) => setTimeout(() => reject(new Error("timeout")), 15000),
         );
         const { data, error } = await Promise.race([
           rpcPromise,
           timeoutPromise,
         ]);
-        if (error) return { success: false, error: error.message };
+        if (error)
+          return {
+            success: false,
+            error: (error as { message?: string }).message ?? "Redeem failed",
+          };
         if (!data || typeof data !== "object")
           return { success: false, error: "Invalid response from server" };
 

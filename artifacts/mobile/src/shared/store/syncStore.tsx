@@ -10,9 +10,11 @@ import { useQueryClient, onlineManager } from "@tanstack/react-query";
 import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
 import { useAuth } from "./authStore";
 import {
-  getQueueForUser,
+  getFlushableForUser,
   pendingCount as getPendingCount,
+  recordFailure,
   removeSynced,
+  MAX_SYNC_ATTEMPTS,
 } from "@/src/shared/services/offlineQueue";
 import { supabase } from "@/src/shared/services/supabase";
 import { isDeviceOnline } from "@/src/shared/utils/netInfo";
@@ -76,6 +78,10 @@ export function useSyncActions() {
    * - Implements a 30-second backoff upon network/timeout failures.
    * - Uses `Promise.race` for a strict 10s per-item timeout.
    * - Handles Postgres duplicate/conflict errors gracefully (e.g., 23505).
+   * - Dead-letters per-item failures: a rejected item increments its failure
+   *   counter and the loop CONTINUES, so one bad row can never block the rest
+   *   of the queue. Items past `MAX_SYNC_ATTEMPTS` are excluded from future
+   *   flushes (audit P1-2).
    */
   const flush = useCallback(async () => {
     if (flushing || !user) return;
@@ -84,7 +90,7 @@ export function useSyncActions() {
     const now = Date.now();
     if (now - lastFlushTime < 30000) return;
 
-    const queue = await getQueueForUser(user.id);
+    const queue = await getFlushableForUser(user.id, MAX_SYNC_ATTEMPTS);
     if (queue.length === 0) {
       await refreshCount();
       return;
@@ -102,7 +108,7 @@ export function useSyncActions() {
         // If we send them as `id` to Supabase, Postgres throws 22P02 and they get deleted without syncing.
         const isLegacy = item.localId.includes(".");
 
-        const payload: any = {
+        const payload: Record<string, unknown> = {
           user_id: item.userId,
           lecture_id: item.lectureId,
           score: item.score,
@@ -112,14 +118,14 @@ export function useSyncActions() {
         };
 
         if (!isLegacy) {
-          payload.id = item.localId;
+          payload["id"] = item.localId;
         }
 
         const insertPromise = supabase.from("quiz_results").insert(payload);
 
         // 10s timeout
-        const timeoutPromise = new Promise<{ error: any }>((_, reject) =>
-          setTimeout(() => reject(new Error("timeout")), 10000),
+        const timeoutPromise = new Promise<{ error: { code?: string } | null }>(
+          (_, reject) => setTimeout(() => reject(new Error("timeout")), 10000),
         );
 
         const { error } = await Promise.race([insertPromise, timeoutPromise]);
@@ -138,9 +144,9 @@ export function useSyncActions() {
             syncedIds.push(item.localId);
             anySynced = true;
           } else {
-            // Auth expired, transient error, or schema mismatch — preserve queue and back off
-            lastFlushTime = Date.now();
-            break;
+            // Server rejected this item (invalid FK, RLS, schema mismatch…).
+            // Record the failure and keep flushing the rest — never break.
+            await recordFailure([item.localId]);
           }
         }
       }
@@ -151,7 +157,7 @@ export function useSyncActions() {
         queryClient.invalidateQueries({ queryKey: ["progress_sync"] });
       }
     } catch (err) {
-      // Catch timeouts from Promise.race
+      // Catch timeouts from Promise.race — a network-wide failure, so back off.
       lastFlushTime = Date.now();
     } finally {
       await refreshCount();

@@ -29,6 +29,7 @@ interface LectureRow {
   subject_id: string;
   question_count: number | null;
   is_free: number | null;
+  order: number | null;
 }
 
 export class HierarchyRepository {
@@ -70,13 +71,14 @@ export class HierarchyRepository {
             );
             for (const lec of sub.lectures) {
               await txn.runAsync(
-                "INSERT OR REPLACE INTO hierarchy_lectures (id, name, external_id, subject_id, question_count, is_free) VALUES (?, ?, ?, ?, ?, ?)",
+                'INSERT OR REPLACE INTO hierarchy_lectures (id, name, external_id, subject_id, question_count, is_free, "order") VALUES (?, ?, ?, ?, ?, ?, ?)',
                 lec.id,
                 lec.name,
                 lec.external_id,
                 sub.id,
                 lec.question_count ?? null,
                 lec.is_free == null ? null : lec.is_free ? 1 : 0,
+                lec.order ?? 0,
               );
             }
           }
@@ -102,7 +104,7 @@ export class HierarchyRepository {
       "SELECT id, name, module_id, \"order\" FROM hierarchy_subjects ORDER BY \"order\"",
     );
     const lectures = await this.db.$client.getAllAsync<LectureRow>(
-      "SELECT id, name, external_id, subject_id, question_count, is_free FROM hierarchy_lectures",
+      'SELECT id, name, external_id, subject_id, question_count, is_free, "order" FROM hierarchy_lectures ORDER BY "order"',
     );
 
     const lecturesBySubject = new Map<string, Lecture[]>();
@@ -115,6 +117,7 @@ export class HierarchyRepository {
         subject_id: lec.subject_id,
         question_count: lec.question_count ?? undefined,
         is_free: lec.is_free == null ? undefined : lec.is_free === 1,
+        order: lec.order ?? undefined,
       });
       lecturesBySubject.set(lec.subject_id, list);
     }

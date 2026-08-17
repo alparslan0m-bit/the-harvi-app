@@ -102,12 +102,27 @@ export function useQuizSession(lectureId: string) {
       const now = new Date().toISOString();
       const sessionId = generateUUID();
 
+      // Guard against mid-session auth expiry: a result with an empty userId
+      // or lectureId can never be synced (RLS requires auth.uid() = user_id),
+      // so refuse to enqueue it instead of creating a dead queue row (P1-2).
+      const saveUserId = user?.id;
+      const saveLectureId = lectureId;
+      if (!saveUserId || !saveLectureId) {
+        setSaveError(
+          "Your session expired before this result could be saved. Please sign back in and retake the quiz.",
+        );
+        setFinished(false);
+        isSubmittingRef.current = false;
+        setSubmitting(false);
+        return;
+      }
+
       try {
         if (!isOnline) {
           await enqueueQuizResult(
             {
-              userId: user?.id ?? "",
-              lectureId: lectureId ?? "",
+              userId: saveUserId,
+              lectureId: saveLectureId,
               score,
               totalQuestions: questions.length,
               correctAnswers: correctCount,
@@ -115,28 +130,30 @@ export function useQuizSession(lectureId: string) {
             },
             sessionId,
           );
-          if (user?.id && lectureId) {
-            await optimisticallyMarkComplete(user.id, lectureId);
-            await optimisticallyUpdateBestScore(user.id, lectureId, score);
-          }
+          await optimisticallyMarkComplete(saveUserId, saveLectureId);
+          await optimisticallyUpdateBestScore(
+            saveUserId,
+            saveLectureId,
+            score,
+          );
           setSavedOffline(true);
           refreshCount();
         } else {
           const insertPromise = supabase.from("quiz_results").insert({
             id: sessionId,
-            user_id: user?.id,
-            lecture_id: lectureId,
+            user_id: saveUserId,
+            lecture_id: saveLectureId,
             score,
             total_questions: questions.length,
             correct_answers: correctCount,
             created_at: now,
           });
 
-          const timeoutPromise = new Promise<{ error: any }>((_, reject) =>
-            setTimeout(() => reject(new Error("timeout")), 8000),
+          const timeoutPromise = new Promise<{ error: unknown }>(
+            (_, reject) => setTimeout(() => reject(new Error("timeout")), 8000),
           );
 
-          let insertErr: any = null;
+          let insertErr: unknown = null;
           try {
             const result = await Promise.race([insertPromise, timeoutPromise]);
             insertErr = result.error;
@@ -153,8 +170,8 @@ export function useQuizSession(lectureId: string) {
             }
             await enqueueQuizResult(
               {
-                userId: user?.id ?? "",
-                lectureId: lectureId ?? "",
+                userId: saveUserId,
+                lectureId: saveLectureId,
                 score,
                 totalQuestions: questions.length,
                 correctAnswers: correctCount,
@@ -162,18 +179,24 @@ export function useQuizSession(lectureId: string) {
               },
               sessionId,
             );
-            if (user?.id && lectureId) {
-              await optimisticallyMarkComplete(user.id, lectureId);
-              await optimisticallyUpdateBestScore(user.id, lectureId, score);
-            }
+            await optimisticallyMarkComplete(saveUserId, saveLectureId);
+            await optimisticallyUpdateBestScore(
+              saveUserId,
+              saveLectureId,
+              score,
+            );
             setSavedOffline(true);
             refreshCount();
             flush().catch((e) =>
               console.error("[QuizSession] Background flush failed:", e),
             );
-          } else if (user?.id && lectureId) {
-            await optimisticallyMarkComplete(user.id, lectureId);
-            await optimisticallyUpdateBestScore(user.id, lectureId, score);
+          } else {
+            await optimisticallyMarkComplete(saveUserId, saveLectureId);
+            await optimisticallyUpdateBestScore(
+              saveUserId,
+              saveLectureId,
+              score,
+            );
           }
         }
       } catch (err) {

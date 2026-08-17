@@ -119,7 +119,7 @@ async function buildHierarchyFromRemote(): Promise<Year[]> {
     supabase.from("lectures").select("*"),
   ]);
 
-  const timeoutPromise = new Promise<any>((_, reject) =>
+  const timeoutPromise = new Promise<never>((_, reject) =>
     setTimeout(() => reject(new Error("timeout")), 10000),
   );
 
@@ -168,7 +168,13 @@ async function buildHierarchyFromRemote(): Promise<Year[]> {
       subject_id: key,
       question_count: num(r["question_count"]),
       is_free: r["is_free"] ? Boolean(r["is_free"]) : undefined,
+      order: num(r["order_index"] ?? r["order"] ?? r["sort_order"]),
     });
+  }
+  // Deterministic lecture order within each subject (audit P3-7) — previously
+  // lectures kept the arbitrary row order from Postgres.
+  for (const key of Object.keys(lecturesBySubject)) {
+    lecturesBySubject[key]!.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }
 
   const subjectsByModule: Record<string, Subject[]> = {};

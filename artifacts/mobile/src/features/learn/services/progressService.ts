@@ -51,19 +51,19 @@ async function readCache(userId: string): Promise<Set<string> | null> {
 
 /**
  * Writes the completed-IDs set to SQLite (replace-in-transaction) and updates
- * memCache.
+ * memCache. Each lecture keeps its real completion timestamp from the server
+ * instead of one shared write time (audit P3-10).
  *
  * @param userId - The ID of the authenticated user
- * @param ids - A Set of completed lecture string IDs
+ * @param completedByLecture - Map of lectureId → ISO completion timestamp
  */
 export async function writeProgressCache(
   userId: string,
-  ids: Set<string>,
+  completedByLecture: ReadonlyMap<string, string>,
 ): Promise<void> {
   try {
     const db = await getDb();
-    const completedAt = new Date().toISOString();
-    await replaceProgressCache(db, userId, ids, completedAt);
+    await replaceProgressCache(db, userId, completedByLecture);
   } catch (e) {
     if (__DEV__) console.warn("[progressService] writeProgressCache error:", e);
   }
@@ -138,18 +138,20 @@ export async function fetchCompletedLectures(
 
   // ── Online path ──────────────────────────────────────────────────────────
   let result: Set<string> | null = null;
+  const completedByLecture = new Map<string, string>();
 
   try {
     const queryPromise = supabase
       .from("quiz_results")
-      .select("lecture_id")
+      .select("lecture_id, created_at")
       .eq("user_id", userId);
 
-    const timeoutPromise = new Promise<{ data: any; error: any }>(
+    const timeoutPromise = new Promise<{ data: unknown; error: unknown }>(
       (_, reject) => setTimeout(() => reject(new Error("timeout")), 10000),
     );
 
-    let data, error;
+    let data: unknown;
+    let error: unknown;
     try {
       const resp = await Promise.race([queryPromise, timeoutPromise]);
       data = resp.data;
@@ -169,12 +171,26 @@ export async function fetchCompletedLectures(
           (r: unknown): r is Record<string, unknown> =>
             typeof r === "object" && r !== null,
         )
-        .map((r) => r["lecture_id"])
-        .filter(
-          (v): v is string | number =>
-            v != null && String(v) !== "null" && String(v).length > 0,
-        )
-        .map((v) => String(v));
+        .map((r) => {
+          const lectureId = r["lecture_id"];
+          const createdAt = r["created_at"];
+          if (
+            lectureId != null &&
+            String(lectureId) !== "null" &&
+            String(lectureId).length > 0
+          ) {
+            const id = String(lectureId);
+            const ts = createdAt != null ? String(createdAt) : "";
+            const existing = completedByLecture.get(id);
+            // Keep the LATEST completion timestamp per lecture.
+            if (!existing || ts > existing) {
+              completedByLecture.set(id, ts);
+            }
+            return id;
+          }
+          return null;
+        })
+        .filter((v): v is string => v !== null);
 
       result = new Set(ids);
     } else {
@@ -192,9 +208,18 @@ export async function fetchCompletedLectures(
   pending.forEach((id) => {
     if (result) result.add(id);
   });
+  // Queued items have no server timestamp yet — stamp them with their own
+  // created_at so completed_at stays meaningful even before sync (audit P3-10).
+  const pendingRows = await getQueueForUser(userId);
+  pendingRows.forEach((p) => {
+    const existing = completedByLecture.get(p.lectureId);
+    if (!existing || p.createdAt > existing) {
+      completedByLecture.set(p.lectureId, p.createdAt);
+    }
+  });
 
   // Persist for offline use + update memCache
-  await writeProgressCache(userId, result);
+  await writeProgressCache(userId, completedByLecture);
   return result;
 }
 

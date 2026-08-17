@@ -68,7 +68,7 @@ export function OptionButton({ text, index, answered, onSelect }: Props) {
 
   let bgColor: string = colors.card;
   let borderColor: string = colors.border;
-  let textColor: string = (colors as any).cardForeground || colors.foreground;
+  let textColor: string = colors.foreground;
 
   let labelBg = colors.muted;
   let labelColor = colors.foreground;

@@ -64,14 +64,15 @@ async function fetchMyPurchases(userId: string): Promise<Purchase[]> {
       .eq("status", "active")
       .order("created_at", { ascending: false });
 
-    const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-      setTimeout(() => reject(new Error("timeout")), 10000),
+    const timeoutPromise = new Promise<{ data: unknown; error: unknown }>(
+      (_, reject) => setTimeout(() => reject(new Error("timeout")), 10000),
     );
 
     const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
     if (error) throw error;
-    const list: Purchase[] = (data ?? []).map((r: unknown) => {
+    const rows = Array.isArray(data) ? data : [];
+    const list: Purchase[] = rows.map((r: unknown) => {
       const rec =
         typeof r === "object" && r !== null
           ? (r as Record<string, unknown>)
