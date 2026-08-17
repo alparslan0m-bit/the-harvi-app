@@ -243,15 +243,6 @@ module.exports = [
     "description": "Securely stores chunked auth session tokens. Custom adapter splits values >1800 bytes into __chunk_0, __chunk_1, etc. with a __count key"
   },
   {
-    "id": "async_storage",
-    "label": "Async Storage",
-    "type": "storage",
-    "layer": "infrastructure",
-    "path": "@react-native-async-storage/async-storage",
-    "technology": "React Native",
-    "description": "Persistent key-value storage used by: hierarchy cache, progress cache, best score cache, stats cache, access cache, purchases cache, offline queue, question cache, theme, profile (avatar/name), quiz FK column"
-  },
-  {
     "id": "supabase_auth",
     "label": "Supabase Auth",
     "type": "external",

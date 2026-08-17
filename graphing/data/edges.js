@@ -186,21 +186,13 @@ module.exports = [
   {
     "id": "e24",
     "source": "stats_feature",
-    "target": "cache_store",
-    "type": "reads",
-    "label": "reads cached stats",
-    "description": "useStats reads statsCache from cacheStore for synchronous initialData (no loading spinner)"
-  },
-  {
-    "id": "e25",
-    "source": "stats_feature",
     "target": "auth_store",
     "type": "reads",
     "label": "reads user",
     "description": "StatsScreen and MasteryScreen read user.id for data queries"
   },
   {
-    "id": "e26",
+    "id": "e25",
     "source": "stats_feature",
     "target": "sync_store",
     "type": "reads",
@@ -208,7 +200,7 @@ module.exports = [
     "description": "StatsScreen reads isOnline and pendingCount to show sync status"
   },
   {
-    "id": "e27",
+    "id": "e26",
     "source": "stats_service",
     "target": "supabase_client",
     "type": "fetches",
@@ -216,23 +208,7 @@ module.exports = [
     "description": "Queries user_stats table + RPC get_user_stats_overview + lectures table for name map"
   },
   {
-    "id": "e28",
-    "source": "stats_service",
-    "target": "cache_store",
-    "type": "writes",
-    "label": "updates cache",
-    "description": "writeCache sets stats in cacheStore.setStatsCache for synchronous access"
-  },
-  {
-    "id": "e29",
-    "source": "stats_service",
-    "target": "async_storage",
-    "type": "writes",
-    "label": "persists stats",
-    "description": "Writes UserStats to AsyncStorage (harvi:stats:{userId}) for offline access"
-  },
-  {
-    "id": "e30",
+    "id": "e27",
     "source": "stats_service",
     "target": "offline_queue",
     "type": "reads",
@@ -240,7 +216,7 @@ module.exports = [
     "description": "Reads queue to merge pending offline quiz results into displayed stats"
   },
   {
-    "id": "e31",
+    "id": "e28",
     "source": "stats_service",
     "target": "hierarchy_service",
     "type": "calls",
@@ -248,7 +224,7 @@ module.exports = [
     "description": "serveFromCache calls fetchHierarchy to build lecture name map for offline display"
   },
   {
-    "id": "e32",
+    "id": "e29",
     "source": "stats_service",
     "target": "netinfo",
     "type": "reads",
@@ -256,7 +232,7 @@ module.exports = [
     "description": "NetInfo.fetch() to short-circuit to cache when offline"
   },
   {
-    "id": "e33",
+    "id": "e30",
     "source": "purchase_feature",
     "target": "purchase_store",
     "type": "calls",
@@ -264,7 +240,7 @@ module.exports = [
     "description": "usePurchase hook wraps purchaseModule, redeemCode, restoreModule from purchaseStore"
   },
   {
-    "id": "e34",
+    "id": "e31",
     "source": "purchase_store",
     "target": "supabase_client",
     "type": "calls",
@@ -272,7 +248,7 @@ module.exports = [
     "description": "supabase.rpc('redeem_access_code') for promo code redemption"
   },
   {
-    "id": "e35",
+    "id": "e32",
     "source": "purchase_store",
     "target": "auth_store",
     "type": "reads",
@@ -280,7 +256,7 @@ module.exports = [
     "description": "PurchaseProvider reads user.id to logIn/logOut RevenueCat identity"
   },
   {
-    "id": "e36",
+    "id": "e33",
     "source": "purchase_store",
     "target": "react_query",
     "type": "calls",
@@ -288,7 +264,7 @@ module.exports = [
     "description": "invalidateAccess invalidates content_access, my_purchases, hierarchy, quiz queries after purchase"
   },
   {
-    "id": "e37",
+    "id": "e34",
     "source": "supabase_functions",
     "target": "supabase_db",
     "type": "writes",
@@ -296,7 +272,7 @@ module.exports = [
     "description": "record-iap function validates receipt and inserts into purchases table"
   },
   {
-    "id": "e38",
+    "id": "e35",
     "source": "profile_feature",
     "target": "auth_store",
     "type": "calls",
@@ -304,15 +280,7 @@ module.exports = [
     "description": "AccountActions calls onSignOut (auth_store.signOut) then navigates to /login"
   },
   {
-    "id": "e39",
-    "source": "profile_feature",
-    "target": "async_storage",
-    "type": "writes",
-    "label": "saves profile",
-    "description": "useProfileEdit writes avatar and displayName to AsyncStorage"
-  },
-  {
-    "id": "e40",
+    "id": "e36",
     "source": "profile_feature",
     "target": "theme_store",
     "type": "calls",
@@ -320,7 +288,7 @@ module.exports = [
     "description": "ProfileThemeSelector reads/writes theme via useTheme"
   },
   {
-    "id": "e41",
+    "id": "e37",
     "source": "profile_feature",
     "target": "sync_store",
     "type": "reads",
@@ -328,7 +296,7 @@ module.exports = [
     "description": "AccountActions reads isOnline to gate Clear History (requires network)"
   },
   {
-    "id": "e42",
+    "id": "e38",
     "source": "profile_feature",
     "target": "supabase_client",
     "type": "calls",
@@ -336,7 +304,7 @@ module.exports = [
     "description": "Clear History deletes from quiz_results and user_stats tables via supabase"
   },
   {
-    "id": "e43",
+    "id": "e39",
     "source": "profile_feature",
     "target": "stats_service",
     "type": "calls",
@@ -344,15 +312,7 @@ module.exports = [
     "description": "AccountActions calls clearStatsCache and uses ZERO_STATS constant"
   },
   {
-    "id": "e44",
-    "source": "profile_feature",
-    "target": "best_score_service",
-    "type": "calls",
-    "label": "clears scores",
-    "description": "AccountActions calls clearBestScoreCache on Clear History"
-  },
-  {
-    "id": "e45",
+    "id": "e40",
     "source": "profile_feature",
     "target": "question_cache",
     "type": "calls",
@@ -360,15 +320,7 @@ module.exports = [
     "description": "AccountActions calls clearAllLectureCache on Clear Downloaded Lectures"
   },
   {
-    "id": "e46",
-    "source": "profile_feature",
-    "target": "offline_queue",
-    "type": "calls",
-    "label": "clears queue",
-    "description": "AccountActions calls clearQueueForUser on Clear History"
-  },
-  {
-    "id": "e47",
+    "id": "e41",
     "source": "profile_feature",
     "target": "react_query",
     "type": "calls",
@@ -376,7 +328,7 @@ module.exports = [
     "description": "AccountActions zeroes stats/progress/bestScores via setQueriesData, then invalidates"
   },
   {
-    "id": "e48",
+    "id": "e42",
     "source": "sync_store",
     "target": "supabase_client",
     "type": "calls",
@@ -384,7 +336,7 @@ module.exports = [
     "description": "flush() inserts each queued item to quiz_results, handles duplicate errors (23xxx codes)"
   },
   {
-    "id": "e49",
+    "id": "e43",
     "source": "sync_store",
     "target": "auth_store",
     "type": "reads",
@@ -392,7 +344,7 @@ module.exports = [
     "description": "SyncProvider and useSyncActions read user.id to filter queue and gate flush"
   },
   {
-    "id": "e50",
+    "id": "e44",
     "source": "sync_store",
     "target": "netinfo",
     "type": "reads",
@@ -400,7 +352,7 @@ module.exports = [
     "description": "SyncProvider subscribes to NetInfo.addEventListener, sets onlineManager.setOnline"
   },
   {
-    "id": "e51",
+    "id": "e45",
     "source": "sync_store",
     "target": "react_query",
     "type": "calls",
@@ -408,7 +360,7 @@ module.exports = [
     "description": "After successful flush, invalidates stats and progress queries"
   },
   {
-    "id": "e52",
+    "id": "e46",
     "source": "hierarchy_service",
     "target": "supabase_client",
     "type": "fetches",
@@ -416,15 +368,7 @@ module.exports = [
     "description": "Parallel SELECT * from years, modules, subjects, lectures with 10s timeout"
   },
   {
-    "id": "e53",
-    "source": "hierarchy_service",
-    "target": "async_storage",
-    "type": "writes",
-    "label": "caches hierarchy",
-    "description": "Writes full Year[] tree to AsyncStorage (harvi:hierarchy) for offline access"
-  },
-  {
-    "id": "e54",
+    "id": "e47",
     "source": "hierarchy_service",
     "target": "netinfo",
     "type": "reads",
@@ -432,7 +376,7 @@ module.exports = [
     "description": "NetInfo.fetch() to serve from AsyncStorage cache when offline"
   },
   {
-    "id": "e55",
+    "id": "e48",
     "source": "access_service",
     "target": "supabase_client",
     "type": "fetches",
@@ -440,15 +384,7 @@ module.exports = [
     "description": "Calls supabase.rpc('get_content_access_map') with 10s timeout"
   },
   {
-    "id": "e56",
-    "source": "access_service",
-    "target": "async_storage",
-    "type": "writes",
-    "label": "caches access",
-    "description": "Writes access Map to AsyncStorage (harvi:access:{userId}) for offline"
-  },
-  {
-    "id": "e57",
+    "id": "e49",
     "source": "access_service",
     "target": "netinfo",
     "type": "reads",
@@ -456,7 +392,7 @@ module.exports = [
     "description": "NetInfo.fetch() to serve cached access map when offline"
   },
   {
-    "id": "e58",
+    "id": "e50",
     "source": "progress_service",
     "target": "supabase_client",
     "type": "fetches",
@@ -464,15 +400,7 @@ module.exports = [
     "description": "SELECT lecture_id FROM quiz_results with FK auto-detection (6 column candidates)"
   },
   {
-    "id": "e59",
-    "source": "progress_service",
-    "target": "async_storage",
-    "type": "writes",
-    "label": "caches progress",
-    "description": "Writes completed lecture IDs to AsyncStorage (harvi:progress:{userId})"
-  },
-  {
-    "id": "e60",
+    "id": "e51",
     "source": "progress_service",
     "target": "offline_queue",
     "type": "reads",
@@ -480,7 +408,7 @@ module.exports = [
     "description": "Merges queued offline lecture IDs into the completed set"
   },
   {
-    "id": "e61",
+    "id": "e52",
     "source": "progress_service",
     "target": "netinfo",
     "type": "reads",
@@ -488,7 +416,7 @@ module.exports = [
     "description": "NetInfo.fetch() to serve from memCache/AsyncStorage when offline"
   },
   {
-    "id": "e62",
+    "id": "e53",
     "source": "best_score_service",
     "target": "supabase_client",
     "type": "fetches",
@@ -496,15 +424,7 @@ module.exports = [
     "description": "SELECT lecture_id, score FROM quiz_results with 10s timeout"
   },
   {
-    "id": "e63",
-    "source": "best_score_service",
-    "target": "async_storage",
-    "type": "writes",
-    "label": "caches scores",
-    "description": "Writes Map<lectureId, score> entries to AsyncStorage (harvi:bestScores:{userId})"
-  },
-  {
-    "id": "e64",
+    "id": "e54",
     "source": "best_score_service",
     "target": "offline_queue",
     "type": "reads",
@@ -512,7 +432,7 @@ module.exports = [
     "description": "Merges queued offline quiz scores (takes max) into the score map"
   },
   {
-    "id": "e65",
+    "id": "e55",
     "source": "best_score_service",
     "target": "netinfo",
     "type": "reads",
@@ -520,7 +440,7 @@ module.exports = [
     "description": "NetInfo.fetch() to serve from memCache/AsyncStorage when offline"
   },
   {
-    "id": "e66",
+    "id": "e56",
     "source": "question_service",
     "target": "supabase_client",
     "type": "fetches",
@@ -528,15 +448,7 @@ module.exports = [
     "description": "SELECT * FROM questions with FK auto-detection (7 column candidates) and 6s timeout"
   },
   {
-    "id": "e67",
-    "source": "question_service",
-    "target": "async_storage",
-    "type": "writes",
-    "label": "caches FK column",
-    "description": "Persists discovered FK column name (harvi:quiz:fkcol) to skip detection on next load"
-  },
-  {
-    "id": "e68",
+    "id": "e57",
     "source": "question_service",
     "target": "netinfo",
     "type": "reads",
@@ -544,15 +456,7 @@ module.exports = [
     "description": "NetInfo.fetch() to throw 'You are offline' before attempting Supabase call"
   },
   {
-    "id": "e69",
-    "source": "question_cache",
-    "target": "async_storage",
-    "type": "writes",
-    "label": "persists questions",
-    "description": "Stores/loads per-lecture question cache (harvi:qcache:{lectureId}) as CachedLecture JSON"
-  },
-  {
-    "id": "e70",
+    "id": "e58",
     "source": "question_cache",
     "target": "cache_store",
     "type": "calls",
@@ -560,23 +464,7 @@ module.exports = [
     "description": "Reads/sets questionCacheBypassed flag — set true after clearAllLectureCache, reset on save"
   },
   {
-    "id": "e71",
-    "source": "offline_queue",
-    "target": "async_storage",
-    "type": "writes",
-    "label": "persists queue",
-    "description": "Writes PendingQuizResult[] to AsyncStorage (harvi:quiz_queue) with retry-once on failure"
-  },
-  {
-    "id": "e72",
-    "source": "theme_store",
-    "target": "async_storage",
-    "type": "writes",
-    "label": "saves theme",
-    "description": "Persists theme choice (harvi:theme) to AsyncStorage on setTheme"
-  },
-  {
-    "id": "e73",
+    "id": "e59",
     "source": "purchase_feature",
     "target": "auth_store",
     "type": "reads",
@@ -584,7 +472,7 @@ module.exports = [
     "description": "useMyPurchases reads user.id to fetch purchase history"
   },
   {
-    "id": "e74",
+    "id": "e60",
     "source": "purchase_feature",
     "target": "supabase_client",
     "type": "fetches",
@@ -592,7 +480,7 @@ module.exports = [
     "description": "useMyPurchases queries purchases table for active purchases with AsyncStorage cache"
   },
   {
-    "id": "e75",
+    "id": "e61",
     "source": "learn_feature",
     "target": "react_query",
     "type": "calls",
@@ -600,7 +488,7 @@ module.exports = [
     "description": "Learn hooks (useHierarchy, useModuleAccess, useProgress, useLectureBestScores) use useQuery"
   },
   {
-    "id": "e76",
+    "id": "e62",
     "source": "learn_feature",
     "target": "netinfo",
     "type": "reads",
@@ -608,7 +496,7 @@ module.exports = [
     "description": "useSubjectCache checks NetInfo.fetch() before allowing offline downloads"
   },
   {
-    "id": "e77",
+    "id": "e63",
     "source": "purchase_feature",
     "target": "revenuecat",
     "type": "types",
@@ -616,15 +504,7 @@ module.exports = [
     "description": "PurchaseScreen and usePurchase import PurchasesPackage types from revenuecat"
   },
   {
-    "id": "e78",
-    "source": "purchase_feature",
-    "target": "async_storage",
-    "type": "reads",
-    "label": "caches purchases",
-    "description": "useMyPurchases caches history to AsyncStorage for offline access"
-  },
-  {
-    "id": "e79",
+    "id": "e64",
     "source": "purchase_feature",
     "target": "netinfo",
     "type": "reads",
@@ -632,7 +512,7 @@ module.exports = [
     "description": "useMyPurchases checks connectivity before fetching purchase history"
   },
   {
-    "id": "e80",
+    "id": "e65",
     "source": "purchase_feature",
     "target": "react_query",
     "type": "calls",
@@ -640,7 +520,7 @@ module.exports = [
     "description": "useMyPurchases uses useQuery for purchase history"
   },
   {
-    "id": "e81",
+    "id": "e66",
     "source": "stats_feature",
     "target": "react_query",
     "type": "calls",
@@ -648,23 +528,7 @@ module.exports = [
     "description": "useStats uses useQuery to fetch user stats"
   },
   {
-    "id": "e82",
-    "source": "profile_feature",
-    "target": "stats_feature",
-    "type": "calls",
-    "label": "clears cache",
-    "description": "AccountActions imports clearStatsCache from stats_feature for Clear History"
-  },
-  {
-    "id": "e83",
-    "source": "profile_feature",
-    "target": "learn_feature",
-    "type": "calls",
-    "label": "clears cache",
-    "description": "AccountActions imports clearProgressCache and clearBestScoreCache from learn_feature"
-  },
-  {
-    "id": "e84",
+    "id": "e67",
     "source": "quiz_feature",
     "target": "learn_feature",
     "type": "calls",
@@ -672,7 +536,7 @@ module.exports = [
     "description": "useQuizSession imports optimisticallyMarkComplete and optimisticallyUpdateBestScore from learn_feature hooks"
   },
   {
-    "id": "e85",
+    "id": "e68",
     "source": "stats_feature",
     "target": "learn_feature",
     "type": "navigates",
@@ -680,7 +544,7 @@ module.exports = [
     "description": "Empirical edge not previously tracked"
   },
   {
-    "id": "e86",
+    "id": "e69",
     "source": "auth_feature",
     "target": "error_boundary",
     "type": "calls",
@@ -688,7 +552,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/auth/components/AuthScreen.tsx, artifacts/mobile/src/features/auth/components/AuthScreen.tsx"
   },
   {
-    "id": "e87",
+    "id": "e70",
     "source": "feedback_form",
     "target": "error_boundary",
     "type": "calls",
@@ -696,7 +560,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/components/FeedbackForm.tsx"
   },
   {
-    "id": "e88",
+    "id": "e71",
     "source": "learn_feature",
     "target": "error_boundary",
     "type": "calls",
@@ -704,7 +568,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/components/LearnErrorState.tsx, artifacts/mobile/src/features/learn/components/LectureCard.tsx, artifacts/mobile/src/features/learn/components/ModuleCard.tsx, artifacts/mobile/src/features/learn/components/ModuleScreen.tsx, artifacts/mobile/src/features/learn/components/SubjectCard.tsx, artifacts/mobile/src/features/learn/components/SubjectDownloadButton.tsx, artifacts/mobile/src/features/learn/components/SubjectScreen.tsx, artifacts/mobile/src/features/learn/components/YearCard.tsx, artifacts/mobile/src/features/learn/components/YearScreen.tsx"
   },
   {
-    "id": "e89",
+    "id": "e72",
     "source": "profile_feature",
     "target": "error_boundary",
     "type": "calls",
@@ -712,7 +576,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/profile/components/AccountActions.tsx, artifacts/mobile/src/features/profile/components/AvatarPicker.tsx, artifacts/mobile/src/features/profile/components/EditProfileScreen.tsx, artifacts/mobile/src/features/profile/components/ProfileAvatarSection.tsx, artifacts/mobile/src/features/profile/components/ProfileEditField.tsx, artifacts/mobile/src/features/profile/components/ProfileEditHeader.tsx, artifacts/mobile/src/features/profile/components/ProfileHeroCard.tsx, artifacts/mobile/src/features/profile/components/ProfileScreen.tsx, artifacts/mobile/src/features/profile/components/ProfileThemeSelector.tsx"
   },
   {
-    "id": "e90",
+    "id": "e73",
     "source": "purchase_feature",
     "target": "error_boundary",
     "type": "calls",
@@ -720,7 +584,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/purchase/components/BuyTab.tsx, artifacts/mobile/src/features/purchase/components/PremiumButton.tsx, artifacts/mobile/src/features/purchase/components/PurchaseScreen.tsx, artifacts/mobile/src/features/purchase/components/SuccessState.tsx, artifacts/mobile/src/features/purchase/components/TabSwitcher.tsx"
   },
   {
-    "id": "e91",
+    "id": "e74",
     "source": "quiz_feature",
     "target": "error_boundary",
     "type": "calls",
@@ -728,7 +592,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/quiz/components/QuizActiveHeader.tsx, artifacts/mobile/src/features/quiz/components/QuizErrorScreen.tsx, artifacts/mobile/src/features/quiz/components/QuizImage.tsx, artifacts/mobile/src/features/quiz/components/QuizNextButton.tsx, artifacts/mobile/src/features/quiz/components/QuizQuestionContent.tsx, artifacts/mobile/src/features/quiz/components/QuizResultsView.tsx, artifacts/mobile/src/features/quiz/components/QuizReviewScreen.tsx"
   },
   {
-    "id": "e92",
+    "id": "e75",
     "source": "stats_feature",
     "target": "error_boundary",
     "type": "calls",
@@ -736,7 +600,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/stats/components/MasteryFilterChips.tsx, artifacts/mobile/src/features/stats/components/MasteryHeader.tsx, artifacts/mobile/src/features/stats/components/MasterySearch.tsx, artifacts/mobile/src/features/stats/components/MasterySection.tsx"
   },
   {
-    "id": "e93",
+    "id": "e76",
     "source": "tab_navigator",
     "target": "error_boundary",
     "type": "calls",
@@ -744,23 +608,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/app/(main)/(tabs)/_layout.tsx"
   },
   {
-    "id": "e94",
-    "source": "auth_store",
-    "target": "best_score_service",
-    "type": "calls",
-    "label": "calls",
-    "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
-  },
-  {
-    "id": "e95",
-    "source": "auth_store",
-    "target": "progress_service",
-    "type": "calls",
-    "label": "calls",
-    "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
-  },
-  {
-    "id": "e96",
+    "id": "e77",
     "source": "learn_feature",
     "target": "best_score_service",
     "type": "calls",
@@ -768,7 +616,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useLectureBestScores.ts, artifacts/mobile/src/features/learn/hooks/useLectureBestScores.ts, artifacts/mobile/src/features/learn/index.ts"
   },
   {
-    "id": "e97",
+    "id": "e78",
     "source": "learn_feature",
     "target": "progress_service",
     "type": "calls",
@@ -776,7 +624,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useProgress.ts, artifacts/mobile/src/features/learn/hooks/useProgress.ts, artifacts/mobile/src/features/learn/index.ts"
   },
   {
-    "id": "e98",
+    "id": "e79",
     "source": "learn_feature",
     "target": "question_cache",
     "type": "calls",
@@ -784,7 +632,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useSubjectCache.ts"
   },
   {
-    "id": "e99",
+    "id": "e80",
     "source": "purchase_store",
     "target": "revenuecat",
     "type": "calls",
@@ -792,7 +640,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/purchaseStore.tsx"
   },
   {
-    "id": "e100",
+    "id": "e81",
     "source": "question_service",
     "target": "quiz_feature",
     "type": "calls",
@@ -800,7 +648,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/quiz/services/questionService.ts"
   },
   {
-    "id": "e101",
+    "id": "e82",
     "source": "quiz_feature",
     "target": "offline_queue",
     "type": "calls",
@@ -808,7 +656,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts"
   },
   {
-    "id": "e102",
+    "id": "e83",
     "source": "stats_feature",
     "target": "stats_service",
     "type": "calls",
@@ -816,7 +664,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/stats/hooks/useStats.ts, artifacts/mobile/src/features/stats/hooks/useStats.ts, artifacts/mobile/src/features/stats/index.ts"
   },
   {
-    "id": "e103",
+    "id": "e84",
     "source": "sync_store",
     "target": "offline_queue",
     "type": "calls",
@@ -824,7 +672,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/syncStore.tsx"
   },
   {
-    "id": "e104",
+    "id": "e85",
     "source": "access_service",
     "target": "shared_utils",
     "type": "calls",
@@ -832,7 +680,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/accessService.ts"
   },
   {
-    "id": "e105",
+    "id": "e86",
     "source": "auth_store",
     "target": "shared_utils",
     "type": "calls",
@@ -840,7 +688,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
   },
   {
-    "id": "e106",
+    "id": "e87",
     "source": "best_score_service",
     "target": "shared_utils",
     "type": "calls",
@@ -848,7 +696,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/bestScoreService.ts"
   },
   {
-    "id": "e107",
+    "id": "e88",
     "source": "hierarchy_service",
     "target": "shared_utils",
     "type": "calls",
@@ -856,7 +704,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/hierarchyService.ts"
   },
   {
-    "id": "e108",
+    "id": "e89",
     "source": "learn_feature",
     "target": "shared_utils",
     "type": "calls",
@@ -864,7 +712,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useSubjectCache.ts"
   },
   {
-    "id": "e109",
+    "id": "e90",
     "source": "progress_service",
     "target": "shared_utils",
     "type": "calls",
@@ -872,7 +720,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/progressService.ts"
   },
   {
-    "id": "e110",
+    "id": "e91",
     "source": "purchase_feature",
     "target": "shared_utils",
     "type": "calls",
@@ -880,7 +728,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/purchase/hooks/useMyPurchases.ts"
   },
   {
-    "id": "e111",
+    "id": "e92",
     "source": "question_service",
     "target": "shared_utils",
     "type": "calls",
@@ -888,15 +736,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/quiz/services/questionService.ts"
   },
   {
-    "id": "e112",
-    "source": "shared_utils",
-    "target": "async_storage",
-    "type": "calls",
-    "label": "calls",
-    "description": "Auto-discovered: artifacts/mobile/src/shared/utils/cacheUtils.ts"
-  },
-  {
-    "id": "e113",
+    "id": "e93",
     "source": "shared_utils",
     "target": "netinfo",
     "type": "calls",
@@ -904,7 +744,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/utils/netInfo.ts"
   },
   {
-    "id": "e114",
+    "id": "e94",
     "source": "shared_utils",
     "target": "offline_queue",
     "type": "calls",
@@ -912,7 +752,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/utils/cacheUtils.ts"
   },
   {
-    "id": "e115",
+    "id": "e95",
     "source": "stats_service",
     "target": "shared_utils",
     "type": "calls",
@@ -920,7 +760,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/stats/services/statsService.ts"
   },
   {
-    "id": "e116",
+    "id": "e96",
     "source": "sync_store",
     "target": "shared_utils",
     "type": "calls",
@@ -928,7 +768,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/syncStore.tsx"
   },
   {
-    "id": "e117",
+    "id": "e97",
     "source": "offline_banner",
     "target": "sync_store",
     "type": "calls",
@@ -936,7 +776,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/components/OfflineBanner.tsx"
   },
   {
-    "id": "e118",
+    "id": "e98",
     "source": "access_service",
     "target": "supabase_db",
     "type": "calls",
@@ -944,7 +784,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/accessService.ts"
   },
   {
-    "id": "e119",
+    "id": "e99",
     "source": "auth_store",
     "target": "supabase_auth",
     "type": "calls",
@@ -952,7 +792,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
   },
   {
-    "id": "e120",
+    "id": "e100",
     "source": "hierarchy_service",
     "target": "supabase_db",
     "type": "calls",
@@ -960,7 +800,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/hierarchyService.ts"
   },
   {
-    "id": "e121",
+    "id": "e101",
     "source": "profile_feature",
     "target": "supabase_db",
     "type": "calls",
@@ -968,7 +808,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/profile/components/AccountActions.tsx"
   },
   {
-    "id": "e122",
+    "id": "e102",
     "source": "purchase_store",
     "target": "supabase_db",
     "type": "calls",
@@ -976,7 +816,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/purchaseStore.tsx"
   },
   {
-    "id": "e123",
+    "id": "e103",
     "source": "purchase_store",
     "target": "supabase_functions",
     "type": "calls",
@@ -984,7 +824,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/purchaseStore.tsx"
   },
   {
-    "id": "e124",
+    "id": "e104",
     "source": "quiz_feature",
     "target": "supabase_db",
     "type": "calls",
@@ -992,7 +832,7 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts"
   },
   {
-    "id": "e125",
+    "id": "e105",
     "source": "stats_service",
     "target": "supabase_db",
     "type": "calls",
@@ -1000,12 +840,20 @@ module.exports = [
     "description": "Auto-discovered: artifacts/mobile/src/features/stats/services/statsService.ts"
   },
   {
-    "id": "e126",
+    "id": "e106",
     "source": "sync_store",
     "target": "supabase_db",
     "type": "calls",
     "label": "calls",
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/syncStore.tsx"
+  },
+  {
+    "id": "e107",
+    "source": "profile_feature",
+    "target": "shared_utils",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/profile/components/AccountActions.tsx"
   },
   {
     "source": "react_query",
@@ -1128,11 +976,6 @@ module.exports = [
     "label": "Flow triggers"
   },
   {
-    "source": "async_storage",
-    "target": "progress_service",
-    "label": "Flow triggers"
-  },
-  {
     "source": "auth_store",
     "target": "purchase_store",
     "label": "Flow triggers"
@@ -1233,26 +1076,6 @@ module.exports = [
     "label": "Flow triggers"
   },
   {
-    "source": "cache_store",
-    "target": "async_storage",
-    "label": "Flow triggers"
-  },
-  {
-    "source": "async_storage",
-    "target": "stats_feature",
-    "label": "Flow triggers"
-  },
-  {
-    "source": "async_storage",
-    "target": "profile_feature",
-    "label": "Flow triggers"
-  },
-  {
-    "source": "async_storage",
-    "target": "theme_store",
-    "label": "Flow triggers"
-  },
-  {
     "source": "theme_store",
     "target": "app",
     "label": "Flow triggers"
@@ -1275,11 +1098,6 @@ module.exports = [
   {
     "source": "react_query",
     "target": "profile_feature",
-    "label": "Flow triggers"
-  },
-  {
-    "source": "async_storage",
-    "target": "react_query",
     "label": "Flow triggers"
   },
   {

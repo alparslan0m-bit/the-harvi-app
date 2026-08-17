@@ -1,7 +1,7 @@
 # Data Dictionary
 
 > **Auto-generated** by `docs/extractors/data-dictionary.js`.
-> Generated at 2026-08-14T22:26:52.313Z
+> Generated at 2026-08-17T09:35:58.841Z
 > Parses SQL migrations and Zod schemas, then cross-references them for drift.
 
 ## ⚠️ Schema Drift Warnings

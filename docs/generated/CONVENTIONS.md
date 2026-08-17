@@ -1,7 +1,7 @@
 # Conventions
 
 > **Auto-generated** by `docs/extractors/conventions.js`.
-> Generated at 2026-08-14T22:26:51.898Z
+> Generated at 2026-08-17T09:35:57.835Z
 > Structural patterns extracted from the codebase. Follow these when adding new code.
 
 ## 📁 Feature Folder Structure
@@ -44,7 +44,7 @@ Every store follows: **Zustand create** + **Provider component** + **useXxx hook
 | `cacheStore` | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
 | `purchaseStore` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
 | `syncStore` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
-| `themeStore` | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| `themeStore` | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
 
 ## ⚙️ Service Pattern
 
@@ -52,19 +52,19 @@ Services use a three-tier cache strategy: **memCache → AsyncStorage → Supaba
 
 | Service | Mem Cache | AsyncStorage | Supabase | Offline Check | Full 3-Tier |
 |---------|-----------|-------------|----------|---------------|-------------|
-| `accessService` | ✅ | ✅ | ✅ | ✅ | ❌ |
-| `bestScoreService` | ✅ | ✅ | ❌ | ✅ | ❌ |
-| `hierarchyService` | ❌ | ✅ | ✅ | ✅ | ❌ |
-| `progressService` | ✅ | ✅ | ❌ | ✅ | ❌ |
-| `questionCache` | ❌ | ✅ | ❌ | ❌ | ❌ |
-| `questionService` | ❌ | ✅ | ❌ | ✅ | ❌ |
-| `statsService` | ✅ | ✅ | ✅ | ✅ | ❌ |
-| `offlineQueue` | ❌ | ✅ | ❌ | ❌ | ❌ |
+| `accessService` | ✅ | ❌ | ✅ | ✅ | ❌ |
+| `bestScoreService` | ✅ | ❌ | ❌ | ✅ | ❌ |
+| `hierarchyService` | ❌ | ❌ | ✅ | ✅ | ❌ |
+| `progressService` | ✅ | ❌ | ❌ | ✅ | ❌ |
+| `questionCache` | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `questionService` | ❌ | ❌ | ❌ | ✅ | ❌ |
+| `statsService` | ✅ | ❌ | ✅ | ✅ | ❌ |
+| `offlineQueue` | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 ## 📦 Import Conventions
 
-- **Alias imports (`@/`):** 266 usages across 133 files
-- **Relative imports (`./`):** 173 usages
+- **Alias imports (`@/`):** 290 usages across 151 files
+- **Relative imports (`./`):** 192 usages
 - **Convention:** Use `@/` for cross-feature imports, `./` for intra-directory
 
 ### ⚠️ Cross-Feature Import Violations
@@ -76,9 +76,6 @@ Features should not import directly from other features. Use `shared/` instead.
 | `artifacts/mobile/src/features/learn/hooks/useSubjectCache.ts` | quiz |
 | `artifacts/mobile/src/features/learn/hooks/useSubjectCache.ts` | quiz |
 | `artifacts/mobile/src/features/profile/components/AccountActions.tsx` | stats |
-| `artifacts/mobile/src/features/profile/components/AccountActions.tsx` | stats |
-| `artifacts/mobile/src/features/profile/components/AccountActions.tsx` | learn |
-| `artifacts/mobile/src/features/profile/components/AccountActions.tsx` | learn |
 | `artifacts/mobile/src/features/profile/components/AccountActions.tsx` | quiz |
 | `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts` | learn |
 | `artifacts/mobile/src/features/quiz/hooks/useQuizSession.ts` | learn |

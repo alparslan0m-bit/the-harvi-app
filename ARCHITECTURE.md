@@ -39,7 +39,6 @@
 - **offline_queue** (TypeScript + AsyncStorage): Manages pending offline quiz result mutations (harvi:quiz_queue). Validated with Zod PendingQuizResultSchema. Generates UUIDs for deduplication. Provides enqueue, getQueue, removeSynced, clearQueueForUser, pendingCount
 - **supabase_client** (Supabase JS): createClient with custom SecureStoreAdapter that chunks auth tokens (1800-byte chunks) to work within iOS SecureStore 2KB limit. Falls back to localStorage on web. autoRefreshToken, persistSession enabled
 - **secure_store** (Expo): Securely stores chunked auth session tokens. Custom adapter splits values >1800 bytes into __chunk_0, __chunk_1, etc. with a __count key
-- **async_storage** (React Native): Persistent key-value storage used by: hierarchy cache, progress cache, best score cache, stats cache, access cache, purchases cache, offline queue, question cache, theme, profile (avatar/name), quiz FK column
 
 ### EXTERNAL LAYER
 

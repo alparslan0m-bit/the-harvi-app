@@ -1,7 +1,7 @@
 # Environment & Configuration
 
 > **Auto-generated** by `docs/extractors/env-and-config.js`.
-> Generated at 2026-08-14T22:26:53.470Z
+> Generated at 2026-08-17T09:36:02.509Z
 > Maps required environment variables, Expo plugins, and build profiles.
 
 ## 🔐 Environment Variables
@@ -28,6 +28,7 @@
 - `expo-font`
 - `expo-web-browser`
 - `expo-secure-store`
+- `expo-sqlite`
 
 ### 🧪 Experiments
 

@@ -49,7 +49,6 @@ flowchart LR
     offline_queue["Offline Queue"]:::infrastructure
     supabase_client["Supabase Client"]:::infrastructure
     secure_store["Secure Store"]:::infrastructure
-    async_storage["Async Storage"]:::infrastructure
   end
 
   subgraph EXTERNAL
@@ -92,12 +91,9 @@ flowchart LR
   quiz_feature --> auth_store
   quiz_feature --> sync_store
   quiz_feature --> react_query
-  stats_feature --> cache_store
   stats_feature --> auth_store
   stats_feature --> sync_store
   stats_service --> supabase_client
-  stats_service --> cache_store
-  stats_service --> async_storage
   stats_service --> offline_queue
   stats_service --> hierarchy_service
   stats_service --> netinfo
@@ -107,51 +103,37 @@ flowchart LR
   purchase_store --> react_query
   supabase_functions --> supabase_db
   profile_feature --> auth_store
-  profile_feature --> async_storage
   profile_feature --> theme_store
   profile_feature --> sync_store
   profile_feature --> supabase_client
   profile_feature --> stats_service
-  profile_feature --> best_score_service
   profile_feature --> question_cache
-  profile_feature --> offline_queue
   profile_feature --> react_query
   sync_store --> supabase_client
   sync_store --> auth_store
   sync_store --> netinfo
   sync_store --> react_query
   hierarchy_service --> supabase_client
-  hierarchy_service --> async_storage
   hierarchy_service --> netinfo
   access_service --> supabase_client
-  access_service --> async_storage
   access_service --> netinfo
   progress_service --> supabase_client
-  progress_service --> async_storage
   progress_service --> offline_queue
   progress_service --> netinfo
   best_score_service --> supabase_client
-  best_score_service --> async_storage
   best_score_service --> offline_queue
   best_score_service --> netinfo
   question_service --> supabase_client
-  question_service --> async_storage
   question_service --> netinfo
-  question_cache --> async_storage
   question_cache --> cache_store
-  offline_queue --> async_storage
-  theme_store --> async_storage
   purchase_feature --> auth_store
   purchase_feature --> supabase_client
   learn_feature --> react_query
   learn_feature --> netinfo
   purchase_feature --> revenuecat
-  purchase_feature --> async_storage
   purchase_feature --> netinfo
   purchase_feature --> react_query
   stats_feature --> react_query
-  profile_feature --> stats_feature
-  profile_feature --> learn_feature
   quiz_feature --> learn_feature
   stats_feature --> learn_feature
   auth_feature --> error_boundary
@@ -162,8 +144,6 @@ flowchart LR
   quiz_feature --> error_boundary
   stats_feature --> error_boundary
   tab_navigator --> error_boundary
-  auth_store --> best_score_service
-  auth_store --> progress_service
   learn_feature --> best_score_service
   learn_feature --> progress_service
   learn_feature --> question_cache
@@ -180,7 +160,6 @@ flowchart LR
   progress_service --> shared_utils
   purchase_feature --> shared_utils
   question_service --> shared_utils
-  shared_utils --> async_storage
   shared_utils --> netinfo
   shared_utils --> offline_queue
   stats_service --> shared_utils
@@ -195,5 +174,6 @@ flowchart LR
   quiz_feature --> supabase_db
   stats_service --> supabase_db
   sync_store --> supabase_db
+  profile_feature --> shared_utils
 ```
 
