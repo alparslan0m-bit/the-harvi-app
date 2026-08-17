@@ -35,12 +35,14 @@ flowchart LR
     cache_store["Cache Store"]:::application
     theme_store["Theme Store"]:::application
     react_query["React Query Client"]:::application
+    zustand["Zustand"]:::application
     hierarchy_service["Hierarchy Service"]:::application
     access_service["Access Service"]:::application
     progress_service["Progress Service"]:::application
     best_score_service["Best Score Service"]:::application
     question_service["Question Service"]:::application
     stats_service["Stats Service"]:::application
+    shared_utils["Shared Utils"]:::application
   end
 
   subgraph INFRASTRUCTURE
@@ -49,6 +51,9 @@ flowchart LR
     offline_queue["Offline Queue"]:::infrastructure
     supabase_client["Supabase Client"]:::infrastructure
     secure_store["Secure Store"]:::infrastructure
+    sqlite["SQLite Database"]:::infrastructure
+    mmkv["MMKV Storage"]:::infrastructure
+    database["SQLite Data Access Layer"]:::infrastructure
   end
 
   subgraph EXTERNAL
@@ -59,13 +64,6 @@ flowchart LR
     revenuecat["RevenueCat"]:::external
     netinfo["NetInfo"]:::external
     google_oauth["Google OAuth"]:::external
-  end
-
-  classDef unknown fill:#52525b,stroke:#3f3f46,stroke-width:2px,stroke-dasharray:5 5,color:#e4e4e7
-
-  subgraph MISC
-    direction TB
-    shared_utils["Shared Utils"]:::unknown
   end
 
   app --> error_boundary
@@ -176,5 +174,34 @@ flowchart LR
   sync_store --> supabase_db
   profile_feature --> shared_utils
   auth_store --> react_query
+  access_service --> database
+  access_service --> sqlite
+  app --> database
+  auth_store --> mmkv
+  auth_store --> zustand
+  best_score_service --> database
+  best_score_service --> sqlite
+  cache_store --> zustand
+  database --> sqlite
+  hierarchy_service --> database
+  learn_feature --> database
+  learn_feature --> sqlite
+  mmkv --> theme_store
+  offline_queue --> database
+  profile_feature --> mmkv
+  progress_service --> database
+  progress_service --> sqlite
+  purchase_feature --> database
+  purchase_feature --> sqlite
+  purchase_store --> zustand
+  question_cache --> database
+  question_service --> mmkv
+  quiz_feature --> database
+  shared_utils --> database
+  stats_feature --> database
+  stats_service --> database
+  stats_service --> sqlite
+  sync_store --> zustand
+  theme_store --> mmkv
 ```
 

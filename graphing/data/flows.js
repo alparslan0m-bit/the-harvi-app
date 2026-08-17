@@ -19,7 +19,7 @@ module.exports = [
       {
         order: 3,
         node: "theme_store",
-        action: "ThemeProvider loads saved theme from AsyncStorage",
+        action: "ThemeProvider loads saved theme from MMKV",
       },
       {
         order: 4,
@@ -174,7 +174,7 @@ module.exports = [
         order: 4,
         node: "hierarchy_service",
         action:
-          "If offline: returns AsyncStorage cache. If online: fetches from Supabase",
+          "If offline: returns SQLite cache. If online: fetches from Supabase",
       },
       {
         order: 5,
@@ -190,7 +190,7 @@ module.exports = [
         order: 7,
         node: "hierarchy_service",
         action:
-          "Builds nested tree with FK auto-detection, caches to AsyncStorage",
+          "Builds nested tree with FK auto-detection, caches to SQLite",
       },
       {
         order: 8,
@@ -234,7 +234,7 @@ module.exports = [
       {
         order: 3,
         node: "question_cache",
-        action: "Pre-loads questions from AsyncStorage cache (fast path)",
+        action: "Pre-loads questions from SQLite cache (fast path)",
       },
       {
         order: 4,
@@ -277,7 +277,7 @@ module.exports = [
       {
         order: 11,
         node: "best_score_service",
-        action: "optimisticallyUpdateBestScore updates memCache + AsyncStorage",
+        action: "optimisticallyUpdateBestScore updates memCache + SQLite",
       },
       {
         order: 12,
@@ -310,7 +310,7 @@ module.exports = [
       {
         order: 3,
         node: "question_cache",
-        action: "Returns cached questions from AsyncStorage",
+        action: "Returns cached questions from SQLite",
       },
       {
         order: 4,
@@ -332,7 +332,7 @@ module.exports = [
         order: 7,
         node: "progress_service",
         action:
-          "optimisticallyMarkComplete adds lectureId to memCache + AsyncStorage",
+          "optimisticallyMarkComplete adds lectureId to memCache + SQLite",
       },
       {
         order: 8,
@@ -452,7 +452,7 @@ module.exports = [
     id: "offline-subject-download",
     name: "Offline Subject Download",
     description:
-      "Downloads all questions for every lecture in a subject to AsyncStorage so the user can take quizzes offline",
+      "Downloads all questions for every lecture in a subject to SQLite so the user can take quizzes offline",
     steps: [
       {
         order: 1,
@@ -493,7 +493,7 @@ module.exports = [
         order: 7,
         node: "question_cache",
         action:
-          "saveQuestionsToCache stores shuffled questions to AsyncStorage (harvi:qcache:{lectureId}) with v3 version and questionCount",
+          "saveQuestionsToCache stores shuffled questions to SQLite (questions table) with version gate and questionCount",
       },
       {
         order: 8,
@@ -688,7 +688,7 @@ module.exports = [
       {
         order: 4,
         node: "offline_queue",
-        action: "getQueue() returns all PendingQuizResult[] from AsyncStorage",
+        action: "getQueueForUser() returns all pending rows from SQLite quiz_results",
       },
       {
         order: 5,
@@ -711,7 +711,7 @@ module.exports = [
         order: 8,
         node: "offline_queue",
         action:
-          "removeSynced() clears successfully synced items from AsyncStorage",
+          "removeSynced() marks rows synced in SQLite quiz_results",
       },
       {
         order: 9,
@@ -730,7 +730,7 @@ module.exports = [
     id: "stats-dashboard-loading",
     name: "Stats Dashboard Loading",
     description:
-      "Loads the stats dashboard with multi-tier caching: synchronous cache → AsyncStorage → Supabase RPC, merging pending offline results",
+      "Loads the stats dashboard with multi-tier caching: synchronous cache → SQLite user_stats → Supabase RPC, merging pending offline results",
     steps: [
       {
         order: 1,
@@ -748,7 +748,7 @@ module.exports = [
         order: 3,
         node: "stats_service",
         action:
-          "fetchStats checks NetInfo — if offline, serves from AsyncStorage cache",
+          "fetchStats checks NetInfo — if offline, serves from SQLite user_stats cache",
       },
       {
         order: 4,
@@ -802,7 +802,7 @@ module.exports = [
     id: "profile-editing",
     name: "Profile Editing",
     description:
-      "User edits their avatar and display name on the EditProfileScreen, persisted to AsyncStorage",
+      "User edits their avatar and display name on the EditProfileScreen, persisted to MMKV",
     steps: [
       {
         order: 1,
@@ -962,19 +962,19 @@ module.exports = [
         order: 5,
         node: "stats_service",
         action:
-          "clearStatsCache wipes AsyncStorage and cacheStore for this user",
+          "clearStatsCache wipes SQLite user_stats and cacheStore for this user",
       },
       {
         order: 6,
         node: "progress_service",
         action:
-          "clearProgressCache wipes memCache, warmed set, and AsyncStorage progress",
+          "clearProgressCache wipes memCache, warmed set, and SQLite progress",
       },
       {
         order: 7,
         node: "best_score_service",
         action:
-          "clearBestScoreCache wipes memCache, warmed set, and AsyncStorage scores",
+          "clearBestScoreCache wipes memCache, warmed set, and SQLite best_scores",
       },
       {
         order: 8,
@@ -1000,7 +1000,7 @@ module.exports = [
     id: "clear-downloaded-lectures",
     name: "Clear Downloaded Lectures",
     description:
-      "Removes all offline-cached questions from AsyncStorage, freeing device storage",
+      "Removes all offline-cached questions from SQLite, freeing device storage",
     steps: [
       {
         order: 1,

@@ -140,8 +140,8 @@ module.exports = [
     "type": "state",
     "layer": "application",
     "path": "artifacts/mobile/src/shared/store/themeStore.tsx",
-    "technology": "Zustand",
-    "description": "Manages theme preference: 'harvi' (warm beige) or 'pink'. ThemeProvider loads saved theme from AsyncStorage on mount. Sets Appearance.setColorScheme('light') for both themes"
+    "technology": "Zustand + MMKV",
+    "description": "Manages theme preference: 'harvi' (warm beige) or 'pink'. ThemeProvider reads the saved theme from MMKV synchronously (useMMKVString) and sets Appearance.setColorScheme('light') for both themes"
   },
   {
     "id": "react_query",
@@ -153,13 +153,22 @@ module.exports = [
     "description": "Global QueryClient with offlineFirst networkMode, 24h gcTime, retry: 1. Provides data caching layer for all features: hierarchy, progress, bestScores, stats, quiz, content_access, my_purchases. Supports query invalidation for cross-feature reactivity"
   },
   {
+    "id": "zustand",
+    "label": "Zustand",
+    "type": "state",
+    "layer": "application",
+    "path": "zustand",
+    "technology": "Zustand",
+    "description": "Lightweight global state library powering authStore, purchaseStore, cacheStore, syncStore, and themeStore for client-side app state"
+  },
+  {
     "id": "hierarchy_service",
     "label": "Hierarchy Service",
     "type": "service",
     "layer": "application",
     "path": "artifacts/mobile/src/features/learn/services/hierarchyService.ts",
-    "technology": "TypeScript",
-    "description": "Fetches Year→Module→Subject→Lecture tree from 4 Supabase tables (years, modules, subjects, lectures) with FK auto-detection. Offline-first: caches full hierarchy to AsyncStorage, serves cache when offline"
+    "technology": "TypeScript + SQLite",
+    "description": "Fetches Year→Module→Subject→Lecture tree from 4 Supabase tables (years, modules, subjects, lectures) with FK auto-detection. Offline-first: persists the hierarchy to SQLite (hierarchy_years/modules/subjects/lectures via HierarchyRepository), serves cache when offline"
   },
   {
     "id": "access_service",
@@ -167,8 +176,8 @@ module.exports = [
     "type": "service",
     "layer": "application",
     "path": "artifacts/mobile/src/features/learn/services/accessService.ts",
-    "technology": "TypeScript",
-    "description": "Fetches content access map via Supabase RPC get_content_access_map. Returns Map<itemId, ContentAccessEntry> with has_access, is_free, price_cents. Caches to AsyncStorage for offline"
+    "technology": "TypeScript + SQLite",
+    "description": "Fetches content access map via Supabase RPC get_content_access_map. Returns Map<itemId, ContentAccessEntry> with has_access, is_free, price_cents. Caches to SQLite access_map table (replace-in-transaction) for offline"
   },
   {
     "id": "progress_service",
@@ -176,8 +185,8 @@ module.exports = [
     "type": "service",
     "layer": "application",
     "path": "artifacts/mobile/src/features/learn/services/progressService.ts",
-    "technology": "TypeScript",
-    "description": "Tracks completed lectures (Set<lectureId>) via quiz_results table with FK auto-detection. Three-tier cache: module-level memCache → AsyncStorage → Supabase. Merges queued offline IDs. Provides optimisticallyMarkComplete for instant UI updates"
+    "technology": "TypeScript + SQLite",
+    "description": "Tracks completed lectures (Set<lectureId>) via quiz_results table with FK auto-detection. Three-tier cache: module-level memCache → SQLite progress table → Supabase. Merges queued offline IDs. Provides optimisticallyMarkComplete for instant UI updates"
   },
   {
     "id": "best_score_service",
@@ -185,8 +194,8 @@ module.exports = [
     "type": "service",
     "layer": "application",
     "path": "artifacts/mobile/src/features/learn/services/bestScoreService.ts",
-    "technology": "TypeScript",
-    "description": "Tracks best quiz score per lecture (Map<lectureId, score%>) from quiz_results. Three-tier cache: memCache → AsyncStorage → Supabase. Merges queued offline scores. Provides optimisticallyUpdateBestScore for instant star updates"
+    "technology": "TypeScript + SQLite",
+    "description": "Tracks best quiz score per lecture (Map<lectureId, score%>) from quiz_results. Three-tier cache: memCache → SQLite best_scores table → Supabase. Merges queued offline scores. Provides optimisticallyUpdateBestScore (atomic upsert) for instant star updates"
   },
   {
     "id": "question_service",
@@ -194,8 +203,8 @@ module.exports = [
     "type": "service",
     "layer": "application",
     "path": "artifacts/mobile/src/features/quiz/services/questionService.ts",
-    "technology": "TypeScript",
-    "description": "Fetches quiz questions from Supabase 'questions' table with FK column auto-detection (tries lecture_id, subject_id, topic_id, etc.). Caches discovered FK column to AsyncStorage. Shuffles questions and options while tracking correct answer index"
+    "technology": "TypeScript + MMKV",
+    "description": "Fetches quiz questions from Supabase 'questions' table with FK column auto-detection (tries lecture_id, subject_id, topic_id, etc.). Caches discovered FK column to MMKV. Shuffles questions and options while tracking correct answer index"
   },
   {
     "id": "stats_service",
@@ -203,8 +212,8 @@ module.exports = [
     "type": "service",
     "layer": "application",
     "path": "artifacts/mobile/src/features/stats/services/statsService.ts",
-    "technology": "TypeScript",
-    "description": "Aggregates quiz data into UserStats: total_quizzes, average_score, best_score, streak (with day-gap calculation), weekly_activity (Sat-Fri), subject_mastery, recent_results. Uses Supabase RPC get_user_stats_overview + user_stats table. Merges pending offline queue results. Caches to AsyncStorage + cacheStore"
+    "technology": "TypeScript + SQLite",
+    "description": "Aggregates quiz data into UserStats: total_quizzes, average_score, best_score, streak (with day-gap calculation), weekly_activity (Sat-Fri), subject_mastery, recent_results. Uses Supabase RPC get_user_stats_overview + user_stats table. Merges pending offline queue results. Caches to SQLite user_stats table + cacheStore"
   },
   {
     "id": "question_cache",
@@ -212,8 +221,8 @@ module.exports = [
     "type": "storage",
     "layer": "infrastructure",
     "path": "artifacts/mobile/src/features/quiz/services/questionCache.ts",
-    "technology": "TypeScript + AsyncStorage",
-    "description": "AsyncStorage-based per-lecture question cache (harvi:qcache:{lectureId}). Versioned (v3) to invalidate stale data. Used for offline quiz-taking after subject download. Tracks questionCount and downloadedAt for staleness detection"
+    "technology": "TypeScript + SQLite",
+    "description": "SQLite-based per-lecture question cache (questions table via QuestionRepository), version-gated by app_meta question_cache_version. Used for offline quiz-taking after subject download. Tracks questionCount and downloadedAt for staleness detection"
   },
   {
     "id": "offline_queue",
@@ -221,8 +230,8 @@ module.exports = [
     "type": "storage",
     "layer": "infrastructure",
     "path": "artifacts/mobile/src/shared/services/offlineQueue.ts",
-    "technology": "TypeScript + AsyncStorage",
-    "description": "Manages pending offline quiz result mutations (harvi:quiz_queue). Validated with Zod PendingQuizResultSchema. Generates UUIDs for deduplication. Provides enqueue, getQueue, removeSynced, clearQueueForUser, pendingCount"
+    "technology": "TypeScript + SQLite",
+    "description": "Manages pending offline quiz result mutations in the SQLite quiz_results table (status='pending' rows via QueueRepository — atomic INSERT/UPDATE, no read-modify-write lock). Validated with Zod PendingQuizResultSchema. Generates UUIDs for deduplication. Provides enqueue, getQueueForUser, removeSynced, clearQueueForUser, pendingCount"
   },
   {
     "id": "supabase_client",
@@ -241,6 +250,33 @@ module.exports = [
     "path": "expo-secure-store",
     "technology": "Expo",
     "description": "Securely stores chunked auth session tokens. Custom adapter splits values >1800 bytes into __chunk_0, __chunk_1, etc. with a __count key"
+  },
+  {
+    "id": "sqlite",
+    "label": "SQLite Database",
+    "type": "database",
+    "layer": "infrastructure",
+    "path": "expo-sqlite",
+    "technology": "expo-sqlite + Drizzle ORM",
+    "description": "On-device relational database (harvi.db) via expo-sqlite with Drizzle ORM. PRAGMA-tuned (WAL, synchronous=NORMAL, foreign_keys=ON). Tables: hierarchy_years/modules/subjects/lectures, questions, progress, best_scores, quiz_results, user_stats, access_map, purchases, app_meta"
+  },
+  {
+    "id": "mmkv",
+    "label": "MMKV Storage",
+    "type": "storage",
+    "layer": "infrastructure",
+    "path": "artifacts/mobile/src/shared/storage/mmkv.ts",
+    "technology": "react-native-mmkv",
+    "description": "Synchronous on-device key-value store (harvi-default). Holds non-sensitive preferences: theme, per-user profile (avatar/displayName), and the quiz FK-column resolution. Typed accessor in src/shared/storage/mmkv.ts"
+  },
+  {
+    "id": "database",
+    "label": "SQLite Data Access Layer",
+    "type": "storage",
+    "layer": "infrastructure",
+    "path": "artifacts/mobile/src/db",
+    "technology": "Drizzle ORM + expo-sqlite",
+    "description": "Opens and migrates the on-device SQLite database (getDb, DatabaseProvider). Provides schema, repositories (Hierarchy/Question/Queue/Meta), raw SQL access, and atomic cache transactions (cacheTransactions) used by every offline-first service"
   },
   {
     "id": "supabase_auth",
@@ -292,8 +328,10 @@ module.exports = [
   {
     "id": "shared_utils",
     "label": "Shared Utils",
-    "type": "unknown",
-    "layer": "unknown",
-    "description": "Auto-discovered node: shared_utils"
+    "type": "service",
+    "layer": "application",
+    "path": "artifacts/mobile/src/shared/utils/cacheUtils.ts",
+    "technology": "TypeScript",
+    "description": "netInfo (isDeviceOnline connectivity helper) and cacheUtils (clearAllUserCaches — deletes user-scoped SQLite rows + offline queue on sign-out)"
   }
 ];

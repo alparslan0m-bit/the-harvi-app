@@ -45,7 +45,7 @@ module.exports = [
     "target": "theme_store",
     "type": "calls",
     "label": "inits theme",
-    "description": "ThemeProvider loads saved theme from AsyncStorage on mount"
+    "description": "ThemeProvider loads saved theme from MMKV on mount"
   },
   {
     "id": "e7",
@@ -149,7 +149,7 @@ module.exports = [
     "target": "question_cache",
     "type": "reads",
     "label": "reads cache",
-    "description": "useQuizSession pre-loads from AsyncStorage cache; useQuizQuestions falls back to cache when offline"
+    "description": "useQuizSession pre-loads from SQLite question cache; useQuizQuestions falls back to cache when offline"
   },
   {
     "id": "e20",
@@ -373,7 +373,7 @@ module.exports = [
     "target": "netinfo",
     "type": "reads",
     "label": "checks connectivity",
-    "description": "NetInfo.fetch() to serve from AsyncStorage cache when offline"
+    "description": "NetInfo.fetch() to serve from SQLite cache when offline"
   },
   {
     "id": "e48",
@@ -413,7 +413,7 @@ module.exports = [
     "target": "netinfo",
     "type": "reads",
     "label": "checks connectivity",
-    "description": "NetInfo.fetch() to serve from memCache/AsyncStorage when offline"
+    "description": "NetInfo.fetch() to serve from memCache/SQLite when offline"
   },
   {
     "id": "e53",
@@ -437,7 +437,7 @@ module.exports = [
     "target": "netinfo",
     "type": "reads",
     "label": "checks connectivity",
-    "description": "NetInfo.fetch() to serve from memCache/AsyncStorage when offline"
+    "description": "NetInfo.fetch() to serve from memCache/SQLite when offline"
   },
   {
     "id": "e56",
@@ -477,7 +477,7 @@ module.exports = [
     "target": "supabase_client",
     "type": "fetches",
     "label": "fetches purchases",
-    "description": "useMyPurchases queries purchases table for active purchases with AsyncStorage cache"
+    "description": "useMyPurchases queries purchases table for active purchases with SQLite cache"
   },
   {
     "id": "e61",
@@ -862,6 +862,238 @@ module.exports = [
     "type": "calls",
     "label": "calls",
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
+  },
+  {
+    "id": "e109",
+    "source": "access_service",
+    "target": "database",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/accessService.ts, artifacts/mobile/src/features/learn/services/accessService.ts, artifacts/mobile/src/features/learn/services/accessService.ts"
+  },
+  {
+    "id": "e110",
+    "source": "access_service",
+    "target": "sqlite",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/accessService.ts"
+  },
+  {
+    "id": "e111",
+    "source": "app",
+    "target": "database",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/app/_layout.tsx"
+  },
+  {
+    "id": "e112",
+    "source": "auth_store",
+    "target": "mmkv",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
+  },
+  {
+    "id": "e113",
+    "source": "auth_store",
+    "target": "zustand",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/authStore.tsx"
+  },
+  {
+    "id": "e114",
+    "source": "best_score_service",
+    "target": "database",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/bestScoreService.ts, artifacts/mobile/src/features/learn/services/bestScoreService.ts, artifacts/mobile/src/features/learn/services/bestScoreService.ts"
+  },
+  {
+    "id": "e115",
+    "source": "best_score_service",
+    "target": "sqlite",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/bestScoreService.ts"
+  },
+  {
+    "id": "e116",
+    "source": "cache_store",
+    "target": "zustand",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/cacheStore.ts"
+  },
+  {
+    "id": "e117",
+    "source": "database",
+    "target": "sqlite",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/db/client.ts, artifacts/mobile/src/db/client.ts, artifacts/mobile/src/db/maintenance.ts, artifacts/mobile/src/db/migrate.ts, artifacts/mobile/src/db/rawClient.ts, artifacts/mobile/src/db/repositories/metaRepository.ts, artifacts/mobile/src/db/repositories/questionRepository.ts, artifacts/mobile/src/db/repositories/queueRepository.ts, artifacts/mobile/src/db/schema.ts, artifacts/mobile/src/db/schema.ts, artifacts/mobile/src/db/__tests__/helpers.ts"
+  },
+  {
+    "id": "e118",
+    "source": "hierarchy_service",
+    "target": "database",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/hierarchyService.ts, artifacts/mobile/src/features/learn/services/hierarchyService.ts"
+  },
+  {
+    "id": "e119",
+    "source": "learn_feature",
+    "target": "database",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useLectureBestScores.ts, artifacts/mobile/src/features/learn/hooks/useLectureBestScores.ts, artifacts/mobile/src/features/learn/hooks/useProgress.ts, artifacts/mobile/src/features/learn/hooks/useProgress.ts"
+  },
+  {
+    "id": "e120",
+    "source": "learn_feature",
+    "target": "sqlite",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/hooks/useLectureBestScores.ts, artifacts/mobile/src/features/learn/hooks/useLectureBestScores.ts, artifacts/mobile/src/features/learn/hooks/useProgress.ts, artifacts/mobile/src/features/learn/hooks/useProgress.ts"
+  },
+  {
+    "id": "e121",
+    "source": "mmkv",
+    "target": "theme_store",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/storage/mmkv.ts"
+  },
+  {
+    "id": "e122",
+    "source": "offline_queue",
+    "target": "database",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/services/offlineQueue.ts, artifacts/mobile/src/shared/services/offlineQueue.ts"
+  },
+  {
+    "id": "e123",
+    "source": "profile_feature",
+    "target": "mmkv",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/profile/hooks/useProfileData.ts, artifacts/mobile/src/features/profile/hooks/useProfileData.ts, artifacts/mobile/src/features/profile/hooks/useProfileEdit.ts, artifacts/mobile/src/features/profile/hooks/useProfileEdit.ts"
+  },
+  {
+    "id": "e124",
+    "source": "progress_service",
+    "target": "database",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/progressService.ts, artifacts/mobile/src/features/learn/services/progressService.ts, artifacts/mobile/src/features/learn/services/progressService.ts"
+  },
+  {
+    "id": "e125",
+    "source": "progress_service",
+    "target": "sqlite",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/learn/services/progressService.ts"
+  },
+  {
+    "id": "e126",
+    "source": "purchase_feature",
+    "target": "database",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/purchase/hooks/useMyPurchases.ts, artifacts/mobile/src/features/purchase/hooks/useMyPurchases.ts, artifacts/mobile/src/features/purchase/hooks/useMyPurchases.ts"
+  },
+  {
+    "id": "e127",
+    "source": "purchase_feature",
+    "target": "sqlite",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/purchase/hooks/useMyPurchases.ts"
+  },
+  {
+    "id": "e128",
+    "source": "purchase_store",
+    "target": "zustand",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/purchaseStore.tsx"
+  },
+  {
+    "id": "e129",
+    "source": "question_cache",
+    "target": "database",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/quiz/services/questionCache.ts, artifacts/mobile/src/features/quiz/services/questionCache.ts, artifacts/mobile/src/features/quiz/services/questionCache.ts"
+  },
+  {
+    "id": "e130",
+    "source": "question_service",
+    "target": "mmkv",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/quiz/services/questionService.ts"
+  },
+  {
+    "id": "e131",
+    "source": "quiz_feature",
+    "target": "database",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/quiz/hooks/useQuiz.ts"
+  },
+  {
+    "id": "e132",
+    "source": "shared_utils",
+    "target": "database",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/utils/cacheUtils.ts, artifacts/mobile/src/shared/utils/cacheUtils.ts"
+  },
+  {
+    "id": "e133",
+    "source": "stats_feature",
+    "target": "database",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/stats/hooks/useStats.ts"
+  },
+  {
+    "id": "e134",
+    "source": "stats_service",
+    "target": "database",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/stats/services/statsService.ts, artifacts/mobile/src/features/stats/services/statsService.ts"
+  },
+  {
+    "id": "e135",
+    "source": "stats_service",
+    "target": "sqlite",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/stats/services/statsService.ts"
+  },
+  {
+    "id": "e136",
+    "source": "sync_store",
+    "target": "zustand",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/syncStore.tsx"
+  },
+  {
+    "id": "e137",
+    "source": "theme_store",
+    "target": "mmkv",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/shared/store/themeStore.tsx, artifacts/mobile/src/shared/store/themeStore.tsx"
   },
   {
     "source": "react_query",

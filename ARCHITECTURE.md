@@ -24,21 +24,26 @@
 - **sync_store** (Zustand + React Query): Tracks isOnline, isSyncing, pendingCount. SyncProvider subscribes to NetInfo for connectivity. useSyncActions provides flush() which drains offline queue to Supabase with 10s timeouts and 30s backoff, then invalidates stats/progress queries
 - **purchase_store** (Zustand + RevenueCat): Manages IAP: purchaseModule (RevenueCat SDK → record-iap edge function), redeemCode (Supabase RPC redeem_access_code), restorePurchases, restoreModule. PurchaseProvider initializes RevenueCat and syncs user identity
 - **cache_store** (Zustand): In-memory Zustand store for: statsCache (Map<userId, UserStats>), warmedStats (Set<userId>), questionCacheBypassed flag. No API calls — purely a synchronous cache layer
-- **theme_store** (Zustand): Manages theme preference: 'harvi' (warm beige) or 'pink'. ThemeProvider loads saved theme from AsyncStorage on mount. Sets Appearance.setColorScheme('light') for both themes
+- **theme_store** (Zustand + MMKV): Manages theme preference: 'harvi' (warm beige) or 'pink'. ThemeProvider reads the saved theme from MMKV synchronously (useMMKVString) and sets Appearance.setColorScheme('light') for both themes
 - **react_query** (TanStack React Query): Global QueryClient with offlineFirst networkMode, 24h gcTime, retry: 1. Provides data caching layer for all features: hierarchy, progress, bestScores, stats, quiz, content_access, my_purchases. Supports query invalidation for cross-feature reactivity
-- **hierarchy_service** (TypeScript): Fetches Year→Module→Subject→Lecture tree from 4 Supabase tables (years, modules, subjects, lectures) with FK auto-detection. Offline-first: caches full hierarchy to AsyncStorage, serves cache when offline
-- **access_service** (TypeScript): Fetches content access map via Supabase RPC get_content_access_map. Returns Map<itemId, ContentAccessEntry> with has_access, is_free, price_cents. Caches to AsyncStorage for offline
-- **progress_service** (TypeScript): Tracks completed lectures (Set<lectureId>) via quiz_results table with FK auto-detection. Three-tier cache: module-level memCache → AsyncStorage → Supabase. Merges queued offline IDs. Provides optimisticallyMarkComplete for instant UI updates
-- **best_score_service** (TypeScript): Tracks best quiz score per lecture (Map<lectureId, score%>) from quiz_results. Three-tier cache: memCache → AsyncStorage → Supabase. Merges queued offline scores. Provides optimisticallyUpdateBestScore for instant star updates
-- **question_service** (TypeScript): Fetches quiz questions from Supabase 'questions' table with FK column auto-detection (tries lecture_id, subject_id, topic_id, etc.). Caches discovered FK column to AsyncStorage. Shuffles questions and options while tracking correct answer index
-- **stats_service** (TypeScript): Aggregates quiz data into UserStats: total_quizzes, average_score, best_score, streak (with day-gap calculation), weekly_activity (Sat-Fri), subject_mastery, recent_results. Uses Supabase RPC get_user_stats_overview + user_stats table. Merges pending offline queue results. Caches to AsyncStorage + cacheStore
+- **zustand** (Zustand): Lightweight global state library powering authStore, purchaseStore, cacheStore, syncStore, and themeStore for client-side app state
+- **hierarchy_service** (TypeScript + SQLite): Fetches Year→Module→Subject→Lecture tree from 4 Supabase tables (years, modules, subjects, lectures) with FK auto-detection. Offline-first: persists the hierarchy to SQLite (hierarchy_years/modules/subjects/lectures via HierarchyRepository), serves cache when offline
+- **access_service** (TypeScript + SQLite): Fetches content access map via Supabase RPC get_content_access_map. Returns Map<itemId, ContentAccessEntry> with has_access, is_free, price_cents. Caches to SQLite access_map table (replace-in-transaction) for offline
+- **progress_service** (TypeScript + SQLite): Tracks completed lectures (Set<lectureId>) via quiz_results table with FK auto-detection. Three-tier cache: module-level memCache → SQLite progress table → Supabase. Merges queued offline IDs. Provides optimisticallyMarkComplete for instant UI updates
+- **best_score_service** (TypeScript + SQLite): Tracks best quiz score per lecture (Map<lectureId, score%>) from quiz_results. Three-tier cache: memCache → SQLite best_scores table → Supabase. Merges queued offline scores. Provides optimisticallyUpdateBestScore (atomic upsert) for instant star updates
+- **question_service** (TypeScript + MMKV): Fetches quiz questions from Supabase 'questions' table with FK column auto-detection (tries lecture_id, subject_id, topic_id, etc.). Caches discovered FK column to MMKV. Shuffles questions and options while tracking correct answer index
+- **stats_service** (TypeScript + SQLite): Aggregates quiz data into UserStats: total_quizzes, average_score, best_score, streak (with day-gap calculation), weekly_activity (Sat-Fri), subject_mastery, recent_results. Uses Supabase RPC get_user_stats_overview + user_stats table. Merges pending offline queue results. Caches to SQLite user_stats table + cacheStore
+- **shared_utils** (TypeScript): netInfo (isDeviceOnline connectivity helper) and cacheUtils (clearAllUserCaches — deletes user-scoped SQLite rows + offline queue on sign-out)
 
 ### INFRASTRUCTURE LAYER
 
-- **question_cache** (TypeScript + AsyncStorage): AsyncStorage-based per-lecture question cache (harvi:qcache:{lectureId}). Versioned (v3) to invalidate stale data. Used for offline quiz-taking after subject download. Tracks questionCount and downloadedAt for staleness detection
-- **offline_queue** (TypeScript + AsyncStorage): Manages pending offline quiz result mutations (harvi:quiz_queue). Validated with Zod PendingQuizResultSchema. Generates UUIDs for deduplication. Provides enqueue, getQueue, removeSynced, clearQueueForUser, pendingCount
+- **question_cache** (TypeScript + SQLite): SQLite-based per-lecture question cache (questions table via QuestionRepository), version-gated by app_meta question_cache_version. Used for offline quiz-taking after subject download. Tracks questionCount and downloadedAt for staleness detection
+- **offline_queue** (TypeScript + SQLite): Manages pending offline quiz result mutations in the SQLite quiz_results table (status='pending' rows via QueueRepository — atomic INSERT/UPDATE, no read-modify-write lock). Validated with Zod PendingQuizResultSchema. Generates UUIDs for deduplication. Provides enqueue, getQueueForUser, removeSynced, clearQueueForUser, pendingCount
 - **supabase_client** (Supabase JS): createClient with custom SecureStoreAdapter that chunks auth tokens (1800-byte chunks) to work within iOS SecureStore 2KB limit. Falls back to localStorage on web. autoRefreshToken, persistSession enabled
 - **secure_store** (Expo): Securely stores chunked auth session tokens. Custom adapter splits values >1800 bytes into __chunk_0, __chunk_1, etc. with a __count key
+- **sqlite** (expo-sqlite + Drizzle ORM): On-device relational database (harvi.db) via expo-sqlite with Drizzle ORM. PRAGMA-tuned (WAL, synchronous=NORMAL, foreign_keys=ON). Tables: hierarchy_years/modules/subjects/lectures, questions, progress, best_scores, quiz_results, user_stats, access_map, purchases, app_meta
+- **mmkv** (react-native-mmkv): Synchronous on-device key-value store (harvi-default). Holds non-sensitive preferences: theme, per-user profile (avatar/displayName), and the quiz FK-column resolution. Typed accessor in src/shared/storage/mmkv.ts
+- **database** (Drizzle ORM + expo-sqlite): Opens and migrates the on-device SQLite database (getDb, DatabaseProvider). Provides schema, repositories (Hierarchy/Question/Queue/Meta), raw SQL access, and atomic cache transactions (cacheTransactions) used by every offline-first service
 
 ### EXTERNAL LAYER
 
@@ -49,10 +54,6 @@
 - **netinfo** (React Native): Network connectivity detection. Used by syncStore (subscribe to changes), and by every service layer (fetch/addEventListener) for offline-first short-circuit before any Supabase call
 - **google_oauth** (Unknown): Google OAuth provider accessed via expo-web-browser openAuthSessionAsync. Supabase initiates the OAuth flow, browser handles consent, app receives code/tokens via deep link redirect
 
-### OTHER LAYER
-
-- **shared_utils** (Unknown): Auto-discovered node: shared_utils
-
 ## 🔄 Flows (User Journeys & Sequences)
 
 ### App Startup
@@ -60,7 +61,7 @@ Initialization sequence when the app launches: loads fonts, restores auth sessio
 
 1. **app**: Loads Inter and Nunito fonts, prevents splash screen auto-hide
 2. **react_query**: QueryClientProvider initialized with offlineFirst config
-3. **theme_store**: ThemeProvider loads saved theme from AsyncStorage
+3. **theme_store**: ThemeProvider loads saved theme from MMKV
 4. **auth_store**: AuthProvider calls supabase.auth.getSession() and subscribes to onAuthStateChange
 5. **supabase_client**: Reads chunked session tokens from SecureStore
 6. **secure_store**: Returns reassembled session JWT
@@ -97,10 +98,10 @@ Loads the Year→Module→Subject→Lecture hierarchy, preferring cache when off
 1. **learn_feature**: User opens Learn tab, useHierarchy triggers fetchHierarchy
 2. **hierarchy_service**: Checks NetInfo connectivity
 3. **netinfo**: Returns connectivity state
-4. **hierarchy_service**: If offline: returns AsyncStorage cache. If online: fetches from Supabase
+4. **hierarchy_service**: If offline: returns SQLite cache. If online: fetches from Supabase
 5. **supabase_client**: Parallel SELECT * from years, modules, subjects, lectures
 6. **supabase_db**: Returns all hierarchy data
-7. **hierarchy_service**: Builds nested tree with FK auto-detection, caches to AsyncStorage
+7. **hierarchy_service**: Builds nested tree with FK auto-detection, caches to SQLite
 8. **progress_service**: useProgress returns Set<lectureId> of completed lectures
 9. **best_score_service**: useLectureBestScores returns Map<lectureId, score%>
 10. **access_service**: useModuleAccess returns access map with paywall info
@@ -111,7 +112,7 @@ User takes a quiz while online — saves result directly to Supabase, updates al
 
 1. **learn_feature**: User taps accessible lecture in SubjectScreen
 2. **quiz_feature**: QuizScreen mounts, useQuizSession initializes
-3. **question_cache**: Pre-loads questions from AsyncStorage cache (fast path)
+3. **question_cache**: Pre-loads questions from SQLite cache (fast path)
 4. **question_service**: useQuizQuestions fetches fresh questions from Supabase in background
 5. **supabase_client**: SELECT * FROM questions WHERE lecture_id = ?
 6. **question_cache**: Auto-updates cache with fresh questions (fire-and-forget)
@@ -119,7 +120,7 @@ User takes a quiz while online — saves result directly to Supabase, updates al
 8. **quiz_feature**: Last question answered — calculates score, generates UUID session ID
 9. **supabase_client**: INSERT INTO quiz_results with 8s timeout
 10. **supabase_db**: Saves quiz result
-11. **best_score_service**: optimisticallyUpdateBestScore updates memCache + AsyncStorage
+11. **best_score_service**: optimisticallyUpdateBestScore updates memCache + SQLite
 12. **react_query**: Invalidates progress, stats, lectureBestScores queries
 13. **quiz_feature**: Shows QuizResultsView with score ring animation
 
@@ -128,11 +129,11 @@ User takes a quiz while offline — stores result locally for later sync
 
 1. **learn_feature**: User taps lecture (must be pre-downloaded for offline)
 2. **quiz_feature**: QuizScreen mounts, loads from question cache
-3. **question_cache**: Returns cached questions from AsyncStorage
+3. **question_cache**: Returns cached questions from SQLite
 4. **quiz_feature**: User completes quiz offline
 5. **offline_queue**: enqueueQuizResult writes pending row to the SQLite quiz_results queue
 6. **offline_queue**: Persists queue to disk
-7. **progress_service**: optimisticallyMarkComplete adds lectureId to memCache + AsyncStorage
+7. **progress_service**: optimisticallyMarkComplete adds lectureId to memCache + SQLite
 8. **best_score_service**: optimisticallyUpdateBestScore updates score if higher
 
 ### User Sign-Up
@@ -161,7 +162,7 @@ Signs the user out, clears all local caches and in-memory state, logs out of Rev
 9. **profile_feature**: router.replace('/login') redirects to auth screen
 
 ### Offline Subject Download
-Downloads all questions for every lecture in a subject to AsyncStorage so the user can take quizzes offline
+Downloads all questions for every lecture in a subject to SQLite so the user can take quizzes offline
 
 1. **learn_feature**: User taps download button on SubjectScreen, useSubjectCache.downloadSubject() fires
 2. **netinfo**: NetInfo.fetch() verifies device is online; blocks with Alert if offline
@@ -169,7 +170,7 @@ Downloads all questions for every lecture in a subject to AsyncStorage so the us
 4. **question_service**: fetchQuestions(lectureId) called for each lecture sequentially
 5. **supabase_client**: SELECT * FROM questions WHERE lecture_id = ? with FK auto-detection and 6s timeout
 6. **supabase_db**: Returns question rows for each lecture
-7. **question_cache**: saveQuestionsToCache stores shuffled questions to AsyncStorage (harvi:qcache:{lectureId}) with v3 version and questionCount
+7. **question_cache**: saveQuestionsToCache stores shuffled questions to SQLite (questions table) with version gate and questionCount
 8. **learn_feature**: Progress counter increments { done: i+1, total }, UI shows download progress bar
 9. **learn_feature**: All lectures downloaded — loadState() re-evaluates cache status, sets status='downloaded'
 
@@ -214,20 +215,20 @@ When the device comes back online, SyncProvider auto-flushes the offline queue t
 1. **netinfo**: NetInfo.addEventListener fires with isConnected=true after network recovery
 2. **sync_store**: SyncProvider sets isOnline=true, calls onlineManager.setOnline(true)
 3. **sync_store**: useEffect detects isOnline && user — triggers flush()
-4. **offline_queue**: getQueue() returns all PendingQuizResult[] from AsyncStorage
+4. **offline_queue**: getQueueForUser() returns all pending rows from SQLite quiz_results
 5. **sync_store**: Filters queue for current user, iterates items with 10s timeout per insert
 6. **supabase_client**: INSERT INTO quiz_results for each queued item (handles 23xxx duplicate codes)
 7. **supabase_db**: Persists quiz results — duplicates silently accepted
-8. **offline_queue**: removeSynced() clears successfully synced items from AsyncStorage
+8. **offline_queue**: removeSynced() marks rows synced in SQLite quiz_results
 9. **react_query**: Invalidates stats and progress queries so UI reflects fresh server data
 10. **sync_store**: Sets isSyncing=false, updates pendingCount to remaining items
 
 ### Stats Dashboard Loading
-Loads the stats dashboard with multi-tier caching: synchronous cache → AsyncStorage → Supabase RPC, merging pending offline results
+Loads the stats dashboard with multi-tier caching: synchronous cache → SQLite user_stats → Supabase RPC, merging pending offline results
 
 1. **stats_feature**: User navigates to Stats tab, useStats hook triggers fetchStats
 2. **cache_store**: useStats reads statsCache for synchronous initialData (no loading spinner on revisit)
-3. **stats_service**: fetchStats checks NetInfo — if offline, serves from AsyncStorage cache
+3. **stats_service**: fetchStats checks NetInfo — if offline, serves from SQLite user_stats cache
 4. **netinfo**: Returns connectivity state
 5. **supabase_client**: Queries user_stats table + RPC get_user_stats_overview + lectures table for name map
 6. **supabase_db**: Returns aggregated stats data
@@ -238,7 +239,7 @@ Loads the stats dashboard with multi-tier caching: synchronous cache → AsyncSt
 11. **stats_feature**: Renders StreakCard, StatsMetricsGrid, WeeklyChart, MasterySection, RecentResultsSection
 
 ### Profile Editing
-User edits their avatar and display name on the EditProfileScreen, persisted to AsyncStorage
+User edits their avatar and display name on the EditProfileScreen, persisted to MMKV
 
 1. **profile_feature**: User taps edit on ProfileScreen, navigates to EditProfileScreen
 2. **profile_feature**: useProfileEdit loads current avatar and displayName from per-user MMKV keys
@@ -275,15 +276,15 @@ Destructive action that deletes all quiz results from server and all local cache
 2. **sync_store**: Checks isOnline — blocks with Alert if offline (requires network)
 3. **supabase_client**: DELETE FROM quiz_results WHERE user_id = ? AND DELETE FROM user_stats WHERE user_id = ? (10s timeout)
 4. **supabase_db**: Removes all quiz results and computed stats for this user
-5. **stats_service**: clearStatsCache wipes AsyncStorage and cacheStore for this user
-6. **progress_service**: clearProgressCache wipes memCache, warmed set, and AsyncStorage progress
-7. **best_score_service**: clearBestScoreCache wipes memCache, warmed set, and AsyncStorage scores
+5. **stats_service**: clearStatsCache wipes SQLite user_stats and cacheStore for this user
+6. **progress_service**: clearProgressCache wipes memCache, warmed set, and SQLite progress
+7. **best_score_service**: clearBestScoreCache wipes memCache, warmed set, and SQLite best_scores
 8. **offline_queue**: clearQueueForUser removes any pending offline results for this user
 9. **react_query**: setQueriesData zeroes stats/progress/bestScores immediately, then invalidateQueries refetches clean state
 10. **profile_feature**: Warning haptic fires, shows 'History Cleared' confirmation Alert
 
 ### Clear Downloaded Lectures
-Removes all offline-cached questions from AsyncStorage, freeing device storage
+Removes all offline-cached questions from SQLite, freeing device storage
 
 1. **profile_feature**: User taps 'Clear Downloaded Lectures' in AccountActions, confirmation Alert shown
 2. **question_cache**: clearAllLectureCache clears the SQLite questions table for every lecture

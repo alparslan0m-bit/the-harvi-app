@@ -79,12 +79,17 @@ const nodeMapping = {
     "artifacts/mobile/src/shared/utils/netInfo.ts",
     "artifacts/mobile/src/shared/utils/cacheUtils.ts",
   ],
+  database: ["artifacts/mobile/src/db"],
+  mmkv: ["artifacts/mobile/src/shared/storage/mmkv.ts"],
 };
 
 // External packages → node IDs (discovered from import statements)
 const externalPackageMap = {
   "expo-secure-store": "secure_store",
-  "@react-native-async-storage/async-storage": "async_storage",
+  "expo-sqlite": "sqlite",
+  "drizzle-orm": "sqlite",
+  "react-native-mmkv": "mmkv",
+  "zustand": "zustand",
   "react-native-purchases": "revenuecat",
   "@react-native-community/netinfo": "netinfo",
   "expo-web-browser": "google_oauth",
