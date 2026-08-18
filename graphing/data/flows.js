@@ -433,7 +433,7 @@ module.exports = [
         order: 2,
         node: "auth_store",
         action:
-          "signOut() captures the userId and calls clearAllUserCaches(uid) — deletes every user-scoped SQLite row plus the offline queue in one transaction",
+          "signOut() captures the userId and calls clearAllUserCaches(uid) — deletes every user-scoped SQLite row (progress, best_scores, user_stats, access_map, purchases, quiz_results) in one transaction, then clears the pending offline queue separately",
       },
       {
         order: 3,
@@ -592,7 +592,7 @@ module.exports = [
         order: 9,
         node: "purchase_feature",
         action:
-          "Shows SuccessState with confetti, user can navigate back to unlocked content",
+          "Shows SuccessState (animated success confirmation), user can navigate back to unlocked content",
       },
     ],
   },
@@ -984,7 +984,7 @@ module.exports = [
         order: 5,
         node: "shared_utils",
         action:
-          "clearAllUserCaches(uid) purges every user-scoped SQLite row (progress, best_scores, user_stats, access_map, purchases) plus the offline queue in one transaction",
+          "clearAllUserCaches(uid) purges every user-scoped SQLite row (progress, best_scores, user_stats, access_map, purchases, quiz_results) in one transaction, then clears the pending offline queue separately",
       },
       {
         order: 6,
@@ -1066,7 +1066,7 @@ module.exports = [
         order: 5,
         node: "stats_feature",
         action:
-          "Renders MasterySummaryPills and per-subject MasteryLectureCards with progress bars and mastery badges",
+          "Renders MasterySummaryPills and per-subject MasteryLectureCard rows with progress bars and mastery badges",
       },
     ],
   },

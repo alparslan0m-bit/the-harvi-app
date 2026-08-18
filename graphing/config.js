@@ -168,6 +168,11 @@ const curatedContentBans = [
     reason:
       "MasteryScreen is pushed without params — it reads the user from useAuth",
   },
+  {
+    phrase: "confetti",
+    reason:
+      "no confetti exists anywhere in the codebase — SuccessState renders an animated success orb + Done button",
+  },
 ];
 
 // Layer order for generated docs/charts

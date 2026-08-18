@@ -15,7 +15,7 @@ module.exports = [
     "layer": "presentation",
     "path": "artifacts/mobile/app/(main)/(tabs)/_layout.tsx",
     "technology": "Expo Router Tabs",
-    "description": "Custom floating pill-shaped tab bar with 3 tabs: Learn, Stats, Profile. Uses CustomTabBar component"
+    "description": "Custom floating pill-shaped tab bar with 3 tabs: Learn, Stats, Profile. Uses an inline CustomTabBar component defined in the tabs layout file"
   },
   {
     "id": "auth_feature",
@@ -231,7 +231,7 @@ module.exports = [
     "layer": "infrastructure",
     "path": "artifacts/mobile/src/shared/services/offlineQueue.ts",
     "technology": "TypeScript + SQLite",
-    "description": "Manages pending offline quiz result mutations in the SQLite quiz_results table (status='pending' rows via QueueRepository — atomic INSERT/UPDATE, no read-modify-write lock). Validated with Zod PendingQuizResultSchema. Generates UUIDs for deduplication. Provides enqueue, getQueueForUser, getFlushableForUser (respects MAX_SYNC_ATTEMPTS dead-letter cap), recordFailure, removeSynced, clearQueueForUser, pendingCount"
+    "description": "Manages pending offline quiz result mutations in the SQLite quiz_results table (status='pending' rows via QueueRepository — atomic INSERT/UPDATE, no read-modify-write lock). Validated with Zod PendingQuizResultSchema. Generates UUIDs for deduplication. Provides enqueueQuizResult, getQueueForUser, getFlushableForUser (respects MAX_SYNC_ATTEMPTS dead-letter cap), recordFailure, removeSynced, clearQueueForUser, pendingCount"
   },
   {
     "id": "supabase_client",

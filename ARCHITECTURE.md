@@ -7,7 +7,7 @@
 ### PRESENTATION LAYER
 
 - **app** (Expo Router): Root layout: mounts provider tree (SafeArea → ErrorBoundary → QueryClient → GestureHandler → Keyboard → Database → Theme → Auth → Purchase → Sync), ReducedMotionConfig, Stack navigator (tabs, auth/login, auth callback, quiz, purchase modal, profile edit, +not-found), and the global offline/sync banner (GlobalOfflineBanner)
-- **tab_navigator** (Expo Router Tabs): Custom floating pill-shaped tab bar with 3 tabs: Learn, Stats, Profile. Uses CustomTabBar component
+- **tab_navigator** (Expo Router Tabs): Custom floating pill-shaped tab bar with 3 tabs: Learn, Stats, Profile. Uses an inline CustomTabBar component defined in the tabs layout file
 - **auth_feature** (React Native): Login screen (email/password + Google OAuth) and auth callback handler. Uses useAuthForm hook
 - **learn_feature** (React Native): Content browsing: LearnScreen → YearScreen → ModuleScreen → SubjectScreen. Includes offline download (useSubjectCache with none/partial/downloaded/stale/downloading states + staleness detection via lecture question_count), progress badges, best-score stars, lock states that route to the purchase modal
 - **quiz_feature** (React Native + Reanimated): Active quiz session: question display with images, animated progress bar, option selection with haptics, results view with ScoreRing, and full review screen
@@ -38,7 +38,7 @@
 ### INFRASTRUCTURE LAYER
 
 - **question_cache** (TypeScript + SQLite): SQLite per-lecture question cache (questions table via QuestionRepository), version-gated by app_meta question_cache_version. Serves cached questions only to users with a local entitlement (hasLocalAccessToLecture). Used for offline quiz-taking after subject download. Tracks questionCount and downloadedAt for staleness detection
-- **offline_queue** (TypeScript + SQLite): Manages pending offline quiz result mutations in the SQLite quiz_results table (status='pending' rows via QueueRepository — atomic INSERT/UPDATE, no read-modify-write lock). Validated with Zod PendingQuizResultSchema. Generates UUIDs for deduplication. Provides enqueue, getQueueForUser, getFlushableForUser (respects MAX_SYNC_ATTEMPTS dead-letter cap), recordFailure, removeSynced, clearQueueForUser, pendingCount
+- **offline_queue** (TypeScript + SQLite): Manages pending offline quiz result mutations in the SQLite quiz_results table (status='pending' rows via QueueRepository — atomic INSERT/UPDATE, no read-modify-write lock). Validated with Zod PendingQuizResultSchema. Generates UUIDs for deduplication. Provides enqueueQuizResult, getQueueForUser, getFlushableForUser (respects MAX_SYNC_ATTEMPTS dead-letter cap), recordFailure, removeSynced, clearQueueForUser, pendingCount
 - **supabase_client** (Supabase JS): createClient with custom SecureStoreAdapter that chunks auth tokens (1800-byte chunks) to work within iOS SecureStore 2KB limit. Falls back to localStorage on web. autoRefreshToken + persistSession enabled, detectSessionInUrl disabled
 - **secure_store** (Expo): Securely stores chunked auth session tokens. Custom adapter splits values >1800 bytes into __chunk_0, __chunk_1, etc. with a __count key
 - **sqlite** (expo-sqlite + Drizzle ORM): On-device relational database (harvi.db) via expo-sqlite with Drizzle ORM. PRAGMA-tuned (WAL, synchronous=NORMAL, foreign_keys=ON, cache_size=-8000, busy_timeout=5000). Migrated with Drizzle useMigrations; cold-start maintenance (runColdStartMaintenance) purges synced quiz_results older than 30 days, debounces PRAGMA optimize hourly, and throttles VACUUM to monthly. Tables: hierarchy_years, hierarchy_modules, hierarchy_subjects, hierarchy_lectures, questions, progress, best_scores, bookmarks, quiz_results, user_stats, access_map, purchases, app_meta
@@ -155,7 +155,7 @@ Creates a new account with email and password via Supabase Auth, stores session 
 Signs the user out, clears all local caches and in-memory state, logs out of RevenueCat, and redirects to login
 
 1. **profile_feature**: User taps 'Sign Out' in AccountActions — warns first if pendingCount > 0 (un-synced offline results would be permanently deleted)
-2. **auth_store**: signOut() captures the userId and calls clearAllUserCaches(uid) — deletes every user-scoped SQLite row plus the offline queue in one transaction
+2. **auth_store**: signOut() captures the userId and calls clearAllUserCaches(uid) — deletes every user-scoped SQLite row (progress, best_scores, user_stats, access_map, purchases, quiz_results) in one transaction, then clears the pending offline queue separately
 3. **mmkv**: clearUserProfile(uid) removes the user's avatar and displayName
 4. **cache_store**: clearAll() resets questionCacheBypassed
 5. **supabase_client**: supabase.auth.signOut() revokes the session server-side
@@ -188,7 +188,7 @@ User purchases a module via RevenueCat native IAP, records the transaction with 
 6. **supabase_functions**: supabase.functions.invoke('record-iap') with moduleId, transactionId, store (15s timeout)
 7. **supabase_db**: record-iap authenticates the caller, enforces idempotency + receipt-replay protection, optionally verifies the transaction with RevenueCat server-side, and inserts the purchase record (access granted via get_content_access_map)
 8. **react_query**: invalidateAccess invalidates content_access, my_purchases, hierarchy, quiz queries
-9. **purchase_feature**: Shows SuccessState with confetti, user can navigate back to unlocked content
+9. **purchase_feature**: Shows SuccessState (animated success confirmation), user can navigate back to unlocked content
 
 ### Promo Code Redemption
 User redeems an access code to unlock a module without payment, via Supabase RPC
@@ -278,7 +278,7 @@ Destructive action that deletes all quiz results from server and all local cache
 2. **sync_store**: Checks isOnline — blocks with Alert if offline (requires network)
 3. **supabase_client**: DELETE FROM quiz_results AND user_stats WHERE user_id = ? (10s timeout; abort + no local changes if the delete fails)
 4. **supabase_db**: Removes all quiz results and computed stats for this user
-5. **shared_utils**: clearAllUserCaches(uid) purges every user-scoped SQLite row (progress, best_scores, user_stats, access_map, purchases) plus the offline queue in one transaction
+5. **shared_utils**: clearAllUserCaches(uid) purges every user-scoped SQLite row (progress, best_scores, user_stats, access_map, purchases, quiz_results) in one transaction, then clears the pending offline queue separately
 6. **react_query**: setQueriesData zeroes stats/progress/bestScores immediately, then invalidateQueries refetches clean state
 7. **profile_feature**: Warning haptic fires, shows 'History Cleared' confirmation Alert
 
@@ -297,7 +297,7 @@ User navigates from the Stats dashboard to the detailed MasteryScreen to view pe
 2. **stats_feature**: router.push('/stats/mastery') — no params; MasteryScreen reads the user from useAuth
 3. **stats_service**: useStats provides subject_mastery data with per-subject mastery and attempts
 4. **stats_feature**: useMasteryFilter applies search text + filter chips (All, Strong, Improving, Needs Work) and computes summary counts
-5. **stats_feature**: Renders MasterySummaryPills and per-subject MasteryLectureCards with progress bars and mastery badges
+5. **stats_feature**: Renders MasterySummaryPills and per-subject MasteryLectureCard rows with progress bars and mastery badges
 
 ### Quiz Result Review
 After completing a quiz, user reviews all questions with correct/incorrect answers and explanations
