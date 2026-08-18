@@ -117,6 +117,59 @@ const supabaseClientImplicitRemotes = {
   supabase_client: ["supabase_auth", "supabase_db"],
 };
 
+// Curated content must NEVER contain these terms. Any hit in a node
+// description, edge description, flow description, or flow step action fails
+// the governance build, so the hand-authored prose in data/nodes.js,
+// data/edges.js, and data/flows.js cannot silently drift from the code again.
+// Each entry documents why the term is stale (see architecture_md_audit.md).
+const curatedContentBans = [
+  {
+    phrase: "statsCache",
+    reason:
+      "cacheStore no longer holds statsCache — SQLite user_stats + React Query initialData replaced it",
+  },
+  {
+    phrase: "warmedStats",
+    reason: "cacheStore no longer holds warmedStats",
+  },
+  {
+    phrase: "memCache",
+    reason:
+      "no module-level memCache exists — Drizzle useLiveQuery over SQLite + a React Query sync hook replaced it",
+  },
+  {
+    phrase: "clearStatsCache",
+    reason: "deleted function — clearing is now clearAllUserCaches(uid)",
+  },
+  {
+    phrase: "clearProgressCache",
+    reason: "deleted function — clearing is now clearAllUserCaches(uid)",
+  },
+  {
+    phrase: "clearBestScoreCache",
+    reason: "deleted function — clearing is now clearAllUserCaches(uid)",
+  },
+  {
+    phrase: "23xxx",
+    reason: "wrong code — the duplicate-row error is Postgres 23505",
+  },
+  {
+    phrase: "not currently rendered",
+    reason:
+      "offline_banner IS rendered globally via GlobalOfflineBanner in the root layout",
+  },
+  {
+    phrase: "Mastered, In Progress, Not Started",
+    reason:
+      "wrong mastery filter labels — actual chips are All, Strong, Improving, Needs Work",
+  },
+  {
+    phrase: "with user.id parameter",
+    reason:
+      "MasteryScreen is pushed without params — it reads the user from useAuth",
+  },
+];
+
 // Layer order for generated docs/charts
 const orderedLayers = ["presentation", "application", "infrastructure", "external"];
 
@@ -136,6 +189,7 @@ module.exports = {
   externalPackageMap,
   remoteNodes,
   supabaseClientImplicitRemotes,
+  curatedContentBans,
   orderedLayers,
   layerClasses,
 };

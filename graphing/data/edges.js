@@ -309,7 +309,7 @@ module.exports = [
     "target": "stats_service",
     "type": "calls",
     "label": "clears stats cache",
-    "description": "AccountActions calls clearStatsCache and uses ZERO_STATS constant"
+    "description": "AccountActions calls clearAllUserCaches(uid) and reads ZERO_STATS from statsService for the empty state"
   },
   {
     "id": "e40",
@@ -333,7 +333,7 @@ module.exports = [
     "target": "supabase_client",
     "type": "calls",
     "label": "syncs data",
-    "description": "flush() inserts each queued item to quiz_results, handles duplicate errors (23xxx codes)"
+    "description": "flush() inserts each queued item to quiz_results, handles Postgres 23505 duplicates, and dead-letters rows past MAX_SYNC_ATTEMPTS"
   },
   {
     "id": "e43",
@@ -413,7 +413,7 @@ module.exports = [
     "target": "netinfo",
     "type": "reads",
     "label": "checks connectivity",
-    "description": "NetInfo.fetch() to serve from memCache/SQLite when offline"
+    "description": "NetInfo.fetch() to serve from the SQLite cache when offline"
   },
   {
     "id": "e53",
@@ -437,7 +437,7 @@ module.exports = [
     "target": "netinfo",
     "type": "reads",
     "label": "checks connectivity",
-    "description": "NetInfo.fetch() to serve from memCache/SQLite when offline"
+    "description": "NetInfo.fetch() to serve from the SQLite cache when offline"
   },
   {
     "id": "e56",
@@ -1094,6 +1094,14 @@ module.exports = [
     "type": "calls",
     "label": "calls",
     "description": "Auto-discovered: artifacts/mobile/src/shared/store/themeStore.tsx, artifacts/mobile/src/shared/store/themeStore.tsx"
+  },
+  {
+    "id": "e138",
+    "source": "stats_service",
+    "target": "stats_feature",
+    "type": "calls",
+    "label": "calls",
+    "description": "Auto-discovered: artifacts/mobile/src/features/stats/services/statsService.ts, artifacts/mobile/src/features/stats/services/statsService.ts"
   },
   {
     "source": "react_query",

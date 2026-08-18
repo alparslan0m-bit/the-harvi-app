@@ -9,14 +9,19 @@
  *  Pipeline:
  *    1. SCAN    — walk the codebase, discover every file → node mapping
  *    2. EDGES   — parse every import, resolve to node→node edges with evidence
- *    3. WRITE   — write verified data/nodes.js + data/edges.js
- *    4. BUILD   — produce architecture.json + architecture.html
- *    5. AUDIT   — compare old vs new, print governance report, exit 0 or 1
+ *    3. FACTS   — derive structural facts (SQLite tables, Supabase tables/RPCs,
+ *                 edge-function list) and overlay them onto node descriptions
+ *    4. LINT    — fail on stale terms in curated prose (data/*.js bans)
+ *    5. WRITE   — write verified data/nodes.js + data/edges.js
+ *    6. BUILD   — produce architecture.json + architecture.html
+ *    7. AUDIT   — compare old vs new, print governance report, exit 0 or 1
  *
  *  Rules:
  *    • No node without files on disk (except external/remote nodes)
  *    • No edge without an import statement (except external inference + flow edges)
  *    • Every path in nodeMapping validated against disk
+ *    • Derived descriptions track schema.ts / supabase migrations / functions
+ *    • No banned stale term may appear in curated descriptions or flows
  *    • Idempotent: run twice → second run exits 0
  *
  *  Structure:
@@ -491,6 +496,150 @@ function detectRemoteUsage(content, remoteNodes) {
 }
 
 // ============================================================================
+//  DERIVED FACTS — mechanically extract structural data from the codebase so
+//  the descriptions that carry it (sqlite tables, Supabase tables/RPCs, edge
+//  function list) can never drift. The base prose lives here, deterministic
+//  per run, so regeneration is idempotent and a schema change fails the build.
+// ============================================================================
+
+function extractSqliteTables(schemaPath) {
+  let content;
+  try {
+    content = fs.readFileSync(schemaPath, "utf8");
+  } catch (_) {
+    return [];
+  }
+  const tables = [];
+  const re = /sqliteTable\(\s*["']([^"']+)["']/g;
+  let m;
+  while ((m = re.exec(content)) !== null) {
+    if (!tables.includes(m[1])) tables.push(m[1]);
+  }
+  return tables;
+}
+
+function extractSupabaseDbFacts(migrationsDir) {
+  const tables = [];
+  const rpcs = [];
+  if (!fs.existsSync(migrationsDir)) return { tables, rpcs };
+  const files = fs
+    .readdirSync(migrationsDir)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+  const tableRe =
+    /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:public\.)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/gi;
+  const fnRe =
+    /CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:public\.)?([a-zA-Z_][a-zA-Z0-9_]*)/gi;
+  for (const f of files) {
+    let content;
+    try {
+      content = fs.readFileSync(path.join(migrationsDir, f), "utf8");
+    } catch (_) {
+      continue;
+    }
+    let m;
+    while ((m = tableRe.exec(content)) !== null) {
+      if (!tables.includes(m[1])) tables.push(m[1]);
+    }
+    while ((m = fnRe.exec(content)) !== null) {
+      if (!rpcs.includes(m[1])) rpcs.push(m[1]);
+    }
+  }
+  return { tables, rpcs };
+}
+
+function extractSupabaseFunctions(dir) {
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((e) => e.isDirectory() && !e.name.startsWith("."))
+    .map((e) => e.name)
+    .sort();
+}
+
+function deriveNodeFacts({ projectRoot, mobileRoot, supabaseFunctionsDir }) {
+  return {
+    sqliteTables: extractSqliteTables(
+      path.join(mobileRoot, "src", "db", "schema.ts"),
+    ),
+    supabaseDb: extractSupabaseDbFacts(
+      path.join(projectRoot, "supabase", "migrations"),
+    ),
+    supabaseFunctions: extractSupabaseFunctions(supabaseFunctionsDir),
+  };
+}
+
+// Deterministic, fully derived descriptions for the nodes whose prose carries
+// structural facts. If the source data is missing, the stored description is
+// kept as a fallback rather than emitting an empty list.
+function applyDerivedDescriptions(nodes, facts) {
+  const { sqliteTables, supabaseDb, supabaseFunctions } = facts;
+
+  return nodes.map((n) => {
+    if (n.id === "sqlite" && sqliteTables.length > 0) {
+      return {
+        ...n,
+        description: `On-device relational database (harvi.db) via expo-sqlite with Drizzle ORM. PRAGMA-tuned (WAL, synchronous=NORMAL, foreign_keys=ON, cache_size=-8000, busy_timeout=5000). Migrated with Drizzle useMigrations; cold-start maintenance (runColdStartMaintenance) purges synced quiz_results older than 30 days, debounces PRAGMA optimize hourly, and throttles VACUUM to monthly. Tables: ${sqliteTables.join(", ")}`,
+      };
+    }
+    if (n.id === "supabase_db") {
+      const parts = [];
+      if (supabaseDb.tables.length > 0)
+        parts.push(`Tables: ${supabaseDb.tables.join(", ")}`);
+      if (supabaseDb.rpcs.length > 0)
+        parts.push(`RPCs/functions: ${supabaseDb.rpcs.join(", ")}`);
+      if (parts.length === 0) return n;
+      return { ...n, description: `PostgreSQL backend. ${parts.join(". ")}` };
+    }
+    if (n.id === "supabase_functions" && supabaseFunctions.length > 0) {
+      return {
+        ...n,
+        description: `Serverless Deno backend. Functions: ${supabaseFunctions.join(", ")}. record-iap authenticates the caller, validates module/transaction/store input, enforces idempotency + receipt-replay protection, optionally verifies the transaction server-side with RevenueCat, blocks double-buys, and records entitlements in the purchases table`,
+      };
+    }
+    return n;
+  });
+}
+
+// ============================================================================
+//  CURATED CONTENT LINT — fail the build if hand-authored prose references
+//  terms the code no longer has. This is the guard that makes stale prose
+//  impossible to commit silently.
+// ============================================================================
+
+function scanCuratedContent({ nodes, edges, flows, bans }) {
+  const violations = [];
+  const check = (kind, target, text) => {
+    if (!text) return;
+    for (const ban of bans || []) {
+      if (text.includes(ban.phrase)) {
+        violations.push({
+          kind,
+          target,
+          phrase: ban.phrase,
+          reason: ban.reason,
+        });
+      }
+    }
+  };
+
+  nodes.forEach((n) => check("node.description", n.id, n.description));
+  edges.forEach((e) => {
+    check("edge.description", `${e.source}->${e.target}`, e.description);
+    check("edge.label", `${e.source}->${e.target}`, e.label);
+  });
+  flows.forEach((f) => {
+    check("flow.name", f.id, f.name);
+    check("flow.description", f.id, f.description);
+    (f.steps || []).forEach((s) =>
+      check("flow.step", `${f.id}:${s.order}`, s.action),
+    );
+  });
+
+  return violations;
+}
+
+// ============================================================================
 //  BUILD VERIFIED NODE LIST
 // ============================================================================
 
@@ -646,6 +795,7 @@ function runGovernance({
     externalPackageMap,
     remoteNodes,
     supabaseClientImplicitRemotes,
+    curatedContentBans,
     orderedLayers,
     layerClasses,
   } = config;
@@ -835,12 +985,25 @@ function runGovernance({
     { sortedPatterns, projectRoot, externalPackageMap, remoteNodes },
   );
 
+  // Overlay deterministic derived descriptions (sqlite tables, Supabase
+  // tables/RPCs, edge function list) so those fields track the code.
+  const facts = deriveNodeFacts({ projectRoot, mobileRoot, supabaseFunctionsDir });
+  const derivedNodes = applyDerivedDescriptions(verifiedNodes, facts);
+
   const { verifiedArchEdges, verifiedFlowEdges, verifiedEdges } = buildVerifiedEdges(
     edgeEvidence,
     existingEdges,
     existingFlowTriggerEdges,
     allNodeIds,
   );
+
+  // Curated-content lint — prose referencing deleted/stale terms fails the build.
+  const contentViolations = scanCuratedContent({
+    nodes: derivedNodes,
+    edges: verifiedEdges,
+    flows: existingFlows,
+    bans: curatedContentBans,
+  });
 
   // ==========================================================================
   //  VALIDATE FLOWS
@@ -867,7 +1030,7 @@ function runGovernance({
   // ==========================================================================
 
   const architecture = {
-    nodes: verifiedNodes,
+    nodes: derivedNodes,
     edges: verifiedEdges,
     flows: existingFlows,
   };
@@ -886,9 +1049,9 @@ function runGovernance({
     htmlString = htmlContent;
   }
 
-  const mdString = renderArchitectureMd(verifiedNodes, existingFlows, orderedLayers);
+  const mdString = renderArchitectureMd(derivedNodes, existingFlows, orderedLayers);
   const chartsMdString = renderChartsMd(
-    verifiedNodes,
+    derivedNodes,
     verifiedArchEdges,
     orderedLayers,
     layerClasses,
@@ -912,7 +1075,7 @@ function runGovernance({
   const removedEdges = [...oldEdgeKeys].filter((k) => !newEdgeKeys.has(k));
   const addedEdges = [...newEdgeKeys].filter((k) => !oldEdgeKeys.has(k));
 
-  const nodesJsContent = `module.exports = ${JSON.stringify(verifiedNodes, null, 2)};\n`;
+  const nodesJsContent = `module.exports = ${JSON.stringify(derivedNodes, null, 2)};\n`;
   const edgesJsContent = `module.exports = ${JSON.stringify(verifiedEdges, null, 2)};\n`;
 
   const oldNodesContent = fs.existsSync(path.join(dataDir, "nodes.js"))
@@ -934,10 +1097,11 @@ function runGovernance({
     addedEdges.length > 0 ||
     stalePatterns.length > 0 ||
     flowWarnings.length > 0 ||
+    contentViolations.length > 0 ||
     (staleMetadataPaths && staleMetadataPaths.length > 0);
 
   return {
-    verifiedNodes,
+    verifiedNodes: derivedNodes,
     verifiedArchEdges,
     verifiedFlowEdges,
     verifiedEdges,
@@ -947,6 +1111,7 @@ function runGovernance({
     existingFlowTriggerEdges,
     nodeToFiles,
     flowWarnings,
+    contentViolations,
     edgeEvidence,
     droppedImports,
     stalePatterns,
@@ -1045,7 +1210,7 @@ function orderNodes(nodes, orderedLayers) {
 function renderArchitectureMd(nodes, flows, orderedLayers) {
   let mdContent = `# Harvi Architecture
 
-> **Note to AI Agents**: This file is auto-generated by the governance engine (\`graphing/verify_graph.js\`). It is guaranteed to be 100% accurate as it is derived directly from the codebase. Use this to understand the structure, layers, and flows of the application.
+> **Note to AI Agents**: This file is auto-generated by the governance engine (\`graphing/verify_graph.js\`). Nodes, edges, layers, and the SQLite/Supabase table + RPC/functions lists are derived directly from the codebase, and curated prose is linted against known-stale terms — the build fails on any drift. Use this to understand the structure, layers, and flows of the application.
 
 `;
 
@@ -1242,6 +1407,18 @@ function renderReport(result) {
     report += "\n";
   }
 
+  // — Curated content lint —
+  const contentViolations = result.contentViolations || [];
+  if (contentViolations.length > 0) {
+    report += `🚫 CURATED CONTENT VIOLATIONS: ${contentViolations.length}\n`;
+    report += "   Stale terms found in hand-authored prose. Fix the data files by hand:\n";
+    contentViolations.forEach((v) => {
+      report += `   • ${v.kind} "${v.target}": contains "${v.phrase}"\n`;
+      report += `       ${v.reason}\n`;
+    });
+    report += "\n";
+  }
+
   // — File changes —
   report += "═══════════════════════════════════════════════════════════\n";
   if (result.hasChanges) {
@@ -1253,7 +1430,10 @@ function renderReport(result) {
     report += "   • ARCHITECTURE.md (regenerated)\n";
     report += "   • ARCHITECTURE_CHARTS.md (regenerated)\n";
     report += "\n";
-    if (result.flowWarnings.length > 0) {
+    if (contentViolations.length > 0) {
+      report += "💥 GOVERNANCE CHECK FAILED — curated prose references stale terms.\n";
+      report += "   The engine will not auto-edit prose; fix data/nodes.js, data/edges.js, or data/flows.js.\n";
+    } else if (result.flowWarnings.length > 0) {
       report += "💥 GOVERNANCE CHECK FAILED — flows.js references missing nodes.\n";
       report += "   flows.js is curated: fix the node references by hand; a re-run will not clear this.\n";
     } else {
@@ -1320,6 +1500,12 @@ module.exports = {
   classifyFiles,
   resolveImportToNode,
   detectRemoteUsage,
+  extractSqliteTables,
+  extractSupabaseDbFacts,
+  extractSupabaseFunctions,
+  deriveNodeFacts,
+  applyDerivedDescriptions,
+  scanCuratedContent,
   buildVerifiedNodes,
   buildVerifiedEdges,
   runGovernance,

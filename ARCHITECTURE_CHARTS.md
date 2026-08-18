@@ -203,5 +203,6 @@ flowchart LR
   stats_service --> sqlite
   sync_store --> zustand
   theme_store --> mmkv
+  stats_service --> stats_feature
 ```
 

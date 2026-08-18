@@ -6,7 +6,7 @@ module.exports = [
     "layer": "presentation",
     "path": "artifacts/mobile/app/_layout.tsx",
     "technology": "Expo Router",
-    "description": "Root layout: mounts provider tree (ErrorBoundary → QueryClient → GestureHandler → Keyboard → Theme → Auth → Purchase → Sync) and Stack navigator"
+    "description": "Root layout: mounts provider tree (SafeArea → ErrorBoundary → QueryClient → GestureHandler → Keyboard → Database → Theme → Auth → Purchase → Sync), ReducedMotionConfig, Stack navigator (tabs, auth/login, auth callback, quiz, purchase modal, profile edit, +not-found), and the global offline/sync banner (GlobalOfflineBanner)"
   },
   {
     "id": "tab_navigator",
@@ -33,7 +33,7 @@ module.exports = [
     "layer": "presentation",
     "path": "artifacts/mobile/src/features/learn/",
     "technology": "React Native",
-    "description": "Content browsing: LearnScreen → YearScreen → ModuleScreen → SubjectScreen. Includes offline download (useSubjectCache), progress badges, best score stars, and mastery filter"
+    "description": "Content browsing: LearnScreen → YearScreen → ModuleScreen → SubjectScreen. Includes offline download (useSubjectCache with none/partial/downloaded/stale/downloading states + staleness detection via lecture question_count), progress badges, best-score stars, lock states that route to the purchase modal"
   },
   {
     "id": "quiz_feature",
@@ -51,7 +51,7 @@ module.exports = [
     "layer": "presentation",
     "path": "artifacts/mobile/src/features/stats/",
     "technology": "React Native",
-    "description": "Dashboard: StreakCard, StatsMetricsGrid (4 stat pill cards), WeeklyChart, MasterySection with filter chips, RecentResultsSection. Navigates to MasteryScreen for detailed view"
+    "description": "Dashboard: StatsMetricsGrid (4 stat pill cards), StreakCard, WeeklyActivitySection/WeeklyChart, MasterySection (top-3 subjects + 'View All' deep link), RecentResultsSection, EmptyNudge. Detailed MasteryScreen adds search + filter chips (All, Strong, Improving, Needs Work)"
   },
   {
     "id": "purchase_feature",
@@ -87,7 +87,7 @@ module.exports = [
     "layer": "presentation",
     "path": "artifacts/mobile/src/shared/components/OfflineBanner.tsx",
     "technology": "React Native Reanimated",
-    "description": "Animated banner that shows offline/syncing status. Exported from shared components but not currently rendered in any screen"
+    "description": "Animated top banner showing offline/syncing/queued-result status (OfflineBanner + self-contained GlobalOfflineBanner wrapper). Rendered globally in the root layout and driven by useSyncStore (isOnline, pendingCount, isSyncing)"
   },
   {
     "id": "feedback_form",
@@ -105,7 +105,7 @@ module.exports = [
     "layer": "application",
     "path": "artifacts/mobile/src/shared/store/authStore.tsx",
     "technology": "Zustand",
-    "description": "Manages user session: signIn (email), signUp, signInWithGoogle (via expo-web-browser OAuth), signOut. AuthProvider listens to onAuthStateChange and deep links. Clears cacheStore, progressService memCache, and bestScoreService memCache on sign-out"
+    "description": "Manages user session: signIn (email), signUp, signInWithGoogle (via expo-web-browser OAuth + code/access_token exchange), signOut. AuthProvider hydrates the session (getSession), listens to onAuthStateChange and deep links. Sign-out clears every user-scoped SQLite row + offline queue (clearAllUserCaches), the MMKV profile, and purges all React Query queries via queryClient.clear()"
   },
   {
     "id": "sync_store",
@@ -114,7 +114,7 @@ module.exports = [
     "layer": "application",
     "path": "artifacts/mobile/src/shared/store/syncStore.tsx",
     "technology": "Zustand + React Query",
-    "description": "Tracks isOnline, isSyncing, pendingCount. SyncProvider subscribes to NetInfo for connectivity. useSyncActions provides flush() which drains offline queue to Supabase with 10s timeouts and 30s backoff, then invalidates stats/progress queries"
+    "description": "Tracks isOnline, isSyncing, pendingCount. SyncProvider subscribes to NetInfo and bridges React Query onlineManager. useSyncActions flush() drains the pending SQLite queue (10s per-item timeout, 30s backoff, dead-letters rows past MAX_SYNC_ATTEMPTS, handles legacy dot-ids and 23505 duplicates) then invalidates stats/progress queries"
   },
   {
     "id": "purchase_store",
@@ -132,7 +132,7 @@ module.exports = [
     "layer": "application",
     "path": "artifacts/mobile/src/shared/store/cacheStore.ts",
     "technology": "Zustand",
-    "description": "In-memory Zustand store for: statsCache (Map<userId, UserStats>), warmedStats (Set<userId>), questionCacheBypassed flag. No API calls — purely a synchronous cache layer"
+    "description": "Minimal in-memory Zustand store: questionCacheBypassed flag + clearAll. No API calls — synchronous flag only. Stats/progress/bestScore caching now lives in SQLite (user_stats/progress/best_scores) and is read synchronously via readCacheSync as React Query initialData"
   },
   {
     "id": "theme_store",
@@ -150,7 +150,7 @@ module.exports = [
     "layer": "application",
     "path": "artifacts/mobile/app/_layout.tsx",
     "technology": "TanStack React Query",
-    "description": "Global QueryClient with offlineFirst networkMode, 24h gcTime, retry: 1. Provides data caching layer for all features: hierarchy, progress, bestScores, stats, quiz, content_access, my_purchases. Supports query invalidation for cross-feature reactivity"
+    "description": "Global QueryClient with offlineFirst networkMode, 24h gcTime, retry: 1. Provides the data-caching layer for all features — query keys: hierarchy, progress_sync, lectureBestScores_sync, stats, quiz, content_access, my_purchases. Supports query invalidation for cross-feature reactivity"
   },
   {
     "id": "zustand",
@@ -186,7 +186,7 @@ module.exports = [
     "layer": "application",
     "path": "artifacts/mobile/src/features/learn/services/progressService.ts",
     "technology": "TypeScript + SQLite",
-    "description": "Tracks completed lectures (Set<lectureId>) via quiz_results table with FK auto-detection. Three-tier cache: module-level memCache → SQLite progress table → Supabase. Merges queued offline IDs. Provides optimisticallyMarkComplete for instant UI updates"
+    "description": "Tracks completed lectures (Set<lectureId>) from the Supabase quiz_results table, cached to the SQLite progress table and served through a Drizzle useLiveQuery + a React Query sync hook (progress_sync). Merges queued offline IDs. Provides optimisticallyMarkComplete for instant UI updates"
   },
   {
     "id": "best_score_service",
@@ -195,7 +195,7 @@ module.exports = [
     "layer": "application",
     "path": "artifacts/mobile/src/features/learn/services/bestScoreService.ts",
     "technology": "TypeScript + SQLite",
-    "description": "Tracks best quiz score per lecture (Map<lectureId, score%>) from quiz_results. Three-tier cache: memCache → SQLite best_scores table → Supabase. Merges queued offline scores. Provides optimisticallyUpdateBestScore (atomic upsert) for instant star updates"
+    "description": "Tracks best quiz score per lecture (Map<lectureId, score%>) from the Supabase quiz_results table, cached to the SQLite best_scores table and served through a Drizzle useLiveQuery + a React Query sync hook (lectureBestScores_sync). Merges queued offline scores. Provides optimisticallyUpdateBestScore (atomic upsert) for instant star updates"
   },
   {
     "id": "question_service",
@@ -213,7 +213,7 @@ module.exports = [
     "layer": "application",
     "path": "artifacts/mobile/src/features/stats/services/statsService.ts",
     "technology": "TypeScript + SQLite",
-    "description": "Aggregates quiz data into UserStats: total_quizzes, average_score, best_score, streak (with day-gap calculation), weekly_activity (Sat-Fri), subject_mastery, recent_results. Uses Supabase RPC get_user_stats_overview + user_stats table. Merges pending offline queue results. Caches to SQLite user_stats table + cacheStore"
+    "description": "Aggregates quiz data into UserStats: total_quizzes, total_questions, average_score, best_score, streak (with day-gap calculation), weekly_activity (Sat-Fri), subject_mastery, recent_results. Uses Supabase RPC get_user_stats_overview + user_stats table; merges pending offline queue results at read time (never double-counted against the persisted snapshot). Caches the server-only snapshot to SQLite user_stats, served synchronously via readCacheSync as React Query initialData"
   },
   {
     "id": "question_cache",
@@ -222,7 +222,7 @@ module.exports = [
     "layer": "infrastructure",
     "path": "artifacts/mobile/src/features/quiz/services/questionCache.ts",
     "technology": "TypeScript + SQLite",
-    "description": "SQLite-based per-lecture question cache (questions table via QuestionRepository), version-gated by app_meta question_cache_version. Used for offline quiz-taking after subject download. Tracks questionCount and downloadedAt for staleness detection"
+    "description": "SQLite per-lecture question cache (questions table via QuestionRepository), version-gated by app_meta question_cache_version. Serves cached questions only to users with a local entitlement (hasLocalAccessToLecture). Used for offline quiz-taking after subject download. Tracks questionCount and downloadedAt for staleness detection"
   },
   {
     "id": "offline_queue",
@@ -231,7 +231,7 @@ module.exports = [
     "layer": "infrastructure",
     "path": "artifacts/mobile/src/shared/services/offlineQueue.ts",
     "technology": "TypeScript + SQLite",
-    "description": "Manages pending offline quiz result mutations in the SQLite quiz_results table (status='pending' rows via QueueRepository — atomic INSERT/UPDATE, no read-modify-write lock). Validated with Zod PendingQuizResultSchema. Generates UUIDs for deduplication. Provides enqueue, getQueueForUser, removeSynced, clearQueueForUser, pendingCount"
+    "description": "Manages pending offline quiz result mutations in the SQLite quiz_results table (status='pending' rows via QueueRepository — atomic INSERT/UPDATE, no read-modify-write lock). Validated with Zod PendingQuizResultSchema. Generates UUIDs for deduplication. Provides enqueue, getQueueForUser, getFlushableForUser (respects MAX_SYNC_ATTEMPTS dead-letter cap), recordFailure, removeSynced, clearQueueForUser, pendingCount"
   },
   {
     "id": "supabase_client",
@@ -240,7 +240,7 @@ module.exports = [
     "layer": "infrastructure",
     "path": "artifacts/mobile/src/shared/services/supabase.ts",
     "technology": "Supabase JS",
-    "description": "createClient with custom SecureStoreAdapter that chunks auth tokens (1800-byte chunks) to work within iOS SecureStore 2KB limit. Falls back to localStorage on web. autoRefreshToken, persistSession enabled"
+    "description": "createClient with custom SecureStoreAdapter that chunks auth tokens (1800-byte chunks) to work within iOS SecureStore 2KB limit. Falls back to localStorage on web. autoRefreshToken + persistSession enabled, detectSessionInUrl disabled"
   },
   {
     "id": "secure_store",
@@ -258,7 +258,7 @@ module.exports = [
     "layer": "infrastructure",
     "path": "expo-sqlite",
     "technology": "expo-sqlite + Drizzle ORM",
-    "description": "On-device relational database (harvi.db) via expo-sqlite with Drizzle ORM. PRAGMA-tuned (WAL, synchronous=NORMAL, foreign_keys=ON). Tables: hierarchy_years/modules/subjects/lectures, questions, progress, best_scores, quiz_results, user_stats, access_map, purchases, app_meta"
+    "description": "On-device relational database (harvi.db) via expo-sqlite with Drizzle ORM. PRAGMA-tuned (WAL, synchronous=NORMAL, foreign_keys=ON, cache_size=-8000, busy_timeout=5000). Migrated with Drizzle useMigrations; cold-start maintenance (runColdStartMaintenance) purges synced quiz_results older than 30 days, debounces PRAGMA optimize hourly, and throttles VACUUM to monthly. Tables: hierarchy_years, hierarchy_modules, hierarchy_subjects, hierarchy_lectures, questions, progress, best_scores, bookmarks, quiz_results, user_stats, access_map, purchases, app_meta"
   },
   {
     "id": "mmkv",
@@ -276,7 +276,7 @@ module.exports = [
     "layer": "infrastructure",
     "path": "artifacts/mobile/src/db",
     "technology": "Drizzle ORM + expo-sqlite",
-    "description": "Opens and migrates the on-device SQLite database (getDb, DatabaseProvider). Provides schema, repositories (Hierarchy/Question/Queue/Meta), raw SQL access, and atomic cache transactions (cacheTransactions) used by every offline-first service"
+    "description": "Opens and migrates the on-device SQLite database (getDb, DatabaseProvider). Provides schema, repositories (Hierarchy/Question/Queue/Meta), raw SQL access, atomic cache transactions (cacheTransactions), and cold-start maintenance (retention purge of synced quiz_results, debounced PRAGMA optimize, monthly VACUUM)"
   },
   {
     "id": "supabase_auth",
@@ -291,7 +291,7 @@ module.exports = [
     "type": "database",
     "layer": "external",
     "technology": "PostgreSQL",
-    "description": "Tables: years, modules, subjects, lectures, questions, quiz_results, user_stats, purchases, feedback. RPCs: get_user_stats_overview, get_content_access_map, redeem_access_code"
+    "description": "PostgreSQL backend. Tables: years, modules, subjects, lectures, questions, profiles, user_stats, quiz_results, feedback, lecture_statistics, purchases, access_codes. RPCs/functions: get_user_streak, decay_stale_streaks, get_admin_dashboard_stats, set_default_external_id, get_user_aggregate_stats, get_active_users_today, get_analytics_summary, get_recent_activity, handle_new_user, sync_lecture_stats, sync_user_stats, sync_user_stats_on_delete, sync_lecture_stats_on_delete, update_updated_at_column, is_admin, check_content_access, get_content_access_map, redeem_access_code, admin_generate_codes, get_user_stats_overview"
   },
   {
     "id": "supabase_functions",
@@ -300,7 +300,7 @@ module.exports = [
     "layer": "external",
     "path": "supabase/functions/",
     "technology": "Deno",
-    "description": "Serverless backend: record-iap function verifies IAP transactions and grants access"
+    "description": "Serverless Deno backend. Functions: record-iap. record-iap authenticates the caller, validates module/transaction/store input, enforces idempotency + receipt-replay protection, optionally verifies the transaction server-side with RevenueCat, blocks double-buys, and records entitlements in the purchases table"
   },
   {
     "id": "revenuecat",

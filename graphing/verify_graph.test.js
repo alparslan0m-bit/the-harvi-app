@@ -3,7 +3,7 @@ const assert = require("node:assert");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { runGovernance, walk, stripCommentsAndStrings, extractImports, renderReport, detectRemoteUsage, computeExitCode, writeOutputs, renderArchitectureMd, renderChartsMd, resolveImportToNode } = require("./verify_graph");
+const { runGovernance, walk, stripCommentsAndStrings, extractImports, renderReport, detectRemoteUsage, computeExitCode, writeOutputs, renderArchitectureMd, renderChartsMd, resolveImportToNode, extractSqliteTables, extractSupabaseDbFacts, scanCuratedContent, applyDerivedDescriptions } = require("./verify_graph");
 const projectRoot = path.resolve(__dirname, "..");
 
 // makeFixtureTree(layout) -> root (tmp dir); caller runs rmSync in t.after().
@@ -526,4 +526,148 @@ test("renderChartsMd emits Mermaid edge arrows for arch edges", () => {
 
   const chartsMd = renderChartsMd(nodes, edges, orderedLayers, layerClasses);
   assert.match(chartsMd, /a --> b/, "must contain the edge arrow a --> b");
+});
+
+test("extractSqliteTables parses table names from a Drizzle schema", (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "vg-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const schemaPath = path.join(root, "schema.ts");
+  fs.writeFileSync(
+    schemaPath,
+    `export const users = sqliteTable("users", { id: text("id") });
+export const posts = sqliteTable("posts", { id: text("id") });\n`,
+  );
+  assert.deepStrictEqual(extractSqliteTables(schemaPath), ["users", "posts"]);
+});
+
+test("extractSupabaseDbFacts parses tables and functions from SQL migrations", (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "vg-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  fs.writeFileSync(
+    path.join(root, "0001.sql"),
+    `CREATE TABLE IF NOT EXISTS public.years (id uuid);
+CREATE OR REPLACE FUNCTION public.get_user_streak(u uuid) RETURNS int LANGUAGE plpgsql AS $$ BEGIN RETURN 1; END $$;
+CREATE OR REPLACE FUNCTION get_admin_dashboard_stats() RETURNS json LANGUAGE plpgsql AS $$ BEGIN RETURN '{}'; END $$;`,
+  );
+  fs.writeFileSync(
+    path.join(root, "0002.sql"),
+    `CREATE TABLE IF NOT EXISTS public.access_codes (id uuid);
+CREATE OR REPLACE FUNCTION public.redeem_access_code(p TEXT) RETURNS json LANGUAGE plpgsql AS $$ BEGIN RETURN '{}'; END $$;`,
+  );
+  const { tables, rpcs } = extractSupabaseDbFacts(root);
+  assert.deepStrictEqual(tables, ["years", "access_codes"]);
+  assert.deepStrictEqual(rpcs, [
+    "get_user_streak",
+    "get_admin_dashboard_stats",
+    "redeem_access_code",
+  ]);
+});
+
+test("scanCuratedContent flags banned phrases across nodes, edges, and flows", () => {
+  const bans = [{ phrase: "statsCache", reason: "gone" }];
+  const nodes = [{ id: "cache_store", description: "holds statsCache" }];
+  const edges = [
+    { source: "a", target: "b", label: "calls", description: "uses statsCache" },
+  ];
+  const flows = [
+    {
+      id: "f1",
+      name: "statsCache flow",
+      description: "ok",
+      steps: [{ order: 1, node: "a", action: "reads statsCache" }],
+    },
+  ];
+  const v = scanCuratedContent({ nodes, edges, flows, bans });
+  assert.strictEqual(v.length, 4, "one violation per offending field");
+  assert.ok(v.some((x) => x.kind === "node.description" && x.target === "cache_store"));
+  assert.ok(v.some((x) => x.kind === "edge.description" && x.target === "a->b"));
+  assert.ok(v.some((x) => x.kind === "flow.name" && x.target === "f1"));
+  assert.ok(v.some((x) => x.kind === "flow.step" && x.target === "f1:1"));
+});
+
+test("applyDerivedDescriptions overlays derived tables/RPCs/functions and leaves others untouched", () => {
+  const nodes = [
+    { id: "sqlite", description: "old" },
+    { id: "supabase_db", description: "old" },
+    { id: "supabase_functions", description: "old" },
+    { id: "cache_store", description: "untouched" },
+  ];
+  const facts = {
+    sqliteTables: ["users", "posts"],
+    supabaseDb: { tables: ["years"], rpcs: ["get_user_streak"] },
+    supabaseFunctions: ["record-iap"],
+  };
+  const byId = Object.fromEntries(
+    applyDerivedDescriptions(nodes, facts).map((n) => [n.id, n.description]),
+  );
+  assert.match(byId.sqlite, /Tables: users, posts/);
+  assert.match(byId.supabase_db, /Tables: years/);
+  assert.match(byId.supabase_db, /RPCs\/functions: get_user_streak/);
+  assert.match(byId.supabase_functions, /Functions: record-iap/);
+  assert.strictEqual(byId.cache_store, "untouched");
+});
+
+test("applyDerivedDescriptions falls back to stored description when facts are missing", () => {
+  const nodes = [{ id: "sqlite", description: "fallback prose" }];
+  const facts = { sqliteTables: [], supabaseDb: { tables: [], rpcs: [] }, supabaseFunctions: [] };
+  const out = applyDerivedDescriptions(nodes, facts);
+  assert.strictEqual(out[0].description, "fallback prose");
+});
+
+test("curated content containing a banned stale term fails governance", (t) => {
+  const root = makeFixtureTree({
+    "app/_layout.tsx": `// app`,
+    "data/nodes.js": `module.exports = [
+      { id: "app", label: "App", type: "component", layer: "presentation", description: "uses statsCache which is gone" }
+    ];`,
+    "data/edges.js": `module.exports = [];\n`,
+    "data/flows.js": `module.exports = [];\n`,
+  });
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const result = runFixtureGovernance(root, { app: ["app/_layout.tsx"] });
+  assert.ok(result.contentViolations.length > 0, "must detect the banned term");
+  assert.strictEqual(result.contentViolations[0].phrase, "statsCache");
+  assert.strictEqual(result.hasChanges, true, "hasChanges must fail on a content violation");
+
+  const report = renderReport(result);
+  assert.match(report, /CURATED CONTENT VIOLATIONS/);
+  assert.match(report, /statsCache/);
+  assert.match(report, /GOVERNANCE CHECK FAILED/);
+});
+
+test("real repo: derived facts match code, curated prose is clean, and state is idempotent", async (t) => {
+  const result = runGovernance({
+    projectRoot,
+    mobileRoot: path.join(projectRoot, "artifacts", "mobile"),
+    supabaseFunctionsDir: path.join(projectRoot, "supabase", "functions"),
+    dataDir: path.join(__dirname, "data"),
+    config: require("./config"),
+  });
+
+  assert.deepStrictEqual(
+    result.contentViolations,
+    [],
+    "no stale terms may appear in curated prose",
+  );
+
+  const sqlite = result.verifiedNodes.find((n) => n.id === "sqlite");
+  assert.ok(
+    sqlite.description.includes("bookmarks"),
+    "sqlite description must include the bookmarks table",
+  );
+  const db = result.verifiedNodes.find((n) => n.id === "supabase_db");
+  assert.ok(
+    db.description.includes("access_codes"),
+    "supabase_db must include the access_codes table",
+  );
+  assert.ok(
+    db.description.includes("get_user_stats_overview"),
+    "supabase_db must include the stats overview RPC",
+  );
+
+  assert.strictEqual(
+    result.hasChanges,
+    false,
+    "committed data files must match regenerated output (idempotent)",
+  );
 });

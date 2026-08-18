@@ -13,47 +13,53 @@ module.exports = [
       },
       {
         order: 2,
-        node: "react_query",
-        action: "QueryClientProvider initialized with offlineFirst config",
+        node: "database",
+        action:
+          "DatabaseProvider opens harvi.db, applies Drizzle migrations, then runs cold-start maintenance (retention purge, debounced PRAGMA optimize, monthly VACUUM)",
       },
       {
         order: 3,
-        node: "theme_store",
-        action: "ThemeProvider loads saved theme from MMKV",
+        node: "react_query",
+        action: "QueryClientProvider initialized with offlineFirst config (24h gcTime, retry 1)",
       },
       {
         order: 4,
-        node: "auth_store",
-        action:
-          "AuthProvider calls supabase.auth.getSession() and subscribes to onAuthStateChange",
+        node: "theme_store",
+        action: "ThemeProvider reads the saved theme from MMKV synchronously",
       },
       {
         order: 5,
+        node: "auth_store",
+        action:
+          "AuthProvider calls supabase.auth.getSession() and subscribes to onAuthStateChange + deep links",
+      },
+      {
+        order: 6,
         node: "supabase_client",
         action: "Reads chunked session tokens from SecureStore",
       },
       {
-        order: 6,
+        order: 7,
         node: "secure_store",
         action: "Returns reassembled session JWT",
       },
       {
-        order: 7,
+        order: 8,
         node: "purchase_store",
         action:
-          "PurchaseProvider initializes RevenueCat SDK and syncs user identity",
-      },
-      {
-        order: 8,
-        node: "sync_store",
-        action:
-          "SyncProvider subscribes to NetInfo, checks pending queue, auto-flushes if online",
+          "PurchaseProvider configures RevenueCat (skipped when disabled on web) and syncs user identity",
       },
       {
         order: 9,
+        node: "sync_store",
+        action:
+          "SyncProvider subscribes to NetInfo, checks the pending queue, auto-flushes if online",
+      },
+      {
+        order: 10,
         node: "app",
         action:
-          "Hides splash screen once fonts loaded and auth resolved, renders Stack navigator",
+          "Hides splash screen once fonts loaded and auth resolved; renders the Stack navigator + GlobalOfflineBanner",
       },
     ],
   },
@@ -195,12 +201,14 @@ module.exports = [
       {
         order: 8,
         node: "progress_service",
-        action: "useProgress returns Set<lectureId> of completed lectures",
+        action:
+          "useProgress returns Set<lectureId> of completed lectures (Drizzle useLiveQuery over SQLite progress + background sync)",
       },
       {
         order: 9,
         node: "best_score_service",
-        action: "useLectureBestScores returns Map<lectureId, score%>",
+        action:
+          "useLectureBestScores returns Map<lectureId, score%> (Drizzle useLiveQuery over SQLite best_scores + background sync)",
       },
       {
         order: 10,
@@ -219,7 +227,7 @@ module.exports = [
     id: "online-quiz-taking",
     name: "Online Quiz Taking",
     description:
-      "User takes a quiz while online — saves result directly to Supabase, updates all caches optimistically",
+      "User takes a quiz while online — saves result directly to Supabase, falls back to the offline queue on failure, and updates all caches optimistically",
     steps: [
       {
         order: 1,
@@ -234,7 +242,8 @@ module.exports = [
       {
         order: 3,
         node: "question_cache",
-        action: "Pre-loads questions from SQLite cache (fast path)",
+        action:
+          "Pre-loads cached questions from SQLite (fast path, loadQuestionsFromCacheSync) — only for users with a local entitlement",
       },
       {
         order: 4,
@@ -245,7 +254,8 @@ module.exports = [
       {
         order: 5,
         node: "supabase_client",
-        action: "SELECT * FROM questions WHERE lecture_id = ?",
+        action:
+          "SELECT * FROM questions WHERE lecture_id = ? (FK auto-detection, 6s timeout)",
       },
       {
         order: 6,
@@ -276,16 +286,30 @@ module.exports = [
       },
       {
         order: 11,
-        node: "best_score_service",
-        action: "optimisticallyUpdateBestScore updates memCache + SQLite",
+        node: "quiz_feature",
+        action:
+          "On insert failure/timeout — enqueues the result to the offline queue (enqueueQuizResult) and triggers a background flush instead of losing it",
       },
       {
         order: 12,
-        node: "react_query",
-        action: "Invalidates progress, stats, lectureBestScores queries",
+        node: "best_score_service",
+        action:
+          "optimisticallyUpdateBestScore atomically upserts the SQLite best_scores row (keeps the higher score)",
       },
       {
         order: 13,
+        node: "progress_service",
+        action:
+          "optimisticallyMarkComplete writes the lectureId to SQLite progress",
+      },
+      {
+        order: 14,
+        node: "react_query",
+        action:
+          "Invalidates progress_sync, stats, and lectureBestScores_sync queries",
+      },
+      {
+        order: 15,
         node: "quiz_feature",
         action: "Shows QuizResultsView with score ring animation",
       },
@@ -332,12 +356,13 @@ module.exports = [
         order: 7,
         node: "progress_service",
         action:
-          "optimisticallyMarkComplete adds lectureId to memCache + SQLite",
+          "optimisticallyMarkComplete writes the lectureId to SQLite progress",
       },
       {
         order: 8,
         node: "best_score_service",
-        action: "optimisticallyUpdateBestScore updates score if higher",
+        action:
+          "optimisticallyUpdateBestScore upserts SQLite best_scores if the score is higher",
       },
     ],
   },
@@ -401,40 +426,40 @@ module.exports = [
       {
         order: 1,
         node: "profile_feature",
-        action: "User taps 'Sign Out' in AccountActions, haptic feedback fires",
+        action:
+          "User taps 'Sign Out' in AccountActions — warns first if pendingCount > 0 (un-synced offline results would be permanently deleted)",
       },
       {
         order: 2,
         node: "auth_store",
-        action: "signOut() calls supabase.auth.signOut()",
+        action:
+          "signOut() captures the userId and calls clearAllUserCaches(uid) — deletes every user-scoped SQLite row plus the offline queue in one transaction",
       },
       {
         order: 3,
-        node: "supabase_client",
-        action: "Revokes session on server, clears local auth tokens",
+        node: "mmkv",
+        action: "clearUserProfile(uid) removes the user's avatar and displayName",
       },
       {
         order: 4,
+        node: "cache_store",
+        action: "clearAll() resets questionCacheBypassed",
+      },
+      {
+        order: 5,
+        node: "supabase_client",
+        action: "supabase.auth.signOut() revokes the session server-side",
+      },
+      {
+        order: 6,
         node: "secure_store",
         action: "SecureStoreAdapter removes all chunked session tokens",
       },
       {
-        order: 5,
-        node: "cache_store",
-        action:
-          "clearAll() resets statsCache, warmedStats, and questionCacheBypassed",
-      },
-      {
-        order: 6,
-        node: "progress_service",
-        action:
-          "memCache.clear() and warmed.clear() — wipes in-memory progress",
-      },
-      {
         order: 7,
-        node: "best_score_service",
+        node: "auth_store",
         action:
-          "memCache.clear() and warmed.clear() — wipes in-memory best scores",
+          "onAuthStateChange fires with a null session — queryClient.clear() purges every cached query (including user-scoped stats/progress/purchases)",
       },
       {
         order: 8,
@@ -505,7 +530,7 @@ module.exports = [
         order: 9,
         node: "learn_feature",
         action:
-          "All lectures downloaded — loadState() re-evaluates cache status, sets status='downloaded'",
+          "All lectures downloaded — loadState() re-evaluates cache status (none/partial/downloaded/stale) and UI reflects it",
       },
     ],
   },
@@ -519,7 +544,7 @@ module.exports = [
         order: 1,
         node: "learn_feature",
         action:
-          "User taps a locked lecture in SubjectScreen, navigates to /purchase/[moduleId]",
+          "User taps a locked lecture in SubjectScreen — navigates to /purchase/[moduleId] with module/price/product params",
       },
       {
         order: 2,
@@ -555,7 +580,7 @@ module.exports = [
         order: 7,
         node: "supabase_db",
         action:
-          "record-iap validates receipt, inserts into purchases table, grants content access",
+          "record-iap authenticates the caller, enforces idempotency + receipt-replay protection, optionally verifies the transaction with RevenueCat server-side, and inserts the purchase record (access granted via get_content_access_map)",
       },
       {
         order: 8,
@@ -636,7 +661,8 @@ module.exports = [
       {
         order: 4,
         node: "purchase_store",
-        action: "Checks allPurchasedProductIdentifiers for matching productId",
+        action:
+          "Checks allPurchasedProductIdentifiers for a matching productId and resolves the real store transaction id",
       },
       {
         order: 5,
@@ -688,19 +714,20 @@ module.exports = [
       {
         order: 4,
         node: "offline_queue",
-        action: "getQueueForUser() returns all pending rows from SQLite quiz_results",
+        action:
+          "getFlushableForUser() returns pending rows still under MAX_SYNC_ATTEMPTS (dead-lettered rows are excluded)",
       },
       {
         order: 5,
         node: "sync_store",
         action:
-          "Filters queue for current user, iterates items with 10s timeout per insert",
+          "Iterates items with a 10s per-item timeout; a rejected item increments its failure count and the loop continues",
       },
       {
         order: 6,
         node: "supabase_client",
         action:
-          "INSERT INTO quiz_results for each queued item (handles 23xxx duplicate codes)",
+          "INSERT INTO quiz_results for each queued item (legacy dot-ids omitted; Postgres 23505 duplicates treated as synced)",
       },
       {
         order: 7,
@@ -722,7 +749,8 @@ module.exports = [
       {
         order: 10,
         node: "sync_store",
-        action: "Sets isSyncing=false, updates pendingCount to remaining items",
+        action:
+          "Sets isSyncing=false, updates pendingCount to remaining items; backs off 30s after network-wide failures",
       },
     ],
   },
@@ -730,7 +758,7 @@ module.exports = [
     id: "stats-dashboard-loading",
     name: "Stats Dashboard Loading",
     description:
-      "Loads the stats dashboard with multi-tier caching: synchronous cache → SQLite user_stats → Supabase RPC, merging pending offline results",
+      "Loads the stats dashboard with multi-tier caching: synchronous SQLite read → Supabase RPC, merging pending offline results",
     steps: [
       {
         order: 1,
@@ -740,15 +768,15 @@ module.exports = [
       },
       {
         order: 2,
-        node: "cache_store",
+        node: "stats_service",
         action:
-          "useStats reads statsCache for synchronous initialData (no loading spinner on revisit)",
+          "readCacheSync(db, userId) reads the SQLite user_stats snapshot synchronously as React Query initialData (no loading spinner on revisit)",
       },
       {
         order: 3,
         node: "stats_service",
         action:
-          "fetchStats checks NetInfo — if offline, serves from SQLite user_stats cache",
+          "fetchStats checks NetInfo — if offline, serves from the SQLite user_stats cache merged with pending queue items",
       },
       {
         order: 4,
@@ -759,7 +787,7 @@ module.exports = [
         order: 5,
         node: "supabase_client",
         action:
-          "Queries user_stats table + RPC get_user_stats_overview + lectures table for name map",
+          "Queries the user_stats table + RPC get_user_stats_overview + lectures name map",
       },
       {
         order: 6,
@@ -770,7 +798,7 @@ module.exports = [
         order: 7,
         node: "offline_queue",
         action:
-          "Reads pending queue to merge un-synced quiz results into displayed stats",
+          "Reads the pending queue and merges un-synced quiz results into displayed stats (deduped against the snapshot's recent_results)",
       },
       {
         order: 8,
@@ -780,18 +808,12 @@ module.exports = [
       },
       {
         order: 9,
-        node: "cache_store",
+        node: "stats_service",
         action:
-          "writeCache sets stats in cacheStore.setStatsCache for instant access",
+          "writeCache persists the server-only snapshot to SQLite user_stats (pending items are never double-counted in the cache)",
       },
       {
         order: 10,
-        node: "stats_service",
-        action:
-          "writeCache persists UserStats snapshot to SQLite user_stats for offline fallback",
-      },
-      {
-        order: 11,
         node: "stats_feature",
         action:
           "Renders StreakCard, StatsMetricsGrid, WeeklyChart, MasterySection, RecentResultsSection",
@@ -951,7 +973,7 @@ module.exports = [
         order: 3,
         node: "supabase_client",
         action:
-          "DELETE FROM quiz_results WHERE user_id = ? AND DELETE FROM user_stats WHERE user_id = ? (10s timeout)",
+          "DELETE FROM quiz_results AND user_stats WHERE user_id = ? (10s timeout; abort + no local changes if the delete fails)",
       },
       {
         order: 4,
@@ -960,36 +982,18 @@ module.exports = [
       },
       {
         order: 5,
-        node: "stats_service",
+        node: "shared_utils",
         action:
-          "clearStatsCache wipes SQLite user_stats and cacheStore for this user",
+          "clearAllUserCaches(uid) purges every user-scoped SQLite row (progress, best_scores, user_stats, access_map, purchases) plus the offline queue in one transaction",
       },
       {
         order: 6,
-        node: "progress_service",
-        action:
-          "clearProgressCache wipes memCache, warmed set, and SQLite progress",
-      },
-      {
-        order: 7,
-        node: "best_score_service",
-        action:
-          "clearBestScoreCache wipes memCache, warmed set, and SQLite best_scores",
-      },
-      {
-        order: 8,
-        node: "offline_queue",
-        action:
-          "clearQueueForUser removes any pending offline results for this user",
-      },
-      {
-        order: 9,
         node: "react_query",
         action:
           "setQueriesData zeroes stats/progress/bestScores immediately, then invalidateQueries refetches clean state",
       },
       {
-        order: 10,
+        order: 7,
         node: "profile_feature",
         action:
           "Warning haptic fires, shows 'History Cleared' confirmation Alert",
@@ -1012,26 +1016,16 @@ module.exports = [
         order: 2,
         node: "question_cache",
         action:
-          "clearAllLectureCache clears the SQLite questions table for every lecture",
+          "clearAllLectureCache sets questionCacheBypassed=true, then clears every cached question row from the SQLite questions table",
       },
       {
         order: 3,
-        node: "cache_store",
-        action: "Sets questionCacheBypassed=true to prevent stale cache reads",
-      },
-      {
-        order: 4,
-        node: "question_cache",
-        action: "Removes all cached question rows from the SQLite questions table",
-      },
-      {
-        order: 5,
         node: "react_query",
         action:
           "setQueriesData clears quiz query data, removeQueries purges quiz cache",
       },
       {
-        order: 6,
+        order: 4,
         node: "profile_feature",
         action:
           "Warning haptic fires, shows 'Downloads Cleared' confirmation Alert",
@@ -1042,41 +1036,37 @@ module.exports = [
     id: "mastery-screen-navigation",
     name: "Mastery Screen Deep Dive",
     description:
-      "User navigates from Stats dashboard to the detailed MasteryScreen to view per-subject mastery breakdown with filter chips",
+      "User navigates from the Stats dashboard to the detailed MasteryScreen to view per-subject mastery breakdown with search and filter chips",
     steps: [
       {
         order: 1,
         node: "stats_feature",
-        action: "User taps 'See All' on MasterySection in StatsScreen",
+        action:
+          "User taps 'View All' (or '+N more subjects') on MasterySection in StatsScreen",
       },
       {
         order: 2,
         node: "stats_feature",
-        action: "Navigates to MasteryScreen with user.id parameter",
+        action:
+          "router.push('/stats/mastery') — no params; MasteryScreen reads the user from useAuth",
       },
       {
         order: 3,
         node: "stats_service",
         action:
-          "useStats provides subject_mastery data with per-subject quiz counts and average scores",
+          "useStats provides subject_mastery data with per-subject mastery and attempts",
       },
       {
         order: 4,
-        node: "hierarchy_service",
+        node: "stats_feature",
         action:
-          "Resolves lecture/subject names for display via cached hierarchy data",
+          "useMasteryFilter applies search text + filter chips (All, Strong, Improving, Needs Work) and computes summary counts",
       },
       {
         order: 5,
         node: "stats_feature",
         action:
-          "useMasteryFilter applies filter chips (All, Mastered, In Progress, Not Started)",
-      },
-      {
-        order: 6,
-        node: "stats_feature",
-        action:
-          "Renders filtered subject mastery cards with progress bars and mastery badges",
+          "Renders MasterySummaryPills and per-subject MasteryLectureCards with progress bars and mastery badges",
       },
     ],
   },
@@ -1099,9 +1089,9 @@ module.exports = [
       },
       {
         order: 3,
-        node: "react_query",
+        node: "quiz_feature",
         action:
-          "ReviewScreen retrieves the cached quiz session data (questions + user's selected answers)",
+          "ReviewScreen renders from the in-memory quiz session history (questions + the user's selected answers + explanations) held by useQuizSession",
       },
       {
         order: 4,
