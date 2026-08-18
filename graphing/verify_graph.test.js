@@ -510,6 +510,61 @@ test("barrel cycle does not crash — returns resolved-unmapped", (t) => {
   );
 });
 
+test("commented-out barrel re-export cannot create a phantom edge", (t) => {
+  const root = makeFixtureTree({
+    "app/_layout.tsx": `import { z } from './barrel';\nexport const v = z;`,
+    "app/barrel/index.ts": `// export * from '../lib';\nexport const z = 1;`,
+    "app/lib/index.ts": `export const x = 1;`,
+  });
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const result = runFixtureGovernance(root, {
+    app: ["app/_layout.tsx"],
+    lib: ["app/lib"],
+  });
+  const edges = result.verifiedArchEdges.map((e) => `${e.source}->${e.target}`);
+  assert.ok(!edges.includes("app->lib"), "commented re-export must not create app->lib");
+  const drop = result.droppedImports.find((d) => d.reason === "resolved-unmapped");
+  assert.ok(drop, "barrel must be reported as an unmapped local file");
+});
+
+test("barrel with multiple re-exports traces the first one (non-greedy)", (t) => {
+  const root = makeFixtureTree({
+    "app/_layout.tsx": `import { a } from './barrel';\nexport default a;`,
+    "app/barrel/index.ts": `export { a } from '../liba';\nexport { b } from '../libb';`,
+    "app/liba/index.ts": `export const a = 1;`,
+    "app/libb/index.ts": `export const b = 1;`,
+  });
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const result = runFixtureGovernance(root, {
+    app: ["app/_layout.tsx"],
+    liba: ["app/liba"],
+    libb: ["app/libb"],
+  });
+  const edges = result.verifiedArchEdges.map((e) => `${e.source}->${e.target}`);
+  assert.ok(edges.includes("app->liba"), "first re-export must be traced, not the last");
+});
+
+test("module.require is extracted exactly once; .js files resolve as resolved-unmapped", (t) => {
+  const imports = extractImports(
+    `const x = module.require('./m1');\nconst y = require('./m2');`,
+  );
+  assert.deepStrictEqual(
+    imports.map((i) => i.importPath),
+    ["./m1", "./m2"],
+    "module.require and require each extracted exactly once",
+  );
+
+  const root = makeFixtureTree({
+    "app/_layout.tsx": `import h from './helper';`,
+    "app/helper.js": `module.exports = { x: 1 };`,
+  });
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const result = runFixtureGovernance(root, { app: ["app/_layout.tsx"] });
+  const drop = result.droppedImports.find((d) => d.reason === "resolved-unmapped");
+  assert.ok(drop, "imported .js file must classify as resolved-unmapped, not unresolvable");
+  assert.ok(drop.targetPath.endsWith(path.join("app", "helper.js")));
+});
+
 test("renderChartsMd emits Mermaid edge arrows for arch edges", () => {
   const nodes = [
     { id: "a", label: "A", type: "component", layer: "presentation", description: "a" },

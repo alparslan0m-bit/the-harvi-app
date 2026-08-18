@@ -297,7 +297,10 @@ function extractImports(content) {
   const regexes = [
     /from\s+['"]([^'"]+)['"]/g,
     /import\s+['"]([^'"]+)['"]/g,
-    /require\(\s*['"]([^'"]+)['"]\s*\)/g,
+    // (?<![\w$.]) keeps the plain require() regex from matching the substring
+    // inside module.require(...) — each module load is extracted exactly once.
+    /(?<![\w$.])require\(\s*['"]([^'"]+)['"]\s*\)/g,
+    /module\.require\(\s*['"]([^'"]+)['"]\s*\)/g,
     /import\(\s*['"]([^'"]+)['"]\s*\)/g,
   ];
   const matches = [];
@@ -425,8 +428,16 @@ function resolveImportToNode(importPath, currentFile, opts, visited) {
     fullPathBase,
     fullPathBase + ".tsx",
     fullPathBase + ".ts",
-    path.join(fullPathBase, "index.ts"),
+    fullPathBase + ".jsx",
+    fullPathBase + ".js",
+    fullPathBase + ".mjs",
+    fullPathBase + ".cjs",
     path.join(fullPathBase, "index.tsx"),
+    path.join(fullPathBase, "index.ts"),
+    path.join(fullPathBase, "index.jsx"),
+    path.join(fullPathBase, "index.js"),
+    path.join(fullPathBase, "index.mjs"),
+    path.join(fullPathBase, "index.cjs"),
   ];
   let resolvedFile = null;
 
@@ -441,20 +452,31 @@ function resolveImportToNode(importPath, currentFile, opts, visited) {
     const classified = classifyFile(candidate);
     if (classified) return { nodeId: classified };
 
-    // For barrel files that re-export, trace what they export
+    // For barrel files that re-export, trace what they export. Runs on
+    // comment/string-stripped content so a commented-out re-export can never
+    // create a phantom edge, and supports ESM (`export * from`, `export { a }
+    // from`, `export * as ns from`) plus CommonJS (`module.exports = require`,
+    // `exports.foo = require`). Non-greedy matching so every re-export in a
+    // multi-export barrel is traced, not just the last one.
     const stat = fs.statSync(candidate);
     if (!stat.isFile()) continue;
 
     resolvedFile = resolvedFile || candidate;
 
-    const content = fs.readFileSync(candidate, "utf8");
-    const reExportRegex = /export\s+.*\s+from\s+['"]([^'"]+)['"]/g;
-    let reMatch;
     if (!visited.has(candidate)) {
       visited.add(candidate);
-      while ((reMatch = reExportRegex.exec(content)) !== null) {
-        const resolved = resolveImportToNode(reMatch[1], candidate, opts, visited);
-        if (resolved.nodeId) return resolved;
+      const stripped = stripCommentsAndStrings(fs.readFileSync(candidate, "utf8"));
+      const reExportRegexes = [
+        /export\s+.*?\s+from\s+['"]([^'"]+)['"]/g,
+        /module\.exports\s*=\s*require\(\s*['"]([^'"]+)['"]\s*\)/g,
+        /exports\.[A-Za-z0-9_$]+\s*=\s*require\(\s*['"]([^'"]+)['"]\s*\)/g,
+      ];
+      for (const re of reExportRegexes) {
+        let reMatch;
+        while ((reMatch = re.exec(stripped)) !== null) {
+          const resolved = resolveImportToNode(reMatch[1], candidate, opts, visited);
+          if (resolved.nodeId) return resolved;
+        }
       }
     }
   }
@@ -733,9 +755,13 @@ function buildVerifiedEdges(edgeEvidence, existingEdges, existingFlowTriggerEdge
     const aExisting = existingEdgeMap.has(a);
     const bExisting = existingEdgeMap.has(b);
     if (aExisting && bExisting) {
-      const aId = parseInt(existingEdgeMap.get(a).id.replace("e", ""), 10);
-      const bId = parseInt(existingEdgeMap.get(b).id.replace("e", ""), 10);
-      return aId - bId;
+      // Stable, NaN-safe ordering: numeric ids sort numerically, anything
+      // else (no id, non-numeric) sorts last instead of producing NaN.
+      const edgeNum = (e) => {
+        const m = /^e(\d+)$/.exec(e.id || "");
+        return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
+      };
+      return edgeNum(existingEdgeMap.get(a)) - edgeNum(existingEdgeMap.get(b));
     }
     if (aExisting) return -1;
     if (bExisting) return 1;
