@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Architecture Graph</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #0a0a0c;
+        --surface: #131316;
+        --border: rgba(255, 255, 255, 0.06);
+        --border-hover: rgba(255, 255, 255, 0.12);
+        --text-1: #e4e4e7;
+        --text-2: #a1a1aa;
+        --text-3: #71717a;
+        --radius: 10px;
+        --radius-lg: 14px;
+        --font: "Geist", system-ui, sans-serif;
+        --mono: "Geist Mono", ui-monospace, monospace;
+      }
+
+      body {
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text-1);
+        overflow: hidden;
+        height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── Background ── */
+      .bg-dots {
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        background-image: radial-gradient(
+          rgba(255, 255, 255, 0.08) 1px,
+          transparent 1px
+        );
+        background-size: 24px 24px;
+        mask-image: radial-gradient(
+          circle at center,
+          black 30%,
+          transparent 100%
+        );
+        -webkit-mask-image: radial-gradient(
+          circle at center,
+          black 30%,
+          transparent 100%
+        );
+      }
+
+      /* ── Graph canvas ── */
+      #cy {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+      }
+
+      /* ── Scrollbar ── */
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 4px;
+      }
+
+      /* ── Toolbar ── */
+      .toolbar {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 6px;
+      }
+
+      .search-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+      .search-wrap i {
+        position: absolute;
+        left: 10px;
+        color: var(--text-3);
+        font-size: 15px;
+        pointer-events: none;
+      }
+      .search-wrap input {
+        font-family: var(--mono);
+        font-size: 13px;
+        background: transparent;
+        border: none;
+        color: var(--text-1);
+        padding: 7px 12px 7px 32px;
+        width: 220px;
+        outline: none;
+        letter-spacing: -0.01em;
+      }
+      .search-wrap input::placeholder {
+        color: var(--text-3);
+      }
+      .search-wrap input:focus {
+        width: 260px;
+      }
+      .search-wrap input {
+        transition: width 0.25s ease;
+      }
+
+      .toolbar-btn {
+        font-family: var(--font);
+        font-size: 13px;
+        font-weight: 500;
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-2);
+        padding: 7px 14px;
+        border-radius: var(--radius);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition:
+          background 0.15s,
+          color 0.15s,
+          border-color 0.15s;
+        white-space: nowrap;
+      }
+      .toolbar-btn:hover {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-1);
+        border-color: var(--border-hover);
+      }
+      .toolbar-btn:active {
+        transform: scale(0.97);
+      }
+
+      .kbd {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--text-3);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        padding: 1px 5px;
+        border-radius: 4px;
+        margin-left: 4px;
+      }
+
+      /* ── Side panel ── */
+      .panel {
+        position: fixed;
+        right: 12px;
+        top: 12px;
+        bottom: 12px;
+        width: 380px;
+        z-index: 10;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .panel.collapsed {
+        transform: translateX(calc(100% + 24px));
+      }
+
+      .panel-header {
+        padding: 20px 20px 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .panel-title {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .panel-title i {
+        color: var(--text-3);
+        font-size: 20px;
+      }
+      .panel-stats {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: flex;
+        gap: 12px;
+      }
+      .panel-stats span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .panel-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 20px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .section-label {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .section-label i {
+        font-size: 13px;
+      }
+
+      /* ── Flow cards ── */
+      .flow-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          border-color 0.2s;
+      }
+      .flow-card:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: var(--border-hover);
+      }
+      .flow-card.active {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.16);
+      }
+
+      .flow-card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .flow-card-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-1);
+      }
+      .flow-card-badge {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--text-3);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+        padding: 2px 8px;
+        border-radius: 6px;
+        white-space: nowrap;
+      }
+      .flow-card-desc {
+        font-size: 12px;
+        color: var(--text-3);
+        line-height: 1.5;
+        margin-top: 6px;
+      }
+
+      /* ── Steps (expanded inside flow card) ── */
+      .flow-steps {
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        transition:
+          max-height 0.35s ease,
+          opacity 0.25s ease,
+          margin 0.25s ease;
+        margin-top: 0;
+      }
+      .flow-card.active .flow-steps {
+        max-height: 2000px;
+        opacity: 1;
+        margin-top: 14px;
+      }
+
+      .flow-steps-label {
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 10px;
+      }
+
+      .step-item {
+        display: flex;
+        gap: 12px;
+        position: relative;
+      }
+      .step-item + .step-item {
+        margin-top: 4px;
+      }
+
+      /* Vertical connector line */
+      .step-item:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        left: 13px;
+        top: 28px;
+        bottom: -8px;
+        width: 1px;
+        background: var(--border);
+      }
+
+      .step-num {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 600;
+        color: #0a0a0c;
+        flex-shrink: 0;
+        z-index: 1;
+      }
+
+      .step-body {
+        padding-bottom: 14px;
+        min-width: 0;
+      }
+      .step-node-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-1);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .step-node-name i {
+        color: var(--text-3);
+        font-size: 14px;
+      }
+      .step-action {
+        font-size: 12px;
+        color: var(--text-3);
+        line-height: 1.5;
+        margin-top: 4px;
+      }
+
+      /* ── Legend ── */
+      .legend-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 16px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--text-3);
+        text-transform: capitalize;
+      }
+      .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* ── Tooltip ── */
+      #tooltip {
+        position: fixed;
+        z-index: 50;
+        display: none;
+        pointer-events: none;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        width: 280px;
+        opacity: 0;
+        transform: translateY(4px);
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+      }
+      #tooltip.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .tip-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .tip-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border);
+      }
+      .tip-icon i {
+        font-size: 16px;
+      }
+      .tip-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-1);
+      }
+      .tip-id {
+        font-family: var(--mono);
+        font-size: 10px;
+        color: var(--text-3);
+        margin-top: 2px;
+      }
+      .tip-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 10px 0;
+      }
+      .tip-desc {
+        font-size: 12px;
+        color: var(--text-2);
+        line-height: 1.5;
+      }
+      .tip-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+      .tip-tag {
+        font-family: var(--mono);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 3px 8px;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-2);
+        border: 1px solid var(--border);
+      }
+
+      /* ── Panel toggle (visible when collapsed) ── */
+      .panel-toggle {
+        position: fixed;
+        right: 16px;
+        top: 16px;
+        z-index: 9;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 8px 12px;
+        cursor: pointer;
+        color: var(--text-2);
+        font-size: 16px;
+        display: none;
+        transition: background 0.15s;
+      }
+      .panel-toggle:hover {
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .panel.collapsed ~ .panel-toggle {
+        display: flex;
+      }
+
+      /* ── Reduced motion ── */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0s !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-dots"></div>
+    <div id="cy"></div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="text" id="search" placeholder="Search nodes..." />
+      </div>
+      <button id="reset-btn" class="toolbar-btn">
+        <i class="ph ph-arrows-out-simple"></i> Reset
+      </button>
+      <button id="toggle-panel-btn" class="toolbar-btn">
+        <i class="ph ph-sidebar-simple"></i>
+      </button>
+    </div>
+
+    <!-- Side panel -->
+    <div class="panel" id="right-panel">
+      <div class="panel-header">
+        <div class="panel-title"><i class="ph ph-graph"></i> Architecture</div>
+        <div class="panel-stats" id="stats-container"></div>
+      </div>
+      <div class="panel-body">
+        <section>
+          <div class="section-label">
+            <i class="ph ph-git-branch"></i> Flows
+          </div>
+          <div
+            id="flows-container"
+            style="display: flex; flex-direction: column; gap: 8px"
+          ></div>
+        </section>
+        <section
+          style="
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+          "
+        >
+          <div class="section-label">
+            <i class="ph ph-circles-four"></i> Legend
+          </div>
+          <div class="legend-grid" id="legend-container"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Panel toggle (shows when panel is collapsed) -->
+    <button class="panel-toggle" id="panel-toggle-external">
+      <i class="ph ph-sidebar-simple"></i>
+    </button>
+
+    <!-- Tooltip -->
+    <div id="tooltip"></div>
+
+    <script>
+      const architecture = __ARCHITECTURE_JSON__;
+
+      const colors = {
+        ui: "#f472b6",
+        feature: "#c084fc",
+        state: "#60a5fa",
+        api: "#2dd4bf",
+        storage: "#fbbf24",
+        database: "#34d399",
+        external: "#a1a1aa",
+        service: "#818cf8",
+      };
+
+      const icons = {
+        ui: "ph-desktop",
+        feature: "ph-puzzle-piece",
+        state: "ph-database",
+        api: "ph-plugs-connected",
+        storage: "ph-hard-drives",
+        database: "ph-database",
+        external: "ph-globe-hemisphere-west",
+        service: "ph-gear",
+      };
+
+      // ── Legend ──
+      const legendContainer = document.getElementById("legend-container");
+      Object.entries(colors).forEach(([key, color]) => {
+        const el = document.createElement("div");
+        el.className = "legend-item";
+        el.innerHTML = `<div class="legend-dot" style="background:${color}"></div>${key}`;
+        legendContainer.appendChild(el);
+      });
+
+      // ── Stats ──
+      document.getElementById("stats-container").innerHTML =
+        `<span><i class="ph ph-graph"></i> ${architecture.nodes.length} nodes</span>` +
+        `<span><i class="ph ph-arrows-split"></i> ${architecture.edges.length} edges</span>`;
+
+      // ── Cytoscape ──
+      const elements = [
+        ...architecture.nodes.map((n) => ({
+          data: {
+            id: n.id,
+            label: n.label,
+            type: n.type,
+            layer: n.layer,
+            color: colors[n.type] || "#fff",
+            icon: icons[n.type] || "ph-cube",
+            fullData: n,
+          },
+        })),
+        ...architecture.edges.map((e) => ({
+          data: {
+            id: e.id,
+            source: e.source,
+            target: e.target,
+            label: e.label,
+            fullData: e,
+          },
+        })),
+      ];
+
+      const cy = cytoscape({
+        container: document.getElementById("cy"),
+        elements,
+        style: [
+          {
+            selector: "node",
+            style: {
+              label: "data(label)",
+              color: "#d4d4d8",
+              "font-family": "Geist, sans-serif",
+              "font-size": "10px",
+              "font-weight": "500",
+              "text-valign": "center",
+              "text-halign": "center",
+              "background-color": "#131316",
+              "border-width": 1.5,
+              "border-color": "data(color)",
+              width: (n) =>
+                Math.max(n.data("label").length * 6.5 + 32, 90) + "px",
+              height: "34px",
+              shape: "round-rectangle",
+              "text-wrap": "wrap",
+              "text-max-width": "140px",
+              "transition-property":
+                "background-color, border-width, border-color, color",
+              "transition-duration": "0.25s",
+            },
+          },
+          {
+            selector: "edge",
+            style: {
+              width: 1,
+              "line-color": "#27272a",
+              "target-arrow-color": "#27272a",
+              "target-arrow-shape": "triangle",
+              "curve-style": "unbundled-bezier",
+              "control-point-distances": 30,
+              "control-point-weights": 0.5,
+              label: "data(label)",
+              "font-size": "9px",
+              "font-family": "Geist Mono, monospace",
+              color: "#52525b",
+              "text-rotation": "autorotate",
+              "text-margin-y": -10,
+              "text-background-opacity": 1,
+              "text-background-color": "#0a0a0c",
+              "text-background-padding": 2,
+              "text-background-shape": "roundrectangle",
+              "transition-property":
+                "width, line-color, target-arrow-color, color",
+              "transition-duration": "0.25s",
+            },
+          },
+          {
+            selector: "edge[label = 'Flow triggers']",
+            style: {
+              "line-color": "#6366f1",
+              "target-arrow-color": "#6366f1",
+              "line-style": "dashed",
+              "line-dash-pattern": [4, 4],
+              color: "#818cf8",
+            },
+          },
+          {
+            selector: ".highlighted-node",
+            style: {
+              "border-width": 2,
+              "border-color": "#fff",
+              "background-color": "data(color)",
+              color: "#000",
+              "font-weight": "600",
+            },
+          },
+          {
+            selector: ".highlighted-edge",
+            style: {
+              width: 2,
+              "line-color": "#fff",
+              "target-arrow-color": "#fff",
+              color: "#fff",
+              "z-index": 10,
+            },
+          },
+          {
+            selector: ".dimmed",
+            style: { opacity: 0.08 },
+          },
+        ],
+        layout: {
+          name: "cose",
+          padding: 120,
+          nodeRepulsion: 800000,
+          idealEdgeLength: 120,
+          edgeElasticity: 150,
+          nestingFactor: 4,
+          gravity: 300,
+          numIter: 1200,
+          animate: false,
+        },
+      });
+
+      // ── Tooltip (click/tap to show) ──
+      const tooltip = document.getElementById("tooltip");
+      let activeTooltipNode = null;
+
+      function showTooltip(node) {
+        const d = node.data("fullData");
+        const icon = node.data("icon");
+        const color = node.data("color");
+
+        tooltip.innerHTML =
+          `<div class="tip-header">` +
+          `<div class="tip-icon"><i class="ph ${icon}" style="color:${color}"></i></div>` +
+          `<div><div class="tip-name">${d.label}</div><div class="tip-id">${d.id}</div></div>` +
+          `</div>` +
+          `<div class="tip-divider"></div>` +
+          `<div class="tip-desc">${d.description}</div>` +
+          `<div class="tip-tags">` +
+          `<span class="tip-tag">${d.type}</span>` +
+          `<span class="tip-tag">${d.layer}</span>` +
+          (d.technology
+            ? `<span class="tip-tag" style="color:#2dd4bf">${d.technology}</span>`
+            : "") +
+          `</div>`;
+
+        // Position near the node
+        const pos = node.renderedPosition();
+        const tipW = 280;
+        const tipH = 200;
+        let x = pos.x + 20;
+        let y = pos.y + 20;
+        if (x + tipW > window.innerWidth) x = pos.x - tipW - 20;
+        if (y + tipH > window.innerHeight) y = pos.y - tipH - 20;
+        if (x < 0) x = 8;
+        if (y < 0) y = 8;
+        tooltip.style.left = x + "px";
+        tooltip.style.top = y + "px";
+
+        tooltip.style.display = "block";
+        requestAnimationFrame(() => tooltip.classList.add("visible"));
+        activeTooltipNode = node;
+
+        if (!document.querySelector(".flow-card.active")) {
+          cy.elements().addClass("dimmed");
+          node.removeClass("dimmed");
+          node.connectedEdges().removeClass("dimmed");
+          node.connectedEdges().connectedNodes().removeClass("dimmed");
+        }
+      }
+
+      function hideTooltip() {
+        tooltip.classList.remove("visible");
+        setTimeout(() => {
+          tooltip.style.display = "none";
+        }, 200);
+        activeTooltipNode = null;
+
+        if (!document.querySelector(".flow-card.active")) {
+          cy.elements().removeClass("dimmed");
+        }
+      }
+
+      cy.on("tap", "node", function (e) {
+        const node = e.target;
+        if (activeTooltipNode && activeTooltipNode.id() === node.id()) {
+          hideTooltip();
+        } else {
+          showTooltip(node);
+        }
+      });
+
+      cy.on("tap", function (e) {
+        if (e.target === cy) hideTooltip();
+      });
+
+      // ── Flow cards ──
+      const flowsContainer = document.getElementById("flows-container");
+
+      architecture.flows.forEach((flow) => {
+        const card = document.createElement("div");
+        card.className = "flow-card";
+        card.innerHTML =
+          `<div class="flow-card-head">` +
+          `<span class="flow-card-name">${flow.name}</span>` +
+          `<span class="flow-card-badge">${flow.steps.length} steps</span>` +
+          `</div>` +
+          `<div class="flow-card-desc">${flow.description}</div>` +
+          `<div class="flow-steps">` +
+          `<div class="flow-steps-label">Execution path</div>` +
+          `<div class="steps-content"></div>` +
+          `</div>`;
+
+        card.addEventListener("click", () => {
+          const isActive = card.classList.contains("active");
+
+          // Close all
+          document
+            .querySelectorAll(".flow-card.active")
+            .forEach((c) => c.classList.remove("active"));
+          cy.elements().removeClass("highlighted-node highlighted-edge dimmed");
+
+          if (isActive) return;
+
+          card.classList.add("active");
+
+          const stepsContent = card.querySelector(".steps-content");
+          stepsContent.innerHTML = flow.steps
+            .map((step) => {
+              const nd = architecture.nodes.find((n) => n.id === step.node);
+              const c = nd ? colors[nd.type] : "#fff";
+              const ic = nd ? icons[nd.type] : "ph-cube";
+              return (
+                `<div class="step-item">` +
+                `<div class="step-num" style="background:${c}">${step.order}</div>` +
+                `<div class="step-body">` +
+                `<div class="step-node-name"><i class="ph ${ic}"></i> ${nd ? nd.label : step.node}</div>` +
+                `<div class="step-action">${step.action}</div>` +
+                `</div></div>`
+              );
+            })
+            .join("");
+
+          // Highlight on graph
+          cy.elements().addClass("dimmed");
+          const nodeIds = flow.steps.map((s) => s.node);
+          const nodes = cy.nodes().filter((n) => nodeIds.includes(n.id()));
+          nodes.removeClass("dimmed").addClass("highlighted-node");
+
+          for (let i = 0; i < nodeIds.length - 1; i++) {
+            const edge = cy.edges(
+              `[source = "${nodeIds[i]}"][target = "${nodeIds[i + 1]}"]`,
+            );
+            if (edge.length)
+              edge.removeClass("dimmed").addClass("highlighted-edge");
+          }
+
+          cy.animate({
+            fit: { eles: nodes, padding: 100 },
+            duration: 600,
+            easing: "ease-out-quint",
+          });
+        });
+
+        flowsContainer.appendChild(card);
+      });
+
+      // ── Reset ──
+      document.getElementById("reset-btn").addEventListener("click", () => {
+        cy.elements().removeClass("highlighted-node highlighted-edge dimmed");
+        document
+          .querySelectorAll(".flow-card.active")
+          .forEach((c) => c.classList.remove("active"));
+        cy.animate({
+          fit: { eles: cy.elements(), padding: 120 },
+          duration: 600,
+          easing: "ease-out-quint",
+        });
+        document.getElementById("search").value = "";
+      });
+
+      // ── Search ──
+      document.getElementById("search").addEventListener("input", (e) => {
+        const q = e.target.value.toLowerCase();
+        if (!q) {
+          cy.elements().removeClass("dimmed");
+          return;
+        }
+
+        cy.elements().addClass("dimmed");
+        const matches = cy
+          .nodes()
+          .filter(
+            (n) =>
+              n.data("label").toLowerCase().includes(q) ||
+              n.data("fullData").description.toLowerCase().includes(q) ||
+              (n.data("fullData").path &&
+                n.data("fullData").path.toLowerCase().includes(q)),
+          );
+        matches.removeClass("dimmed");
+        matches.connectedEdges().removeClass("dimmed");
+      });
+
+      // ── Panel toggle ──
+      const panel = document.getElementById("right-panel");
+      function togglePanel() {
+        panel.classList.toggle("collapsed");
+      }
+      document
+        .getElementById("toggle-panel-btn")
+        .addEventListener("click", togglePanel);
+      document
+        .getElementById("panel-toggle-external")
+        .addEventListener("click", togglePanel);
+
+      // ── Keyboard shortcuts ──
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          document.getElementById("reset-btn").click();
+          if (typeof hideTooltip === 'function') hideTooltip();
+        }
+        if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+          e.preventDefault();
+          document.getElementById("search").focus();
+        }
+      });
+    </script>
+  </body>
+</html>

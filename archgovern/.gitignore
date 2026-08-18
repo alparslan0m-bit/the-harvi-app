@@ -1,0 +1,7 @@
+# archgovern generated artifacts (package root)
+/data/
+/architecture.json
+/architecture.html
+/ARCHITECTURE.md
+/ARCHITECTURE_CHARTS.md
+node_modules/

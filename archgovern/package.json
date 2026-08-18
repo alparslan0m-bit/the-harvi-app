@@ -1,0 +1,30 @@
+{
+  "name": "archgovern",
+  "version": "0.1.0",
+  "description": "Zero-dependency architecture governance engine: scans your codebase, derives a verified dependency graph (nodes, edges, flows), and renders ARCHITECTURE.md + interactive HTML. Fails the build on any drift.",
+  "license": "MIT",
+  "bin": {
+    "archgovern": "bin/archgovern.js"
+  },
+  "main": "lib/run.js",
+  "files": [
+    "bin",
+    "lib",
+    "template.html"
+  ],
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "architecture",
+    "governance",
+    "graph",
+    "dependency-graph",
+    "documentation",
+    "visualization",
+    "archgovern"
+  ]
+}
