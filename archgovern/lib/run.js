@@ -18,7 +18,8 @@ const path = require("path");
 
 const { walk } = require("./fs-utils");
 const { extractImports } = require("./imports");
-const { resolveImportToNode, detectRemoteUsage } = require("./resolve");
+const { resolveImportToNode, detectRemoteUsage, normalizeAliases } = require("./resolve");
+const { discoverTsconfigAliases } = require("./tsconfig");
 const {
   validateNodeMapping,
   classifyFiles,
@@ -26,7 +27,7 @@ const {
   buildVerifiedEdges,
 } = require("./graph");
 const { deriveNodeFacts, applyDerivedDescriptions } = require("./facts");
-const { scanCuratedContent } = require("./lint");
+const { scanCuratedContent, scanFlowSymbols } = require("./lint");
 const { renderArchitectureMd, renderChartsMd, renderHtml } = require("./render");
 
 function runGovernance({ projectRoot, config }) {
@@ -34,7 +35,6 @@ function runGovernance({ projectRoot, config }) {
     sourceRoots,
     fileExtensions,
     skipDirs,
-    aliases,
     nodeMapping,
     externalPackageMap,
     remoteNodes,
@@ -49,6 +49,17 @@ function runGovernance({ projectRoot, config }) {
   } = config;
 
   const walkOpts = { extensions: fileExtensions, skipDirs };
+
+  // ==========================================================================
+  //  ALIAS RESOLUTION — explicit config aliases, merged with tsconfig paths
+  // ==========================================================================
+
+  const tsconfigAliases = discoverTsconfigAliases({
+    projectRoot,
+    sourceRoots,
+    tsconfigPaths: config.tsconfigPaths,
+  });
+  const aliases = normalizeAliases(config.aliases, tsconfigAliases);
 
   // ==========================================================================
   //  LOAD EXISTING METADATA (for round-tripping descriptions/labels)
@@ -272,6 +283,16 @@ function runGovernance({ projectRoot, config }) {
     }
   });
 
+  // Advisory flow-symbol drift check (renamed functions in curated prose).
+  const flowSymbolWarnings = config.flowSymbolCheck
+    ? scanFlowSymbols({
+        flows: existingFlows,
+        nodeToFiles,
+        allNodeIds,
+        readFile: (file) => fs.readFileSync(file, "utf8"),
+      })
+    : [];
+
   // ==========================================================================
   //  PRE-RENDER OUTPUT STRINGS (never written here)
   // ==========================================================================
@@ -330,6 +351,14 @@ function runGovernance({ projectRoot, config }) {
   const nodesChanged = nodesJsContent !== oldNodesContent;
   const edgesChanged = edgesJsContent !== oldEdgesContent;
 
+  // Strict mode: local files imported but not covered by nodeMapping mean the
+  // graph is incomplete — fail the build instead of just advising.
+  const unmappedLocalImports =
+    config.strictUnmappedLocal === true
+      ? droppedImports.filter((d) => d.reason === "resolved-unmapped")
+      : [];
+  const strictLocalFail = unmappedLocalImports.length > 0;
+
   const hasChanges =
     nodesChanged ||
     edgesChanged ||
@@ -340,6 +369,7 @@ function runGovernance({ projectRoot, config }) {
     stalePatterns.length > 0 ||
     flowWarnings.length > 0 ||
     contentViolations.length > 0 ||
+    strictLocalFail ||
     (staleMetadataPaths && staleMetadataPaths.length > 0);
 
   return {
@@ -353,7 +383,10 @@ function runGovernance({ projectRoot, config }) {
     existingFlowTriggerEdges,
     nodeToFiles,
     flowWarnings,
+    flowSymbolWarnings,
     contentViolations,
+    unmappedLocalImports,
+    strictLocalFail,
     edgeEvidence,
     droppedImports,
     stalePatterns,

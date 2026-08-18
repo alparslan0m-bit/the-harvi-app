@@ -91,6 +91,16 @@ module.exports = {
   //   { phrase: "legacyCache", reason: "removed in v2 — replaced by SQLite" },
   // ],
 
+  // Accuracy guards:
+  //   tsconfigPaths: true  -> auto-discover compilerOptions.paths from tsconfig
+  //   strictUnmappedLocal: true -> fail when a local file is imported but not
+  //        covered by nodeMapping (graph incomplete)
+  //   flowSymbolCheck: true -> advisory: flag flow steps calling code-like
+  //        identifiers missing from the step's node (renamed functions)
+  // tsconfigPaths: true,
+  // strictUnmappedLocal: false,
+  // flowSymbolCheck: false,
+
   // Output locations (relative to this file).
   dataDir: "archgovern/data",
   jsonFile: "archgovern/architecture.json",

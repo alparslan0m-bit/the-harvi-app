@@ -9,6 +9,9 @@ architecture, **the build fails**.
 - 🧩 **Project-agnostic** — every assumption (source dirs, aliases, node mapping,
   remote APIs, derived facts, output paths) lives in one config file. Works for
   React, Vue, Express, monorepos, apps, libraries — anything with source files.
+- 🎯 **Accuracy-first** — import extraction and barrel tracing are comment-safe,
+  CommonJS-aware, and path aliases are auto-discovered from `tsconfig.json`.
+  No phantom edges from commented-out code.
 - 🔁 **Idempotent** — run it twice and the second run exits 0 with no file changes.
 - 🛡 **Anti-drift** — structurally-extracted facts (table lists, RPCs, endpoints…)
   are overlaid onto node descriptions, and curated prose is linted against
@@ -84,6 +87,8 @@ module.exports = {
   fileExtensions: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"],
   skipDirs: ["node_modules", ".git", ".expo", ".next", "dist", "build", ...],
   aliases: { "@": "src" },            // "@/lib/api" → "src/lib/api" per source root
+  tsconfigPaths: true,                // auto-discover compilerOptions.paths from
+                                      // tsconfig files (explicit aliases win)
 
   // ── the graph ───────────────────────────────────────────────────────────
   nodeMapping: {                      // nodeId -> path patterns (longest match wins)
@@ -128,6 +133,17 @@ module.exports = {
   curatedContentBans: [
     { phrase: "legacyCache", reason: "removed in v2 — replaced by SQLite" },
   ],
+
+  // ── accuracy guards ──────────────────────────────────────────────────────
+  // Fail the build when a LOCAL file is imported but not covered by nodeMapping
+  // (i.e. the graph is incomplete). Off by default — those are advisory.
+  strictUnmappedLocal: false,
+  // Advisory only: flag flow-step actions that CALL a code-like identifier
+  // (CamelCase / snake_case, e.g. `BackButton(`) that appears in no file of
+  // the step's node. Skips member accesses (`supabase.auth.signUp(`) and
+  // plain prose words. Catches renamed functions in curated flow prose.
+  // Never fails the build.
+  flowSymbolCheck: false,
 
   // ── rendering ────────────────────────────────────────────────────────────
   orderedLayers: ["presentation", "application", "infrastructure", "external"],
@@ -188,6 +204,26 @@ Key rules:
 - **`flows.js` is curated and never overwritten** — but flows referencing
   missing nodes fail the build.
 - **Idempotent**: a clean second run produces zero diffs and exits 0.
+
+## Accuracy guarantees
+
+archgovern is deliberately stricter than a regex + `grep` pipeline. Concretely:
+
+| Guarantee | How |
+| --- | --- |
+| No phantom edges from commented-out code | Import extraction and barrel re-export tracing both run on comment/string-stripped content (byte-length preserved) |
+| CommonJS + ESM barrels both traced | `export * from`, `export * as ns from`, `module.exports = require(...)`, `exports.foo = require(...)` |
+| Aliases can't silently go missing | `compilerOptions.paths` auto-discovered from tsconfig (local `extends` followed), including wildcard `*` substitution; explicit config aliases win |
+| `module.require` / dynamic `import()` / `require` all caught | comment-safe extraction with boundary checks (`obj.require(` is not a module load) |
+| Incomplete graph can fail the build | `strictUnmappedLocal` — imported local files outside `nodeMapping` fail instead of just warning |
+| Renamed functions in flow prose are surfaced | `flowSymbolCheck` flags step actions calling code-like identifiers (CamelCase/snake_case, member accesses and prose words skipped) absent from the node's files (advisory) |
+| Stale prose can't be committed silently | `curatedContentBans` fails the build on any banned term in node/edge/flow text |
+
+Two honest limits: hand-written **prose truth** (a sentence that is grammatical but
+factually wrong) can't be proven by any static tool — the bans + symbol check
+minimize it. And exotic package `exports`-map resolution inside `node_modules`
+is not modeled; bare packages not in `externalPackageMap` are reported as
+advisory unmapped imports.
 
 ## CI / pre-commit
 

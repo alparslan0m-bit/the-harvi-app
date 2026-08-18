@@ -150,14 +150,16 @@ function buildVerifiedEdges(edgeEvidence, existingEdges, existingFlowTriggerEdge
   let edgeCounter = 1;
   const verifiedArchEdges = [];
 
-  // Sort edges to maintain stable order (existing edges first, then new ones)
+// Sort edges to maintain stable order (existing edges first, then new ones)
+  const edgeNum = (e) => {
+    const m = /^e(\d+)$/.exec(e.id || "");
+    return m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER;
+  };
   const allEdgeKeys = [...edgeEvidence.keys()].sort((a, b) => {
     const aExisting = existingEdgeMap.has(a);
     const bExisting = existingEdgeMap.has(b);
     if (aExisting && bExisting) {
-      const aId = parseInt(existingEdgeMap.get(a).id.replace("e", ""), 10);
-      const bId = parseInt(existingEdgeMap.get(b).id.replace("e", ""), 10);
-      return aId - bId;
+      return edgeNum(existingEdgeMap.get(a)) - edgeNum(existingEdgeMap.get(b));
     }
     if (aExisting) return -1;
     if (bExisting) return 1;

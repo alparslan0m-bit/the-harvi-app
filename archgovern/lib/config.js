@@ -42,7 +42,14 @@ const DEFAULT_CONFIG = {
 
   // Path alias map, e.g. { "@": "src" } turns "@/lib/api" into "src/lib/api"
   // under each source root. An empty target maps to the source root itself.
+  // Explicit aliases always win over tsconfig-discovered ones.
   aliases: {},
+
+  // Auto-discover `compilerOptions.paths` from tsconfig files and merge them
+  // into aliases (explicit `aliases` win). true = discover from
+  // <projectRoot>/tsconfig.json + each <sourceRoot>/tsconfig.json (following
+  // local `extends`); a string = explicit tsconfig path; false = off.
+  tsconfigPaths: true,
 
   // nodeId -> array of path patterns (relative to project root). Longest
   // pattern wins when multiple nodes could claim the same file.
@@ -73,6 +80,15 @@ const DEFAULT_CONFIG = {
   // Hand-authored prose (node/edge/flow text) must never contain these terms.
   // Any hit fails the build. Each entry: { phrase, reason }.
   curatedContentBans: [],
+
+  // Accuracy guards (see README):
+  // strictUnmappedLocal — fail the build when a LOCAL file is imported but is
+  //   not covered by any nodeMapping pattern (i.e. the graph is incomplete).
+  // flowSymbolCheck — advisory only: flag flow-step actions that reference an
+  //   identifier (word immediately before a `(`) absent from every file of the
+  //   step's node. Catches renamed functions in curated flow prose.
+  strictUnmappedLocal: false,
+  flowSymbolCheck: false,
 
   // Layer order used when rendering markdown/charts.
   orderedLayers: ["presentation", "application", "infrastructure", "external"],
@@ -213,6 +229,15 @@ function validateConfig(config) {
     if (!ban || typeof ban.phrase !== "string") {
       problems.push(`curatedContentBans[${i}] needs a phrase string`);
     }
+  }
+  if (typeof config.strictUnmappedLocal !== "boolean") {
+    problems.push("strictUnmappedLocal must be a boolean");
+  }
+  if (typeof config.flowSymbolCheck !== "boolean") {
+    problems.push("flowSymbolCheck must be a boolean");
+  }
+  if (config.tsconfigPaths !== false && config.tsconfigPaths !== true && typeof config.tsconfigPaths !== "string") {
+    problems.push("tsconfigPaths must be a boolean or a tsconfig file path");
   }
 
   if (problems.length > 0) {

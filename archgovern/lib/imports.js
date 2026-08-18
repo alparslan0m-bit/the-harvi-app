@@ -229,7 +229,8 @@ function extractImports(content) {
   const regexes = [
     /from\s+['"]([^'"]+)['"]/g,
     /import\s+['"]([^'"]+)['"]/g,
-    /require\(\s*['"]([^'"]+)['"]\s*\)/g,
+    /(?<![\w$.])require\(\s*['"]([^'"]+)['"]\s*\)/g,
+    /module\.require\(\s*['"]([^'"]+)['"]\s*\)/g,
     /import\(\s*['"]([^'"]+)['"]\s*\)/g,
   ];
   const matches = [];
